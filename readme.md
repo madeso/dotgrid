@@ -1,6 +1,4 @@
-DOTGRID
-
----------------
+# DOTGRID
 
 Dotgrid is a grid-based vector drawing software designed to create logos, icons and type. 
 It supports layers, the full SVG specs and additional effects such as mirroring and radial drawing. 
@@ -13,13 +11,13 @@ and later made available as a free and open source software.
 - Video Tutorial: https://www.youtube.com/watch?v=Xt1zYHhpypk
 - Community: https://hundredrabbits.itch.io/dotgrid/community
 
-Drag
+## Drag
 
 - Hold Shift to drag a segment.
 - Hold Alt to drag all segments.
 - Right-click to delete a vertex.
 
-Controls
+## Controls
 
 ∷        Toggle Menubar   Tab
 ∷        Open Theme       ^Shift+O
@@ -62,12 +60,21 @@ Style    Thinner          {
 Style    Thicker +5       ]
 Style    Thinner -5       [
 
-Extras
+## Extras
 
 - Themes: https://github.com/hundredrabbits/Themes
 - Support: https://patreon.com/100
 - Pull Requests are welcome!
 
-Licenses
+## Licenses
 
 Dotgrid's source code is licensed under MIT and the images, text and assets are licensed under BY-NC-SA 4.0. View individual licenses for details.
+
+
+## Dev
+
+```bash
+cd dotgrid
+npm install
+npm run dev
+```
