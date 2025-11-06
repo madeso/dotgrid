@@ -288,7 +288,7 @@ export class Client {
     this.renderer.start();
     this.interface.start();
 
-    this.history.push(this.layers); // initial state
+    this.history.push(this.tool.layers); // initial state
 
     this.source.new();
     this.onResize();
@@ -319,7 +319,7 @@ export class Client {
     this.update();
   }
 
-  whenOpen(file: unknown, data: string) {
+  whenOpen(_: unknown, data: string) {
     this.tool.replace(JSON.parse(data));
     this.onResize();
   }
@@ -424,10 +424,11 @@ export class Client {
   onDrop(e: DragEvent) {
     e.preventDefault();
     e.stopPropagation();
-    const file = e.dataTransfer.files[0];
+    const file = e.dataTransfer?.files[0] ?? null;
 
-    if (file.name.indexOf(".grid") > -1) {
-      this.source.read(e.dataTransfer.files[0], this.whenOpen);
+    const index = file?.name?.indexOf(".grid") ?? null;
+    if (file && index !== null && index > -1) {
+      this.source.read(file, this.whenOpen);
     }
   }
 
