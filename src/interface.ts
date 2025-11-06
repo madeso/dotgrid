@@ -1,4 +1,5 @@
 import { Client } from "./client";
+import { Operation } from "./cursor";
 
 interface Button {
   key: string;
@@ -131,7 +132,7 @@ export class Interface {
   menu_el: HTMLDivElement;
   isVisible: boolean;
   zoom: boolean;
-  prev_operation: null;
+  prev_operation: null | Operation;
 
   constructor(client: Client) {
     this.client = client;
@@ -216,22 +217,23 @@ export class Interface {
     this.client.cursor.operation = {};
     this.client.cursor.operation[type] = name;
     this.update(true);
-    this.client.renderer.update(true);
+    this.client.renderer.update();
   }
 
   out() {
-    this.client.cursor.operation = "";
-    this.client.renderer.update(true);
+    this.client.cursor.operation = {};
+    this.client.renderer.update();
   }
 
   up(type: string, name: string) {
+    // this.client.tool
     if (!this.client.tool[type]) {
       console.warn(`Unknown option(type): ${type}.${name}`, this.client.tool);
       return;
     }
 
     this.update(true);
-    this.client.renderer.update(true);
+    this.client.renderer.update();
   }
 
   down(type: string, name: string, event: MouseEvent) {
@@ -242,7 +244,7 @@ export class Interface {
     const mod = event.button === 2 ? -1 : 1;
     this.client.tool[type](name, mod);
     this.update(true);
-    this.client.renderer.update(true);
+    this.client.renderer.update();
   }
 
   update(force = false) {
@@ -311,10 +313,11 @@ export class Interface {
       options.toggle.fill.el,
       this.client.tool.layer().length < 1 ? "icon inactive" : "icon"
     );
-    options.misc.color.el.children[0].style.fill =
-      this.client.tool.style().color;
-    options.misc.color.el.children[0].style.stroke =
-      this.client.tool.style().color;
+    if(options.misc.color.el) {
+      const child = options.misc.color.el.children[0];
+      child.style.fill = this.client.tool.style().color;
+      child.style.stroke = this.client.tool.style().color;
+    }
     setBaseVal(options.misc.color.el, "icon");
     setBaseVal(
       options.source.save.el,

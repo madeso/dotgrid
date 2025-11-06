@@ -49,8 +49,8 @@ export class Manager {
       "height",
       this.client.tool.settings.size.height + "px"
     );
-    this.el.style.width = this.client.tool.settings.size.width;
-    this.el.style.height = this.client.tool.settings.size.height;
+    this.el.style.width = this.client.tool.settings.size.width.toString();
+    this.el.style.height = this.client.tool.settings.size.height.toString();
 
     const styles = this.client.tool.styles;
     const paths = this.client.tool.paths();
@@ -60,11 +60,11 @@ export class Manager {
       const path = paths[id];
       const layer = this.layers[id];
 
-      layer.style.strokeWidth = style.thickness;
+      layer.style.strokeWidth = style.thickness.toString();
       layer.style.strokeLinecap = style.strokeLinecap;
       layer.style.strokeLinejoin = style.strokeLinejoin;
       layer.style.stroke = style.color;
-      layer.style.fill = style.fill;
+      layer.style.fill = style.fill ?? "none";
 
       layer.setAttribute("d", path);
     }

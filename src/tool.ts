@@ -381,7 +381,7 @@ export class Tool {
     return false;
   }
 
-  canCast(type?: SegmentType) {
+  canCast(type?: SegmentType | null) {
     if (!type) {
       return false;
     }

@@ -1,4 +1,4 @@
-import { Point } from "./_types";
+import { Point, SegmentType } from "./_types";
 import { Client } from "./client";
 
 function isEqual(a: Point | undefined, b: Point | undefined) {
@@ -11,6 +11,10 @@ function step(v: number, s: number) {
   return Math.round(v / s) * s;
 }
 
+export interface Operation {
+  cast?: SegmentType
+}
+
 export class Cursor {
   pos: Point;
   lastPos: Point;
@@ -21,7 +25,7 @@ export class Cursor {
     from?: Point;
     to?: Point;
   };
-  operation: null;
+  operation: null | Operation;
   client: Client;
 
   constructor(client: Client) {
@@ -51,7 +55,9 @@ export class Cursor {
         this.translation.to = to;
       }
     }
+    //else {
     if (!from && !to) {
+      console.assert(!from && !to);
       this.translation = null;
     }
   }
@@ -91,25 +97,28 @@ export class Cursor {
       this.translation &&
       !isEqual(this.translation.from, this.translation.to)
     ) {
-      if (this.translation.layer === true) {
-        this.client.tool.translateLayer(
-          this.translation.from,
-          this.translation.to
-        );
-      } else if (this.translation.copy) {
-        this.client.tool.translateCopy(
-          this.translation.from,
-          this.translation.to
-        );
-      } else if (this.translation.multi) {
-        this.client.tool.translateMulti(
-          this.translation.from,
-          this.translation.to
-        );
-      } else {
-        this.client.tool.translate(this.translation.from, this.translation.to);
+      if(this.translation.from && this.translation.to) {
+        if (this.translation.layer === true) {
+          this.client.tool.translateLayer(
+            this.translation.from,
+            this.translation.to
+          );
+        } else if (this.translation.copy) {
+          this.client.tool.translateCopy(
+            this.translation.from,
+            this.translation.to
+          );
+        } else if (this.translation.multi) {
+          this.client.tool.translateMulti(
+            this.translation.from,
+            this.translation.to
+          );
+        } else {
+          this.client.tool.translate(this.translation.from, this.translation.to);
+        }
       }
-    } else if (e.target.id === "guide") {
+    } else if ((e.target as any).id === "guide") {
+      // clicked inside the grid and for example not on the toolbar...
       this.client.tool.addVertex({ x: this.pos.x, y: this.pos.y });
       this.client.picker.stop();
     }

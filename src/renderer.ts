@@ -203,7 +203,7 @@ export class Renderer {
   }
 
   drawRulers() {
-    if (!this.client.cursor.translation) {
+    if (!this.client.cursor.translation?.to) {
       return;
     }
 
@@ -234,17 +234,19 @@ export class Renderer {
       return;
     }
 
-    const path = new Generator([
-      { vertices: this.client.tool.vertices, type: operation },
-    ]).toString({ x: 0, y: 0 }, 2);
-    const style = {
-      color: this.client.theme.active.f_med,
-      thickness: 2,
-      strokeLinecap: "round",
-      strokeLinejoin: "round",
-      strokeLineDash: [5, 15],
-    } as SingleStyle;
-    this.drawPath(path, style);
+    if(operation) {
+      const style: SingleStyle = {
+        color: this.client.theme.active.f_med,
+        thickness: 2,
+        strokeLinecap: "round",
+        strokeLinejoin: "round",
+        strokeLineDash: [5, 15],
+      } as SingleStyle;
+      const path = new Generator(this.client, [
+        { vertices: this.client.tool.vertices, type: operation },
+      ], style).toString({ x: 0, y: 0 }, 2);
+      this.drawPath(path, style);
+    }
   }
 
   // Elements
@@ -333,7 +335,10 @@ export class Renderer {
 
   drawTranslation() {
     if (this.context === null) return;
-    if (!this.client.cursor.translation) {
+    if (!this.client.cursor.translation?.to) {
+      return;
+    }
+    if (!this.client.cursor.translation?.from) {
       return;
     }
 

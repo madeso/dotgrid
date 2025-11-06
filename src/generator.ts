@@ -27,6 +27,9 @@ export class Generator {
   client: Client;
 
   constructor(client: Client, layer: SingleLayer, style: SingleStyle) {
+    console.assert(!!client, "client", client);
+    console.assert(!!layer, "layer", layer);
+    console.assert(!!style, "style", style);
     this.client = client;
     this.layer = layer;
     this.style = style;
@@ -38,7 +41,7 @@ export class Generator {
     scale: number,
     mirror = 0,
     angle = 0
-  ) {
+  ): SingleLayer {
     const l = structuredClone(layer);
 
     for (const k1 in l) {
