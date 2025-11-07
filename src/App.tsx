@@ -8,15 +8,15 @@ import type { Colors } from './theme';
 const App = () => {
 
   const theme: Colors = {
-    background: '#E0B1CB',
-    f_high: '#231942',
-    f_med: '#5E548E',
-    f_low: '#BE95C4',
-    f_inv: '#E0B1CB',
-    b_high: '#FFFFFF',
-    b_med: '#5E548E',
-    b_low: '#BE95C4',
-    b_inv: '#9F86C0'
+    background: "#eeeeee",
+    f_high: "#0a0a0a",
+    f_med: "#4a4a4a",
+    f_low: "#6a6a6a",
+    f_inv: "#111111",
+    b_high: "#a1a1a1",
+    b_med: "#c1c1c1",
+    b_low: "#ffffff",
+    b_inv: "#ffb545",
   };
 
   return (
