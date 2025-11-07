@@ -1,10 +1,6 @@
-/* global Image */
-/* global Path2D */
-/* global Generator */
-
-import { Point, SingleStyle } from "./_types";
+import type { Point, SingleStyle } from "./_types";
 import { Client } from "./client";
-import { Generator } from "./generator";
+import { generate_wrap } from "./generator";
 
 interface Size {
   width: number;
@@ -242,9 +238,9 @@ export class Renderer {
         strokeLinejoin: "round",
         strokeLineDash: [5, 15],
       } as SingleStyle;
-      const path = new Generator(this.client, [
+      const path = generate_wrap(this.client, [
         { vertices: this.client.tool.vertices, type: operation },
-      ], style).toString({ x: 0, y: 0 }, 2);
+      ], style, { x: 0, y: 0 }, 2);
       this.drawPath(path, style);
     }
   }

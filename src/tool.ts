@@ -1,4 +1,4 @@
-import {
+import type {
   Point,
   Layers,
   SingleLayer,
@@ -9,7 +9,7 @@ import {
 } from "./_types";
 import { Client } from "./client";
 
-import { Generator } from "./generator";
+import { generate_wrap } from "./generator";
 
 function clamp(v: number, min: number, max: number) {
   return v < min ? min : v > max ? max : v;
@@ -28,7 +28,7 @@ interface ParsedTool {
 type ToolType = "linecap" | "linejoin" | "fill" | "thickness" | "mirror";
 type SourceType = "grid" | "open" | "save" | "export" | "render";
 
-export const jsonDump = (target: any) => {
+export const jsonDump = (target: unknown) => {
   return JSON.stringify(structuredClone(target), null, 2);
 };
 
@@ -406,31 +406,31 @@ export class Tool {
   }
 
   paths(): [string, string, string] {
-    const l1 = new Generator(
+    const l1 = generate_wrap(
       this.client,
       this.client.tool.layers[0],
       this.client.tool.styles[0]
-    ).toString({ x: 0, y: 0 }, 1);
-    const l2 = new Generator(
+    , { x: 0, y: 0 }, 1);
+    const l2 = generate_wrap(
       this.client,
       this.client.tool.layers[1],
       this.client.tool.styles[1]
-    ).toString({ x: 0, y: 0 }, 1);
-    const l3 = new Generator(
+    ,{ x: 0, y: 0 }, 1);
+    const l3 = generate_wrap(
       this.client,
       this.client.tool.layers[2],
       this.client.tool.styles[2]
-    ).toString({ x: 0, y: 0 }, 1);
+    ,{ x: 0, y: 0 }, 1);
 
     return [l1, l2, l3];
   }
 
   path() {
-    return new Generator(
+    return generate_wrap(
       this.client,
       this.client.tool.layer(),
       this.client.tool.style()
-    ).toString({ x: 0, y: 0 }, 1);
+    , { x: 0, y: 0 }, 1);
   }
 
   translate(a: Point, b: Point) {

@@ -1,5 +1,12 @@
 import { Client } from "./client";
-import { Point, Segment, SingleLayer, SingleStyle } from "./_types";
+import type {
+  Mirror,
+  Point,
+  Segment,
+  SingleLayer,
+  SingleStyle,
+  Size,
+} from "./_types";
 
 function rotatePoint(point: Point, origin: Point, angle: number) {
   angle = (angle * Math.PI) / 180.0;
@@ -21,161 +28,172 @@ function rotatePoint(point: Point, origin: Point, angle: number) {
   };
 }
 
-export class Generator {
-  layer: SingleLayer;
-  style: SingleStyle;
-  client: Client;
+const _line = (a: Point) => {
+  return `L${a.x},${a.y} `;
+};
 
-  constructor(client: Client, layer: SingleLayer, style: SingleStyle) {
-    console.assert(!!client, "client", client);
-    console.assert(!!layer, "layer", layer);
-    console.assert(!!style, "style", style);
-    this.client = client;
-    this.layer = layer;
-    this.style = style;
+const _arc = (a?: Point, b?: Point, c?: string) => {
+  if (!a || !b || !c) {
+    return "";
   }
 
-  operate(
-    layer: SingleLayer,
-    offset: Point,
-    scale: number,
-    mirror = 0,
-    angle = 0
-  ): SingleLayer {
-    const l = structuredClone(layer);
+  const offset = { x: b.x - a.x, y: b.y - a.y };
 
-    for (const k1 in l) {
-      const seg = l[k1];
-      for (const k2 in seg.vertices) {
-        if (mirror === 1 || mirror === 3) {
-          seg.vertices[k2].x =
-            this.client.tool.settings.size.width - seg.vertices[k2].x;
-        }
-        if (mirror === 2 || mirror === 3) {
-          seg.vertices[k2].y =
-            this.client.tool.settings.size.height - seg.vertices[k2].y;
-        }
-        // Offset
-        seg.vertices[k2].x += offset.x;
-        seg.vertices[k2].y += offset.y;
-        // Rotate
-        const center = {
-          x: this.client.tool.settings.size.width / 2 + offset.x + 7.5,
-          y: this.client.tool.settings.size.height / 2 + offset.y + 30,
-        };
-        seg.vertices[k2] = rotatePoint(seg.vertices[k2], center, angle);
-        // Scale
-        seg.vertices[k2].x *= scale;
-        seg.vertices[k2].y *= scale;
+  if (offset.x === 0 || offset.y === 0) {
+    return _line(b);
+  }
+  return `A${Math.abs(b.x - a.x)},${Math.abs(b.y - a.y)} 0 ${c} ${b.x},${b.y} `;
+};
+
+const _bezier = (a?: Point, b?: Point) => {
+  if (!a || !b) {
+    return "";
+  }
+  return `Q${a.x},${a.y} ${b.x},${b.y} `;
+};
+
+const render = (
+  prev: Point | null,
+  segment: Segment,
+  mirror: Mirror = "zero"
+) => {
+  const type = segment.type;
+  const vertices = segment.vertices;
+  let html = "";
+  let skip = 0;
+
+  for (let id = 0; id < vertices.length; id += 1) {
+    if (skip > 0) {
+      skip -= 1;
+      continue;
+    }
+
+    const vertex = vertices[id];
+    const next = vertices[id + 1];
+    const afterNext = vertices[id + 2];
+
+    if (id === 0 && !prev) {
+      html += `M${vertex.x},${vertex.y} `;
+    } else if (
+      id === 0 &&
+      prev &&
+      (prev.x !== vertex.x || prev.y !== vertex.y)
+    ) {
+      html += `M${vertex.x},${vertex.y} `;
+    }
+
+    if (type === "line") {
+      html += _line(vertex);
+    } else if (type === "arc_c") {
+      const clock = mirror == "one" || mirror == "two" ? "0,0" : "0,1";
+      html += _arc(vertex, next, clock);
+    } else if (type === "arc_r") {
+      const clock = mirror == "one" || mirror == "two" ? "0,1" : "0,0";
+      html += _arc(vertex, next, clock);
+    } else if (type === "arc_c_full") {
+      const clock = mirror !== "zero" ? "1,0" : "1,1";
+      html += _arc(vertex, next, clock);
+    } else if (type === "arc_r_full") {
+      const clock = mirror !== "zero" ? "1,1" : "1,0";
+      html += _arc(vertex, next, clock);
+    } else if (type === "bezier") {
+      html += _bezier(next, afterNext);
+      skip = 1;
+    }
+  }
+
+  if (segment.type === "close") {
+    html += "Z ";
+  }
+
+  return html;
+};
+
+const operate = (
+  size: Size,
+  layer: SingleLayer,
+  offset: Point,
+  scale: number,
+  mirror: Mirror,
+  angle = 0
+): SingleLayer => {
+  const l = structuredClone(layer);
+
+  for (const k1 in l) {
+    const seg = l[k1];
+    for (const k2 in seg.vertices) {
+      if (mirror === "one" || mirror === "three") {
+        seg.vertices[k2].x = size.width - seg.vertices[k2].x;
       }
-    }
-    return l;
-  }
-
-  render(prev: Point | null, segment: Segment, mirror = 0) {
-    const type = segment.type;
-    const vertices = segment.vertices;
-    let html = "";
-    let skip = 0;
-
-    for (let id = 0; id < vertices.length; id += 1) {
-      if (skip > 0) {
-        skip -= 1;
-        continue;
+      if (mirror === "two" || mirror === "three") {
+        seg.vertices[k2].y = size.height - seg.vertices[k2].y;
       }
-
-      const vertex = vertices[id];
-      const next = vertices[id + 1];
-      const afterNext = vertices[id + 2];
-
-      if (id === 0 && !prev) {
-        html += `M${vertex.x},${vertex.y} `;
-      } else if (
-        id === 0 &&
-        prev &&
-        (prev.x !== vertex.x || prev.y !== vertex.y)
-      ) {
-        html += `M${vertex.x},${vertex.y} `;
-      }
-
-      if (type === "line") {
-        html += this._line(vertex);
-      } else if (type === "arc_c") {
-        const clock = mirror > 0 && mirror < 3 ? "0,0" : "0,1";
-        html += this._arc(vertex, next, clock);
-      } else if (type === "arc_r") {
-        const clock = mirror > 0 && mirror < 3 ? "0,1" : "0,0";
-        html += this._arc(vertex, next, clock);
-      } else if (type === "arc_c_full") {
-        const clock = mirror > 0 ? "1,0" : "1,1";
-        html += this._arc(vertex, next, clock);
-      } else if (type === "arc_r_full") {
-        const clock = mirror > 0 ? "1,1" : "1,0";
-        html += this._arc(vertex, next, clock);
-      } else if (type === "bezier") {
-        html += this._bezier(next, afterNext);
-        skip = 1;
-      }
+      // Offset
+      seg.vertices[k2].x += offset.x;
+      seg.vertices[k2].y += offset.y;
+      // Rotate
+      const center = {
+        x: size.width / 2 + offset.x + 7.5,
+        y: size.height / 2 + offset.y + 30,
+      };
+      seg.vertices[k2] = rotatePoint(seg.vertices[k2], center, angle);
+      // Scale
+      seg.vertices[k2].x *= scale;
+      seg.vertices[k2].y *= scale;
     }
+  }
+  return l;
+};
 
-    if (segment.type === "close") {
-      html += "Z ";
-    }
+const convert = (layer: SingleLayer, mirror?: Mirror) => {
+  let s = "";
+  let prev = null;
+  for (let id = 0; id < layer.length; id += 1) {
+    const seg = layer[id];
+    s += `${render(prev, seg, mirror)}`;
+    prev = seg.vertices ? seg.vertices[seg.vertices.length - 1] : null;
+  }
+  return s;
+};
 
-    return html;
+export const generate = (
+  layer: SingleLayer,
+  offset: Point,
+  scale: number,
+  mirror: Mirror,
+  size: Size
+) => {
+  let s = convert(operate(size, layer, offset, scale, "zero"));
+
+  if (mirror !== "zero") {
+    s += convert(operate(size, layer, offset, scale, mirror), mirror);
   }
 
-  _line(a: Point) {
-    return `L${a.x},${a.y} `;
+  return s;
+};
+
+export const generate_wrap = (
+  client: Client,
+  layer: SingleLayer,
+  style: SingleStyle,
+  offset = { x: 0, y: 0 },
+  scale = 1,
+  mirror_arg?: number
+) => {
+  const size = client.tool.settings.size;
+  const mirror =
+    mirror_arg ?? (style && style.mirror_style ? style.mirror_style : 0);
+  let mirror_name: Mirror = "zero";
+  switch (mirror) {
+    case 1:
+      mirror_name = "one";
+      break;
+    case 2:
+      mirror_name = "two";
+      break;
+    case 3:
+      mirror_name = "three";
+      break;
   }
-
-  _arc(a?: Point, b?: Point, c?: string) {
-    if (!a || !b || !c) {
-      return "";
-    }
-
-    const offset = { x: b.x - a.x, y: b.y - a.y };
-
-    if (offset.x === 0 || offset.y === 0) {
-      return this._line(b);
-    }
-    return `A${Math.abs(b.x - a.x)},${Math.abs(b.y - a.y)} 0 ${c} ${b.x},${
-      b.y
-    } `;
-  }
-
-  _bezier(a?: Point, b?: Point) {
-    if (!a || !b) {
-      return "";
-    }
-    return `Q${a.x},${a.y} ${b.x},${b.y} `;
-  }
-
-  convert(layer: SingleLayer, mirror?: number) {
-    let s = "";
-    let prev = null;
-    for (let id = 0; id < layer.length; id += 1) {
-      const seg = layer[id];
-      s += `${this.render(prev, seg, mirror)}`;
-      prev = seg.vertices ? seg.vertices[seg.vertices.length - 1] : null;
-    }
-    return s;
-  }
-
-  toString(
-    offset = { x: 0, y: 0 },
-    scale = 1,
-    mirror = this.style && this.style.mirror_style ? this.style.mirror_style : 0
-  ) {
-    let s = this.convert(this.operate(this.layer, offset, scale));
-
-    if (mirror === 1 || mirror === 2 || mirror === 3) {
-      s += this.convert(
-        this.operate(this.layer, offset, scale, mirror),
-        mirror
-      );
-    }
-
-    return s;
-  }
-}
+  return generate(layer, offset, scale, mirror_name, size);
+};

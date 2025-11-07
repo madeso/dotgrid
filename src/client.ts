@@ -1,4 +1,4 @@
-import { Layers } from "./_types";
+import type { Layers } from "./_types";
 
 import { Acels } from "./acels";
 import { Theme } from "./theme";
@@ -11,8 +11,6 @@ import { jsonDump, Tool } from "./tool";
 import { Interface } from "./interface";
 import { Picker } from "./picker";
 import { Cursor } from "./cursor";
-
-/* global FileReader */
 
 interface Size {
   width: number;
@@ -31,7 +29,7 @@ const isJson = (text: string) => {
   try {
     JSON.parse(text);
     return true;
-  } catch (error) {
+  } catch {
     return false;
   }
 };
@@ -471,7 +469,7 @@ export class Client {
 
   paste(e: ClipboardEvent) {
     if (e.target !== this.picker.el) {
-      let data = e.clipboardData?.getData("text/source");
+      const data = e.clipboardData?.getData("text/source");
       if (data && isJson(data)) {
         const parsed = JSON.parse(data.trim());
         this.tool.import(parsed);

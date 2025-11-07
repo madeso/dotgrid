@@ -84,7 +84,7 @@ const isJson = (text: string) => {
   try {
     JSON.parse(text);
     return true;
-  } catch (error) {
+  } catch {
     return false;
   }
 };
@@ -93,12 +93,12 @@ const isHtml = (text: string) => {
   try {
     new DOMParser().parseFromString(text, "text/xml");
     return true;
-  } catch (error) {
+  } catch {
     return false;
   }
 };
 
-interface Colors {
+export interface Colors {
   background: string;
   f_high: string;
   f_med: string;

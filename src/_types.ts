@@ -3,6 +3,13 @@ export interface Point {
   y: number;
 }
 
+export interface Size {
+  width: number;
+  height: number;
+}
+
+export type Mirror = "zero" | "one" | "two" | "three";
+
 export type SegmentType =
   | "arc_c_full"
   | "arc_c"

@@ -1,5 +1,5 @@
 import { Client } from "./client";
-import { Operation } from "./cursor";
+import type { Operation } from "./cursor";
 
 interface Button {
   key: string;
@@ -117,7 +117,7 @@ function createSvg<K extends keyof SVGElementTagNameMap>(
 ) {
   const n = document.createElementNS<K>("http://www.w3.org/2000/svg", name);
   if (v) {
-    for (var p in v) {
+    for (const p in v) {
       n.setAttributeNS(null, p, v[p]);
     }
   }
