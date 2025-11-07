@@ -33,6 +33,30 @@ interface CursorI {
   operation: null | Operation;
 };
 
+
+export const translate_legacy = (tool: Tool, from: Point, to: Point, meta: MetaKeys) => {
+  if (meta.layer === true) {
+    tool.translateLayer( from, to );
+  } else if (meta.copy) {
+    tool.translateCopy( from, to );
+  } else if (meta.multi) {
+    tool.translateMulti( from, to );
+  } else {
+    tool.translate(from, to);
+  }
+}
+
+export const add_vetex_legacy = (vertex: Point, tool: Tool, picker: Picker) => {
+  tool.addVertex(vertex);
+  picker.stop();
+}
+export const remove_segment_legacy = (point: Point, tool: Tool) => {
+  tool.removeSegmentsAt(point);
+  setTimeout(() => {
+    tool.clear();
+  }, 150);
+} 
+
 export const cursor_init = ():CursorI => {
   return {
     pos: { x: 0, y: 0 },
@@ -95,22 +119,6 @@ export const cursor_move = (cursor: CursorI, e: MouseEvent, size: Size, offset: 
   e.preventDefault();
 }
 
-export const translate_legacy = (tool: Tool, from: Point, to: Point, meta: MetaKeys) => {
-  if (meta.layer === true) {
-    tool.translateLayer( from, to );
-  } else if (meta.copy) {
-    tool.translateCopy( from, to );
-  } else if (meta.multi) {
-    tool.translateMulti( from, to );
-  } else {
-    tool.translate(from, to);
-  }
-}
-
-export const add_vetex_legacy = (vertex: Point, tool: Tool, picker: Picker) => {
-  tool.addVertex(vertex);
-  picker.stop();
-}
 
 export const cursor_up = (cursor: CursorI, e: MouseEvent, size: Size, offset: Offset, translation_callback: (from: Point, to: Point, meta: MetaKeys)=>void, add_vertex: (p: Point) => void) => {
   cursor.pos = cursor_atEvent(e, size, offset);
@@ -130,12 +138,7 @@ export const cursor_up = (cursor: CursorI, e: MouseEvent, size: Size, offset: Of
   e.preventDefault();
 }
 
-export const remove_segment_legacy = (point: Point, tool: Tool) => {
-  tool.removeSegmentsAt(point);
-  setTimeout(() => {
-    tool.clear();
-  }, 150);
-} 
+
 
 export const cursor_alt = (cursor: CursorI, e: MouseEvent, size: Size, offset: Offset, remove_segment: (p: Point) => void) => {
   cursor.pos = cursor_atEvent(e, size, offset);
