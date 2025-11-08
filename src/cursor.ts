@@ -112,9 +112,7 @@ export const cursor_translate = (
   }
 }
 
-export type VertexAtCallback = (p: Point) => Point | null;
-
-export const cursor_down = (cursor: CursorI, vertex_at: VertexAtCallback, e: MouseEvent, size: Size, offset: Offset) => {
+export const cursor_down = (cursor: CursorI, vertex_at: (p: Point) => Point | null, e: MouseEvent, size: Size, offset: Offset) => {
   cursor.pos = cursor_atEvent(e, size, offset);
   if (vertex_at(cursor.pos)) {
     cursor_translate(
