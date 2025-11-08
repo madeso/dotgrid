@@ -222,27 +222,27 @@ export class Client {
       this.tool.removeSegment();
     });
     this.acels.set("Control", "Add Point", "Enter", () => {
-      this.tool.addVertex(this.cursor.pos);
+      this.tool.addVertex(this.cursor.cursor.pos);
       this.renderer.update();
     });
     this.acels.set("Control", "Move Up", "Up", () => {
-      this.cursor.pos.y -= 15;
+      this.cursor.cursor.pos.y -= 15;
       this.renderer.update();
     });
     this.acels.set("Control", "Move Right", "Right", () => {
-      this.cursor.pos.x += 15;
+      this.cursor.cursor.pos.x += 15;
       this.renderer.update();
     });
     this.acels.set("Control", "Move Down", "Down", () => {
-      this.cursor.pos.y += 15;
+      this.cursor.cursor.pos.y += 15;
       this.renderer.update();
     });
     this.acels.set("Control", "Move Left", "Left", () => {
-      this.cursor.pos.x -= 15;
+      this.cursor.cursor.pos.x -= 15;
       this.renderer.update();
     });
     this.acels.set("Control", "Remove Point", "X", () => {
-      this.tool.removeSegmentsAt(this.cursor.pos);
+      this.tool.removeSegmentsAt(this.cursor.cursor.pos);
     });
     this.acels.set("Style", "Linecap", "Q", () => {
       this.tool.toggle("linecap");
