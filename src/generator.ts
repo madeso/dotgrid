@@ -158,9 +158,9 @@ const convert = (layer: SingleLayer, mirror?: Mirror) => {
 
 export const generate = (
   layer: SingleLayer,
+  mirror: Mirror,
   offset: Point,
   scale: number,
-  mirror: Mirror,
   size: Size
 ) => {
   let s = convert(operate(size, layer, offset, scale, "zero"));
@@ -171,6 +171,19 @@ export const generate = (
 
   return s;
 };
+
+export const mirror_from_style = (style: SingleStyle): Mirror => {
+  switch (style.mirror_style) {
+    case 1:
+      return "one";
+    case 2:
+      return "two";
+    case 3:
+      return "three";
+      default:
+      return "zero";
+  }
+}
 
 export const generate_wrap = (
   client: Client,
@@ -195,5 +208,5 @@ export const generate_wrap = (
       mirror_name = "three";
       break;
   }
-  return generate(layer, offset, scale, mirror_name, size);
+  return generate(layer, mirror_name, offset, scale, size);
 };

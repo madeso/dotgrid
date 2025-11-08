@@ -257,7 +257,7 @@ const Preview = (props: {theme: Colors, size: Size, tool_vertices: Point[], oper
     } as SingleStyle;
     const path = generate([
         { vertices: tool_vertices, type: operation },
-    ], { x: 0, y: 0 }, 2, "zero", size);
+    ], "zero", { x: 0, y: 0 }, 2, size);
 
     return <Path path={path} style={style} scale={props.scale}/>
 };

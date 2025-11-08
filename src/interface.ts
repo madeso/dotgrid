@@ -249,7 +249,7 @@ export class Interface {
 
   update(force = false) {
     if (
-      this.prev_operation === this.client.cursor.operation &&
+      this.prev_operation === this.client.cursor.cursor.operation &&
       force === false
     ) {
       return;
