@@ -60,8 +60,8 @@ const Grid = (props: {size: Size, theme: Colors, scale: number, showExtras: bool
     }
 
     const markers = {
-        w: size.width / 15,
-        h: size.height / 15,
+        w: Math.floor(size.width / 15),
+        h: Math.floor(size.height / 15),
     };
 
     const dots: ReactElement[] = [];
@@ -88,7 +88,7 @@ const Grid = (props: {size: Size, theme: Colors, scale: number, showExtras: bool
             );
         }
     }
-    return <g>{dots}</g>;
+    return <g id="grid">{dots}</g>;
 };
 
 // pos={this_client.cursor.translation?.to}
