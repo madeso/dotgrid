@@ -409,18 +409,24 @@ export class Tool {
     const l1 = generate_wrap(
       this.client,
       this.client.tool.layers[0],
-      this.client.tool.styles[0]
-    , { x: 0, y: 0 }, 1);
+      this.client.tool.styles[0],
+      { x: 0, y: 0 },
+      1
+    );
     const l2 = generate_wrap(
       this.client,
       this.client.tool.layers[1],
-      this.client.tool.styles[1]
-    ,{ x: 0, y: 0 }, 1);
+      this.client.tool.styles[1],
+      { x: 0, y: 0 },
+      1
+    );
     const l3 = generate_wrap(
       this.client,
       this.client.tool.layers[2],
-      this.client.tool.styles[2]
-    ,{ x: 0, y: 0 }, 1);
+      this.client.tool.styles[2],
+      { x: 0, y: 0 },
+      1
+    );
 
     return [l1, l2, l3];
   }
@@ -429,8 +435,10 @@ export class Tool {
     return generate_wrap(
       this.client,
       this.client.tool.layer(),
-      this.client.tool.style()
-    , { x: 0, y: 0 }, 1);
+      this.client.tool.style(),
+      { x: 0, y: 0 },
+      1
+    );
   }
 
   translate(a: Point, b: Point) {
