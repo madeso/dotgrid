@@ -1,6 +1,7 @@
 import type { Point, SegmentType, Size } from "./_types";
 import { Client } from "./client";
 import type { Picker } from "./picker";
+import type { Renderer } from "./renderer";
 import type { Tool } from "./tool";
 
 function isEqual(a: Point | undefined, b: Point | undefined) {
@@ -34,7 +35,7 @@ interface CursorI {
 };
 
 
-export const translate_legacy = (tool: Tool, from: Point, to: Point, meta: MetaKeys) => {
+const legacy_translate = (tool: Tool, from: Point, to: Point, meta: MetaKeys) => {
   if (meta.layer === true) {
     tool.translateLayer( from, to );
   } else if (meta.copy) {
@@ -46,16 +47,34 @@ export const translate_legacy = (tool: Tool, from: Point, to: Point, meta: MetaK
   }
 }
 
-export const add_vetex_legacy = (vertex: Point, tool: Tool, picker: Picker) => {
+const legacy_add_vetex = (vertex: Point, tool: Tool, picker: Picker) => {
   tool.addVertex(vertex);
   picker.stop();
 }
-export const remove_segment_legacy = (point: Point, tool: Tool) => {
+const legacy_remove_segment = (point: Point, tool: Tool) => {
   tool.removeSegmentsAt(point);
   setTimeout(() => {
     tool.clear();
   }, 150);
-} 
+}
+
+const legacy_vertex_at = (tool: Tool, p: Point) => {
+  return tool.vertexAt(p);
+}
+
+const legacy_offset = (renderer: Renderer) => {
+  return {
+    left: renderer.el.offsetLeft,
+    top: renderer.el.offsetTop
+  };
+}
+
+const legacy_size = (tool: Tool) => {
+  return {
+    width: tool.settings.size.width,
+    height: tool.settings.size.height
+  };
+}
 
 export const cursor_init = ():CursorI => {
   return {
@@ -146,7 +165,7 @@ export const cursor_alt = (cursor: CursorI, e: MouseEvent, size: Size, offset: O
   e.preventDefault();
 }
 
-export const cursor_atEvent = (e: MouseEvent, size: Size, offset: Offset) => {
+const cursor_atEvent = (e: MouseEvent, size: Size, offset: Offset) => {
   return cursor_snapPos(size, cursor_relativePos(offset, { x: e.clientX, y: e.clientY }));
 }
 
@@ -155,14 +174,14 @@ export interface Offset {
   top: number;
 }
 
-export const cursor_relativePos = (offset: Offset, pos: Point) => {
+const cursor_relativePos = (offset: Offset, pos: Point) => {
   return {
     x: pos.x - offset.left,
     y: pos.y - offset.top,
   };
 }
 
-export const cursor_snapPos = (size: Size, pos: Point) => {
+const cursor_snapPos = (size: Size, pos: Point) => {
   return {
     x: clamp(step(pos.x, 15), 15, size.width - 15),
     y: clamp(step(pos.y, 15), 15, size.height - 15),
@@ -170,24 +189,12 @@ export const cursor_snapPos = (size: Size, pos: Point) => {
 }
 
 export class Cursor {
-  pos: Point;
-  lastPos: Point;
-  translation: null | {
-    multi: boolean;
-    copy: boolean;
-    layer: boolean;
-    from?: Point;
-    to?: Point;
-  };
-  operation: null | Operation;
+  cursor: CursorI;
   client: Client;
 
   constructor(client: Client) {
     this.client = client;
-    this.pos = { x: 0, y: 0 };
-    this.lastPos = { x: 0, y: 0 };
-    this.translation = null;
-    this.operation = null;
+    this.cursor = cursor_init();
   }
 
   translate(
@@ -197,115 +204,30 @@ export class Cursor {
     copy = false,
     layer = false
   ) {
-    if (from || to) {
-      if (this.translation === null) {
-        this.translation = { multi: multi, copy: copy, layer: layer };
-      }
-
-      if (from) {
-        this.translation.from = from;
-      }
-      if (to) {
-        this.translation.to = to;
-      }
-    }
-    //else {
-    if (!from && !to) {
-      console.assert(!from && !to);
-      this.translation = null;
-    }
+    cursor_translate(this.cursor, from, to, multi, copy, layer);
   }
 
   down(e: MouseEvent) {
-    this.pos = this.atEvent(e);
-    if (this.client.tool.vertexAt(this.pos)) {
-      this.translate(
-        this.pos,
-        this.pos,
-        e.shiftKey,
-        e.ctrlKey || e.metaKey,
-        e.altKey
-      );
-    }
-    this.client.renderer.update();
-    this.client.interface.update();
-    e.preventDefault();
+    cursor_down(this.cursor, vertex => {
+        return legacy_vertex_at(this.client.tool, vertex)
+    }, e, legacy_size(this.client.tool), legacy_offset(this.client.renderer));
   }
 
   move(e: MouseEvent) {
-    this.pos = this.atEvent(e);
-    if (this.translation) {
-      this.translate(null, this.pos);
-    }
-    if (this.lastPos.x !== this.pos.x || this.lastPos.y !== this.pos.y) {
-      this.client.renderer.update();
-    }
-    this.client.interface.update();
-    this.lastPos = this.pos;
-    e.preventDefault();
+    cursor_move(this.cursor, e, legacy_size(this.client.tool), legacy_offset(this.client.renderer));
   }
 
   up(e: MouseEvent) {
-    this.pos = this.atEvent(e);
-    if (
-      this.translation &&
-      !isEqual(this.translation.from, this.translation.to)
-    ) {
-      if(this.translation.from && this.translation.to) {
-        if (this.translation.layer === true) {
-          this.client.tool.translateLayer(
-            this.translation.from,
-            this.translation.to
-          );
-        } else if (this.translation.copy) {
-          this.client.tool.translateCopy(
-            this.translation.from,
-            this.translation.to
-          );
-        } else if (this.translation.multi) {
-          this.client.tool.translateMulti(
-            this.translation.from,
-            this.translation.to
-          );
-        } else {
-          this.client.tool.translate(this.translation.from, this.translation.to);
-        }
-      }
-    } else if ((e.target as any).id === "guide") {
-      // clicked inside the grid and for example not on the toolbar...
-      this.client.tool.addVertex({ x: this.pos.x, y: this.pos.y });
-      this.client.picker.stop();
-    }
-    this.translate();
-    this.client.interface.update();
-    this.client.renderer.update();
-    e.preventDefault();
+    cursor_up(this.cursor, e, legacy_size(this.client.tool), legacy_offset(this.client.renderer), (from, to, meta) => {
+      legacy_translate(this.client.tool, from, to, meta);
+    }, point => {
+      legacy_add_vetex(point, this.client.tool, this.client.picker);
+    });
   }
 
   alt(e: MouseEvent) {
-    this.pos = this.atEvent(e);
-    this.client.tool.removeSegmentsAt(this.pos);
-    e.preventDefault();
-    setTimeout(() => {
-      this.client.tool.clear();
-    }, 150);
-  }
-
-  atEvent(e: MouseEvent) {
-    return this.snapPos(this.relativePos({ x: e.clientX, y: e.clientY }));
-  }
-
-  relativePos(pos: Point) {
-    return {
-      x: pos.x - this.client.renderer.el.offsetLeft,
-      y: pos.y - this.client.renderer.el.offsetTop,
-    };
-  }
-
-  snapPos(pos: Point) {
-    return {
-      x: clamp(step(pos.x, 15), 15, this.client.tool.settings.size.width - 15),
-      y: clamp(step(pos.y, 15), 15, this.client.tool.settings.size.height - 15),
-    };
+    cursor_alt(this.cursor, e, legacy_size(this.client.tool), legacy_offset(this.client.renderer), (p) => {
+      legacy_remove_segment(p, this.client.tool);
+    });
   }
 }
