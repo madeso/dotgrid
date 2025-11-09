@@ -5,8 +5,20 @@ import './App.css'
 import { Canvas } from './Canvas';
 import type { Colors } from './theme';
 // import { tool_constructor } from './tool';
-import { cursor_init, cursor_move, type Offset } from './cursor';
-import type { Size } from './_types';
+import { cursor_down, cursor_init, cursor_move, cursor_up, type Offset } from './cursor';
+import type { Point, Size } from './_types';
+
+const offset_from_canvas = (canvas: SVGSVGElement | null): Offset => {
+  if (!canvas) {
+    return { left: 0, top: 0 };
+  }
+
+  const rect = canvas.getBoundingClientRect();
+  return {
+    left: rect.left,
+    top: rect.top
+  };
+}
 
 const App = () => {
 
@@ -26,23 +38,43 @@ const App = () => {
 
   // const [tool, setTool] = useState(() => tool_constructor());
   const [cursor, setCursor] = useState(() => cursor_init());
+
+  const [vertices, setVertices] = useState<Point[]>([]);
+
   const scale = 2;
 
   const size: Size = { width: 800, height: 800 };
 
   const events: React.SVGProps<SVGSVGElement> = {
     onMouseMove: (ev) => {
-      let offset: Offset = { left: 0, top: 0 };
-      if (canvasElement.current) {
-        const rect = canvasElement.current.getBoundingClientRect();
-        offset = {
-          left: rect.left,
-          top: rect.top
-        };
-      }
-      setCursor((c) => {
-        c = structuredClone(c);
+      const offset = offset_from_canvas(canvasElement.current);
+      setCursor( (c) => {
+        c = structuredClone(cursor);
         cursor_move(c, ev, size, offset, scale);
+        return c;
+      });
+    },
+    onMouseDown: (ev) => {
+      const offset = offset_from_canvas(canvasElement.current);
+      setCursor((c) => {
+        const vertex_at = () => null;
+        c = structuredClone(cursor);
+        cursor_down(c, vertex_at, ev, size, offset, scale)
+        return c;
+      });
+    },
+    onMouseUp: (ev) => {
+      const offset = offset_from_canvas(canvasElement.current);
+      setCursor((c) => {
+        const translation = () => {};
+        const add_vertex = (p: Point) => {
+          setVertices((v) => {
+            return [...v, p];
+          })
+        };
+
+        c = structuredClone(c);
+        cursor_up(c, ev, size, offset, translation, add_vertex, scale);
         return c;
       });
     }
@@ -71,7 +103,7 @@ const App = () => {
         translation_to={null}
         vertex_radius={4}
         layer={[]}
-        tool_vertices={[]}
+        tool_vertices={vertices}
         theme={theme}
         props={events}
       />

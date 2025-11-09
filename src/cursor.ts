@@ -18,25 +18,29 @@ export interface Operation {
   cast?: SegmentType
 }
 
-export interface MetaKeys {
+export interface TranslateKeys {
   multi: boolean;
   copy: boolean;
   layer: boolean;
 }
 
-interface PreventDefault {
-  preventDefault: () => void;
-}
-
-interface ClientPosition {
+// MouseEvent that support both react and vanilla
+interface MouseState {
   clientX: number;
   clientY: number;
+
+  shiftKey: boolean;
+  ctrlKey: boolean;
+  metaKey: boolean;
+  altKey: boolean;
+
+  preventDefault: () => void;
 }
 
 interface CursorI {
   pos: Point;
   lastPos: Point;
-  translation: null | MetaKeys & {
+  translation: null | TranslateKeys & {
     from?: Point;
     to?: Point;
   };
@@ -44,7 +48,7 @@ interface CursorI {
 };
 
 
-const legacy_translate = (tool: Tool, from: Point, to: Point, meta: MetaKeys) => {
+const legacy_translate = (tool: Tool, from: Point, to: Point, meta: TranslateKeys) => {
   if (meta.layer === true) {
     tool.translateLayer( from, to );
   } else if (meta.copy) {
@@ -121,7 +125,8 @@ export const cursor_translate = (
   }
 }
 
-export const cursor_down = (cursor: CursorI, vertex_at: (p: Point) => Point | null, e: MouseEvent, size: Size, offset: Offset, scale: number) => {
+
+export const cursor_down = (cursor: CursorI, vertex_at: (p: Point) => Point | null, e: MouseState, size: Size, offset: Offset, scale: number) => {
   cursor.pos = cursor_atEvent(e, size, offset, scale);
   if (vertex_at(cursor.pos)) {
     cursor_translate(
@@ -136,7 +141,7 @@ export const cursor_down = (cursor: CursorI, vertex_at: (p: Point) => Point | nu
   e.preventDefault();
 }
 
-export const cursor_move = (cursor: CursorI, e: ClientPosition & PreventDefault, size: Size, offset: Offset, scale: number) => {
+export const cursor_move = (cursor: CursorI, e: MouseState, size: Size, offset: Offset, scale: number) => {
   cursor.pos = cursor_atEvent(e, size, offset, scale);
   if (cursor.translation) {
     cursor_translate(cursor, null, cursor.pos);
@@ -146,7 +151,7 @@ export const cursor_move = (cursor: CursorI, e: ClientPosition & PreventDefault,
 }
 
 
-export const cursor_up = (cursor: CursorI, e: MouseEvent, size: Size, offset: Offset, translation_callback: (from: Point, to: Point, meta: MetaKeys)=>void, add_vertex: (p: Point) => void, scale: number) => {
+export const cursor_up = (cursor: CursorI, e: MouseState, size: Size, offset: Offset, translation_callback: (from: Point, to: Point, meta: TranslateKeys)=>void, add_vertex: (p: Point) => void, scale: number) => {
   cursor.pos = cursor_atEvent(e, size, offset, scale);
   if (
     cursor.translation &&
@@ -166,13 +171,13 @@ export const cursor_up = (cursor: CursorI, e: MouseEvent, size: Size, offset: Of
 
 
 
-export const cursor_alt = (cursor: CursorI, e: MouseEvent, size: Size, offset: Offset, remove_segment: (p: Point) => void, scale: number) => {
+export const cursor_alt = (cursor: CursorI, e: MouseState, size: Size, offset: Offset, remove_segment: (p: Point) => void, scale: number) => {
   cursor.pos = cursor_atEvent(e, size, offset, scale);
   remove_segment(cursor.pos);
   e.preventDefault();
 }
 
-const cursor_atEvent = (e: ClientPosition, size: Size, offset: Offset, scale: number) => {
+const cursor_atEvent = (e: MouseState, size: Size, offset: Offset, scale: number) => {
   return cursor_snapPos(size, cursor_relativePos(offset, scale, { x: e.clientX, y: e.clientY }));
 }
 
@@ -214,17 +219,17 @@ export class Cursor {
     cursor_translate(this.cursor, from, to, multi, copy, layer);
   }
 
-  down(e: MouseEvent) {
+  down(e: MouseState) {
     cursor_down(this.cursor, vertex => {
         return legacy_vertex_at(this.client.tool, vertex)
     }, e, legacy_size(this.client.tool), legacy_offset(this.client.renderer), 1);
   }
 
-  move(e: MouseEvent) {
+  move(e: MouseState) {
     cursor_move(this.cursor, e, legacy_size(this.client.tool), legacy_offset(this.client.renderer), 1);
   }
 
-  up(e: MouseEvent) {
+  up(e: MouseState) {
     cursor_up(this.cursor, e, legacy_size(this.client.tool), legacy_offset(this.client.renderer), (from, to, meta) => {
       legacy_translate(this.client.tool, from, to, meta);
     }, point => {
@@ -232,7 +237,7 @@ export class Cursor {
     }, 1);
   }
 
-  alt(e: MouseEvent) {
+  alt(e: MouseState) {
     cursor_alt(this.cursor, e, legacy_size(this.client.tool), legacy_offset(this.client.renderer), (p) => {
       legacy_remove_segment(p, this.client.tool);
     }, 1);
