@@ -366,7 +366,9 @@ const ClearRect = (props: {size: Size, scale: number, theme: Colors}) => {
 const operation = this_client.cursor.operation?.cast ?? null;
 cosnt can_cast = this_client.tool.canCast(operation));
 */
-export const Canvas = (props: { showExtras: boolean, size: Size, scale: number
+export const Canvas = (props: {
+    ref?: React.Ref<SVGSVGElement>,
+    showExtras: boolean, size: Size, scale: number
     copy: boolean, multi: boolean
     mirror: Mirror, theme: Colors,
     translation_to: Point | null | undefined,
@@ -374,11 +376,13 @@ export const Canvas = (props: { showExtras: boolean, size: Size, scale: number
     layer: SingleLayer,
     vertex_radius: number, tool_vertices: Point[]
     cursor_pos: Point, cursor_radius: number,
-    can_cast: boolean, operation: SegmentType | null | undefined
+    can_cast: boolean, operation: SegmentType | null | undefined,
+    props?: React.SVGProps<SVGSVGElement>
 }) => {
-    return <svg id="guide"
+    return <svg id="guide" ref={props.ref}
         width={props.size.width * props.scale}
         height={props.size.height * props.scale}
+        {...props.props}
         style={{
             width: props.size.width,
             height: props.size.height
