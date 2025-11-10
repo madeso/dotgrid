@@ -4,7 +4,6 @@ import type { ReactElement } from "react";
 import type { Mirror, Point, RenderingLayer, SegmentType, SingleLayer, SingleStyle, Size } from "./_types";
 import { generate } from "./generator";
 import type { Colors } from "./theme";
-import type { Client } from "./client";
 
 
 const clamp = (v: number, min: number, max: number) => {
@@ -13,12 +12,12 @@ const clamp = (v: number, min: number, max: number) => {
 
 const MirrorEl = (props: { mirror_style: Mirror, size: Size, scale: number, theme: Colors }) => {
     if (props.mirror_style === "zero") {
-        return null;
+        return <></>;
     }
 
     const middle = {
-        x: props.size.width,
-        y: props.size.height,
+        x: props.size.width / 2,
+        y: props.size.height / 2,
     };
 
     let first: ReactElement | null = null;
@@ -28,7 +27,7 @@ const MirrorEl = (props: { mirror_style: Mirror, size: Size, scale: number, them
         props.mirror_style === "one" ||
         props.mirror_style === "three"
     ) {
-        first = <Rule
+        first = <Rule id='first-mirror'
             from={{ x: middle.x, y: 15 * props.scale }}
             to={{ x: middle.x, y: props.size.height * props.scale }}
             theme={props.theme}
@@ -39,7 +38,7 @@ const MirrorEl = (props: { mirror_style: Mirror, size: Size, scale: number, them
         props.mirror_style === "two" ||
         props.mirror_style === "three"
     ) {
-        second = <Rule
+        second = <Rule id='second-mirror'
             from={{ x: 15 * props.scale, y: middle.y }}
             to={{ x: props.size.width * props.scale, y: middle.y }}
             theme={props.theme}
@@ -224,27 +223,24 @@ const Cursor = (
 
 
 /*
-const operation = this_client.cursor.operation?.cast ?? null;
+const cast_preview = this_client.cursor.operation?.cast ?? null;
 if (!this_client.tool.canCast(operation)) {
     return <></>;
 }
 */
-const Preview = (props: {theme: Colors, size: Size, tool_vertices: Point[], operation: SegmentType | null | undefined, scale: number, can_cast: boolean}) => {
+const Preview = (props: {theme: Colors, size: Size, tool_vertices: Point[], cast_preview: SegmentType | null, scale: number}) => {
     const theme = props.theme;
     const size = props.size;
-    const operation = props.operation;
+    const cast_preview = props.cast_preview;
     const tool_vertices = props.tool_vertices;
 
-    if(!props.can_cast) {
+    if (cast_preview === "close") {
         return <></>;
     }
-
-    if (operation === "close") {
+    if (!cast_preview) {
         return <></>;
     }
-    if (!operation) {
-        return <></>;
-    }
+    
     const style: SingleStyle = {
         color: theme.f_med,
         thickness: 2,
@@ -253,10 +249,10 @@ const Preview = (props: {theme: Colors, size: Size, tool_vertices: Point[], oper
         strokeLineDash: [5, 15],
     } as SingleStyle;
     const path = generate([
-        { vertices: tool_vertices, type: operation },
-    ], "zero", { x: 0, y: 0 }, 2, size);
+        { vertices: tool_vertices, type: cast_preview },
+    ], "zero", { x: 0, y: 0 }, props.scale, size);
 
-    return <Path path={path} style={style} scale={props.scale}/>
+    return <Path id="preview" path={path} style={style} scale={props.scale}/>
 };
 
 
@@ -278,8 +274,9 @@ const Vertex = (props: {pos: Point, radius: number|null|undefined, scale: number
     );
 };
 
-const Rule = (props: { from: Point, to: Point, theme: Colors }) => {
+const Rule = (props: { id?: string, from: Point, to: Point, theme: Colors }) => {
     return <path
+        id={props.id}
         d={`M${props.from.x},${props.from.y} L${props.to.x},${props.to.y}`}
         stroke={props.theme.b_low}
         strokeWidth={3}
@@ -311,7 +308,7 @@ const Handle = (props: {pos: Point, radius:number | null | undefined, scale: num
     );
 }
 
-const Path = (props: {path: string, style: SingleStyle, scale: number}) => {
+const Path = (props: {id?: string, path: string, style: SingleStyle, scale: number}) => {
     let body: ReactElement | null = null;
 
     if (props.style.fill && props.style.fill !== "none") {
@@ -330,6 +327,7 @@ const Path = (props: {path: string, style: SingleStyle, scale: number}) => {
     // Dash
     const dash =
         <path
+            id={props.id}
             d={props.path}
             stroke={props.style.color}
             strokeWidth={props.style.thickness * props.scale}
@@ -382,7 +380,7 @@ export const SvgLayers = (props: {
 // cursor_pos = this_client.cursor.pos,
 // cursor_radius = this_client.tool.style().thickness - 1
 /*
-const operation = this_client.cursor.operation?.cast ?? null;
+const cast_preview = this_client.cursor.operation?.cast ?? null;
 cosnt can_cast = this_client.tool.canCast(operation));
 */
 export const Canvas = (props: {
@@ -396,7 +394,7 @@ export const Canvas = (props: {
     layers: RenderingLayer[],
     vertex_radius: number, tool_vertices: Point[]
     cursor_pos: Point, cursor_radius: number,
-    can_cast: boolean, operation: SegmentType | null | undefined,
+    cast_preview: SegmentType | null,
     props?: React.SVGProps<SVGSVGElement>
 }) => {
     return <svg id="guide" ref={props.ref}
@@ -416,6 +414,6 @@ export const Canvas = (props: {
         <Handles layer={props.active_layer} scale={props.scale} showExtras={props.showExtras} theme={props.theme}/>
         <Translation from={props.translation_from} to={props.translation_to} scale={props.scale} theme={props.theme} copy={props.copy} multi={props.multi} />
         <Cursor pos={props.cursor_pos} radius={props.cursor_radius} scale={props.scale} theme={props.theme} />
-        <Preview can_cast={props.can_cast} operation={props.operation} scale={props.scale} size={props.size} theme={props.theme} tool_vertices={props.tool_vertices} />
+        <Preview cast_preview={props.cast_preview} scale={props.scale} size={props.size} theme={props.theme} tool_vertices={props.tool_vertices} />
     </svg>;
 };

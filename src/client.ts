@@ -163,7 +163,7 @@ export class Client {
       );
     });
     this.acels.set("File", "Export Image", "CmdOrCtrl+Shift+E", () => {
-      this.manager.toPNG(this.tool.settings.size, (dataUrl) => {
+      this.manager.toPNG(this.tool.tool.settings.size, (dataUrl) => {
         this.source.write("dotgrid", "png", dataUrl, "image/png");
       });
     });
@@ -286,7 +286,7 @@ export class Client {
     this.renderer.start();
     this.interface.start();
 
-    this.history.push(this.tool.layers); // initial state
+    this.history.push(this.tool.tool.layers); // initial state
 
     this.source.new();
     this.onResize();
@@ -344,7 +344,7 @@ export class Client {
   }
 
   getProjectSize() {
-    return this.tool.settings.size;
+    return this.tool.tool.settings.size;
   }
 
   getPaddedSize() {
@@ -387,7 +387,7 @@ export class Client {
     const offset = sizeOffset(_padded, _project);
     if (offset.width !== 0 || offset.height !== 0) {
       console.log("Client", `Resize project to ${printSize(_padded)}`);
-      this.tool.settings.size = _padded;
+      this.tool.tool.settings.size = _padded;
     }
     this.update();
   }
@@ -460,7 +460,7 @@ export class Client {
       } else {
         console.error("missing clipboard");
       }
-      this.tool.layers[this.tool.index] = [];
+      this.tool.tool.layers[this.tool.tool.index] = [];
       e.preventDefault();
     }
 

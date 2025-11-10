@@ -10,11 +10,121 @@
   padding: 1.5em;
 }
 
-#toolbar { font-size: 11px;line-height: 30px;text-transform: uppercase;-webkit-app-region: no-drag; transition: all 150ms; width: 100%; position:fixed; bottom:30px; left:40px; height:30px; max-width:calc(100vw - 75px); overflow: hidden;}
-#toolbar #menu { opacity: 1; position: absolute; top:0px; transition: all 250ms; z-index: 900; overflow: hidden; height:30px; width:100%;}
-#toolbar svg.icon { width:30px; height:30px; margin-right:5px; opacity: 0.6; transition: opacity 250ms; }
-#toolbar svg.icon.inactive { opacity: 0.2 }
-#toolbar svg.icon:hover { cursor: pointer; opacity: 1.0 }
-#toolbar svg.icon:last-child { margin-right: 0; }
-#toolbar svg.icon path { fill:none; stroke-linecap: round; stroke-linejoin: round; stroke-width:12px; }
+#toolbar {
+  -webkit-app-region: no-drag;
+  transition: all 150ms;
+  width: 100%;
+  position: fixed;
+  bottom: 6px;
+  left: 40px;
+  max-width: calc(100vw - 75px);
+  line-height: 0;
+}
+#toolbar #menu {
+  opacity: 1;
+  position: absolute;
+  top: 0px;
+  transition: all 250ms;
+  z-index: 900;
+  height: 30px;
+  width: 100%;
+  font-size: 11px;
+  line-height: 30px;
+  text-transform: uppercase;
+}
+#toolbar svg.icon {
+  width: 30px;
+  height: 30px;
+  margin-left: 2px;
+  margin-right: 2px;
+  opacity: 0.6;
+  transition: opacity 250ms;
+}
+#toolbar svg.icon.disabled {
+  opacity: 0.2;
+}
+#toolbar svg.icon:hover {
+  cursor: pointer;
+}
+#toolbar svg.icon.enabled:hover {
+  opacity: 1;
+}
+#toolbar svg.icon.disabled:hover {
+  opacity: 0.5;
+}
+#toolbar svg.icon:last-child {
+  margin-right: 0;
+}
+#toolbar svg.icon path {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 12px;
+}
 
+.border {
+  display: inline-block;
+  border-width: 1px;
+  border-color: #aaa;
+  border-style: solid;
+  padding: 3px;
+  margin: 3px;
+  line-height: 0;
+  position: relative;
+}
+
+.relative {
+  display: inline-block;
+  position: relative;
+  padding: 0;
+  margin: 0;
+}
+
+input#thickness-slider {
+  position: absolute;
+  left: 8px;
+  bottom: 42px;
+  writing-mode: vertical-lr;
+  direction: rtl;
+  z-index: 100;
+  height: 150px;
+}
+
+div.color-button {
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+  margin: 1px;
+}
+
+div.color-button:hover {
+  border: 1px solid black;
+  margin: 0px;
+  cursor: pointer;
+}
+
+div.color-dialog {
+  position: absolute;
+  left: -10px;
+  bottom: 38px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 8px 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  font-size: 14px;
+  color: #333;
+  white-space: nowrap;
+  z-index: 10;
+}
+
+div.speech-point {
+  position: absolute;
+  left: 20px;
+  top: 100%;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 8px solid #fff;
+}

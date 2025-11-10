@@ -185,6 +185,23 @@ export const mirror_from_style = (style: SingleStyle): Mirror => {
   }
 }
 
+export const set_mirror = (style: SingleStyle, mirror: Mirror) => {
+  switch (mirror) {
+    case "one":
+      style.mirror_style = 1;
+      break;
+    case "two":
+      style.mirror_style = 2;
+      break;
+    case "three":
+      style.mirror_style = 3;
+      break;
+    default:
+      style.mirror_style = 0;
+      break;
+  }
+}
+
 export const generate_wrap = (
   client: Client,
   layer: SingleLayer,
@@ -193,7 +210,7 @@ export const generate_wrap = (
   scale = 1,
   mirror_arg?: number
 ) => {
-  const size = client.tool.settings.size;
+  const size = client.tool.tool.settings.size;
   const mirror =
     mirror_arg ?? (style && style.mirror_style ? style.mirror_style : 0);
   let mirror_name: Mirror = "zero";

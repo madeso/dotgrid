@@ -44,15 +44,15 @@ export class Manager {
   }
 
   update() {
-    this.el.setAttribute("width", this.client.tool.settings.size.width + "px");
+    this.el.setAttribute("width", this.client.tool.tool.settings.size.width + "px");
     this.el.setAttribute(
       "height",
-      this.client.tool.settings.size.height + "px"
+      this.client.tool.tool.settings.size.height + "px"
     );
-    this.el.style.width = this.client.tool.settings.size.width.toString();
-    this.el.style.height = this.client.tool.settings.size.height.toString();
+    this.el.style.width = this.client.tool.tool.settings.size.width.toString();
+    this.el.style.height = this.client.tool.tool.settings.size.height.toString();
 
-    const styles = this.client.tool.styles;
+    const styles = this.client.tool.tool.styles;
     const paths = this.client.tool.paths();
 
     for (const id in this.layers) {
@@ -80,7 +80,7 @@ export class Manager {
   // Exporters
 
   toPNG(
-    size = this.client.tool.settings.size,
+    size = this.client.tool.tool.settings.size,
     callback: (dataUrl: string) => void
   ) {
     this.update();

@@ -5,11 +5,13 @@ import './App.css'
 import { Canvas } from './Canvas';
 import type { Colors } from './theme';
 // import { tool_constructor } from './tool';
-import { cursor_down, cursor_init, cursor_move, cursor_up, type Offset } from './cursor';
-import type { Point, Size } from './_types';
+import { cursor_down, cursor_init, cursor_move, cursor_up, type Offset, type TranslateKeys } from './cursor';
+import { type SegmentType, type Point, type Size, type Mirror } from './_types';
 import { SvgButton } from './SvgButton';
-import { cast_arc_c, cast_arc_r, cast_bezier, cast_close, cast_line, misc_color, source_export, source_grid_no_extra, source_grid_with_extra, source_open, source_render, source_save, toggle_fill, toggle_linecap, toggle_linejoin, toggle_mirror, toggle_thickness } from './icons';
-import { tool_addVertex, tool_all_layers, tool_cast, tool_constructor, type ToolI } from './tool';
+import { cast_arc_c, cast_arc_r, cast_bezier, cast_close, cast_line, misc_color, source_export, source_grid_no_extra, source_grid_with_extra, source_open, source_render, source_save, toggle_fill, toggle_linecap, toggle_mirror, toggle_thickness } from './icons';
+import { tool_addVertex, tool_all_layers, tool_canCast, tool_cast, tool_constructor, tool_layer, tool_select_color, tool_set_linecap, tool_set_linejoin, tool_set_mirror, tool_set_thickness, tool_style, tool_toggle, tool_translate, tool_translateCopy, tool_translateLayer, tool_translateMulti, tool_vertexAt, type ToolI } from './tool';
+import { mirror_from_style } from './generator';
+import { colors } from './colors';
 
 const offset_from_canvas = (canvas: SVGSVGElement | null): Offset => {
   if (!canvas) {
@@ -21,6 +23,30 @@ const offset_from_canvas = (canvas: SVGSVGElement | null): Offset => {
     left: rect.left,
     top: rect.top
   };
+}
+
+/*
+TODO
+ - undo/redo
+ - layers
+ - save/load export
+*/
+
+const ColorDialog = (props: {
+  select_color: (c: string) => void;
+}) => {
+  return <div className='color-dialog'>
+    {
+      Object.values(colors).map((list, list_index) => <div className='color-map'>
+        {list.map((color, color_index) => <div key={`${list_index}-${color_index}`} className='color-button'
+          onClick={() => {
+            props.select_color(color);
+          }}
+          style={{background: color}} />)}
+      </div>)
+    }
+    <div className='speech-point'/>
+  </div>
 }
 
 const App = () => {
@@ -41,10 +67,14 @@ const App = () => {
 
   // const [tool, setTool] = useState(() => tool_constructor());
   const [cursor, setCursor] = useState(() => cursor_init());
-
   const [tool, setTool] = useState<ToolI>(tool_constructor());
+  const [preview, setPreview] = useState<SegmentType | null>(null);
+  const [showExtra, setShowExtra] = useState(true);
+  const [thicknessVisible, setThicknessVisible] = useState(false);
+  const [browseColor, setBrowseColor] = useState(false);
 
   const scale = 1;
+  const current_mirror = mirror_from_style(tool_style(tool));
 
   const size: Size = { width: 800, height: 800 };
 
@@ -58,27 +88,85 @@ const App = () => {
     },
     onMouseDown: (ev) => {
       const offset = offset_from_canvas(canvasElement.current);
-      const vertex_at = () => null;
 
       const c = structuredClone(cursor);
-      cursor_down(c, vertex_at, ev, size, offset, scale)
+      cursor_down(c, (p) => tool_vertexAt(tool, p), ev, size, offset, scale)
       setCursor(c);
     },
     onMouseUp: (ev) => {
       const offset = offset_from_canvas(canvasElement.current);
 
-      const translation = () => {};
+      const push = () => {};
+
+      const t = structuredClone(tool);
+      let tool_changed = true;
+
       const add_vertex = (p: Point) => {
-        const t = structuredClone(tool);
-        tool_addVertex(t, p, () => {})
-        setTool(t);
+        tool_addVertex(t, p, push)
+        tool_changed = true;
+      };
+
+      const translate = (from: Point, to: Point, meta: TranslateKeys) => {
+        if (meta.layer === true) {
+          tool_translateLayer(t, from, to, push, () => {});
+        } else if (meta.copy) {
+          tool_translateCopy(t, from, to , push, () => {});
+        } else if (meta.multi) {
+          tool_translateMulti(t, from, to , push, () => {});
+        } else {
+          tool_translate(t, from, to, push, () => {});
+        }
+        tool_changed = true;
       };
 
       const c = structuredClone(cursor);
-      cursor_up(c, ev, size, offset, translation, add_vertex, scale);
+      cursor_up(c, ev, size, offset, translate, add_vertex, scale);
       setCursor(c);
+
+      if(tool_changed) {
+        setTool(t);
+      }
     }
   };
+
+  const CastButton = (props: {
+    icon: string;
+    name: string;
+    segment: SegmentType;
+  }) => <SvgButton icon={props.icon} name={props.name} isEnabled={tool_canCast(tool, props.segment)} onEnter={() => setPreview(props.segment)} onLeave={() => setPreview(null)} onClick={() => {
+          const t = structuredClone(tool);
+          tool_cast(t, props.segment, () => {}, () => {});
+          setTool(t);
+        }} />;
+  const MirrorButton = (props: {
+    icon: string;
+    name: string;
+    mirror: Mirror;
+  }) => <SvgButton icon={props.icon} name={props.name} theme={theme} is_selected={current_mirror === props.mirror} onClick={() => {
+    const t = structuredClone(tool);
+    tool_set_mirror(t, props.mirror);
+    setTool(t);
+  }} />
+
+  const LineCapButton = (props: {
+    icon: string;
+    name: string;
+    linecap: CanvasLineCap
+  }) => <SvgButton icon={props.icon} name={props.name} theme={theme} is_selected={tool_style(tool).strokeLinecap === props.linecap} onClick={() => {
+    const t = structuredClone(tool);
+    tool_set_linecap(t, props.linecap);
+    setTool(t);
+  }} />
+
+  const LineJoinButton = (props: {
+    icon: string;
+    name: string;
+    linejoin: CanvasLineJoin
+  }) => <SvgButton icon={props.icon} name={props.name} theme={theme} is_selected={tool_style(tool).strokeLinejoin == props.linejoin} onClick={() => {
+    const t = structuredClone(tool);
+    tool_set_linejoin(t, props.linejoin);
+    setTool(t);
+  }} />
 
   return (
     <>
@@ -89,67 +177,97 @@ const App = () => {
 
       <Canvas
         ref={canvasElement}
-        can_cast={false}
-        copy={false}
         cursor_pos={cursor.pos}
         cursor_radius={5}
-        mirror='zero'
-        multi={false}
+        mirror={current_mirror}
+        copy={cursor.translation?.copy ?? false}
+        multi={cursor.translation?.multi ?? false}
+        translation_from={cursor.translation?.from}
+        translation_to={cursor.translation?.to}
         scale={scale}
         size={size}
-        showExtras={true}
-        operation={'bezier'}
-        translation_from={null}
-        translation_to={null}
+        showExtras={showExtra}
+        cast_preview={preview}
         vertex_radius={4}
-        active_layer={[]}
+        active_layer={tool_layer(tool)}
         layers={tool_all_layers(tool, size)}
         tool_vertices={tool.vertices}
         theme={theme}
         props={events}
       />
       <div id='toolbar'>
-        <SvgButton icon={cast_line} name='cast_line' onClick={() => {
-          const t = structuredClone(tool);
-          tool_cast(t, 'line', () => {}, () => {});
-          setTool(t);
-        }} />
-        <SvgButton icon={cast_arc_c} name='cast_arc_c' onClick={() => {
-          const t = structuredClone(tool);
-          tool_cast(t, 'arc_c', () => {}, () => {});
-          setTool(t);
-        }} />
-        <SvgButton icon={cast_arc_r} name='cast_arc_r' onClick={() => {
-          const t = structuredClone(tool);
-          tool_cast(t, 'arc_r', () => {}, () => {});
-          setTool(t);
-        }} />
-        <SvgButton icon={cast_bezier} name='cast_bezier' onClick={() => {
-          const t = structuredClone(tool);
-          tool_cast(t, 'bezier', () => {}, () => {});
-          setTool(t);
-        }} />
-        <SvgButton icon={cast_close} name='cast_close' onClick={() => {
-          const t = structuredClone(tool);
-          tool_cast(t, 'close', () => {}, () => {});
-          setTool(t);
-        }} />
-        <SvgButton icon={toggle_linecap} name='toggle_linecap' onClick={() => {}} />
-        <SvgButton icon={toggle_linejoin} name='toggle_linejoin' onClick={() => {}} />
-        <SvgButton icon={toggle_thickness} name='toggle_thickness' onClick={() => {}} />
-        <SvgButton icon={toggle_mirror.zero} name='toggle_mirror' onClick={() => {}} />
-        <SvgButton icon={toggle_mirror.one} name='toggle_mirror' onClick={() => {}} />
-        <SvgButton icon={toggle_mirror.two} name='toggle_mirror' onClick={() => {}} />
-        <SvgButton icon={toggle_mirror.three} name='toggle_mirror' onClick={() => {}} />
-        <SvgButton icon={toggle_mirror.four} name='toggle_mirror' onClick={() => {}} />
-        <SvgButton icon={toggle_fill} name='toggle_fill' onClick={() => {}} />
-        <SvgButton icon={misc_color} name='misc_color' onClick={() => {}} />
-        <SvgButton icon={source_open} name='source_open' onClick={() => {}} />
-        <SvgButton icon={source_render} name='source_render' onClick={() => {}} />
-        <SvgButton icon={source_export} name='source_export' onClick={() => {}} />
-        <SvgButton icon={source_save} name='source_save' onClick={() => {}} />
-        <SvgButton icon={source_grid_with_extra} name='source_grid_with_extra' onClick={() => {}} />
-        <SvgButton icon={source_grid_no_extra} name='source_grid_no_extra' onClick={() => {}} />
+        <div className="border">
+          <CastButton icon={cast_line} name='cast line' segment='line'/>
+          <CastButton icon={cast_arc_c} name='cast arc c' segment='arc_c' />
+          <CastButton icon={cast_arc_c} name='cast arc c full' segment='arc_c_full' />
+          <CastButton icon={cast_arc_r} name='cast arc r' segment='arc_r' />
+          <CastButton icon={cast_arc_r} name='cast arc r full' segment='arc_r_full' />
+          <CastButton icon={cast_bezier} name='cast bezier' segment='bezier'/>
+          <SvgButton icon={cast_close} name='cast close' isEnabled={tool_canCast(tool, 'close')} onClick={() => {
+            const t = structuredClone(tool);
+            tool_cast(t, 'close', () => {}, () => {});
+            setTool(t);
+          }} />
+        </div>
+        <div className='border'>
+          <LineCapButton icon={toggle_linecap} name='butt cap' linecap='butt' />
+          <LineCapButton icon={toggle_linecap} name='square cap' linecap='square' />
+          <LineCapButton icon={toggle_linecap} name='round cap' linecap='round' />
+        </div>
+        <div className='border'>
+          <LineJoinButton icon={toggle_linecap} name='miter join' linejoin='miter' />
+          <LineJoinButton icon={toggle_linecap} name='round join' linejoin='round' />
+          <LineJoinButton icon={toggle_linecap} name='bevel join' linejoin='bevel' />
+        </div>
+        <div className='border'>
+          <SvgButton icon={toggle_fill} name='toggle_fill' theme={theme} is_selected={(tool_style(tool).fill ?? 'none') !== 'none'} onClick={() => {
+            const t = structuredClone(tool);
+            tool_toggle(t, 'fill', ()=>{});
+            setTool(t);
+          }} />
+
+          <div className='relative'>
+            {browseColor && <ColorDialog select_color={(new_color) => {
+              const t = structuredClone(tool);
+              tool_select_color(t, new_color);
+              setTool(t);
+              setBrowseColor(false);
+            }}/>}
+            <SvgButton icon={misc_color} name='misc_color' theme={theme} is_selected={browseColor} onClick={() => {
+              setBrowseColor(!browseColor);
+            }} />
+          </div>
+        </div>
+        <div className='border'>
+          <SvgButton icon={toggle_thickness} name='toggle_thickness' theme={theme} is_selected={thicknessVisible} onClick={() => {
+            setThicknessVisible(!thicknessVisible);
+          }} />
+          {thicknessVisible && 
+          <input id="thickness-slider" type="range" name="thickness" min={1} max={100} value={tool_style(tool).thickness}
+            onChange={(e) => {
+              const thickness = parseFloat(e.target.value);
+              const t = structuredClone(tool);
+              tool_set_thickness(t, thickness);
+              setTool(t);
+            }}
+          />
+          }
+        </div>
+        <div className='border'>
+          <MirrorButton icon={toggle_mirror.zero} name='toggle_mirror' mirror='zero' />
+          <MirrorButton icon={toggle_mirror.one} name='toggle_mirror' mirror='one' />
+          <MirrorButton icon={toggle_mirror.two} name='toggle_mirror' mirror='two' />
+          <MirrorButton icon={toggle_mirror.three} name='toggle_mirror' mirror='three' />
+        </div>
+        <div className='border'>
+          <SvgButton icon={source_open} name='source_open' onClick={() => {}} />
+          <SvgButton icon={source_render} name='source_render' onClick={() => {}} />
+          <SvgButton icon={source_export} name='source_export' onClick={() => {}} />
+          <SvgButton icon={source_save} name='source_save' onClick={() => {}} />
+          <SvgButton icon={showExtra ? source_grid_with_extra : source_grid_no_extra} name='Extra' onClick={() => {
+            setShowExtra(!showExtra);
+          }} />
+        </div>
       </div>
     </>
   )

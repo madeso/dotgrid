@@ -113,8 +113,8 @@ export class Renderer {
     }
 
     const middle = {
-      x: this.client.tool.settings.size.width,
-      y: this.client.tool.settings.size.height,
+      x: this.client.tool.tool.settings.size.width,
+      y: this.client.tool.tool.settings.size.height,
     };
 
     if (
@@ -123,7 +123,7 @@ export class Renderer {
     ) {
       this.drawRule(
         { x: middle.x, y: 15 * this.scale },
-        { x: middle.x, y: this.client.tool.settings.size.height * this.scale }
+        { x: middle.x, y: this.client.tool.tool.settings.size.height * this.scale }
       );
     }
     if (
@@ -132,7 +132,7 @@ export class Renderer {
     ) {
       this.drawRule(
         { x: 15 * this.scale, y: middle.y },
-        { x: this.client.tool.settings.size.width * this.scale, y: middle.y }
+        { x: this.client.tool.tool.settings.size.width * this.scale, y: middle.y }
       );
     }
   }
@@ -152,8 +152,8 @@ export class Renderer {
   }
 
   drawVertices() {
-    for (const id in this.client.tool.vertices) {
-      this.drawVertex(this.client.tool.vertices[id]);
+    for (const id in this.client.tool.tool.vertices) {
+      this.drawVertex(this.client.tool.tool.vertices[id]);
     }
   }
 
@@ -164,8 +164,8 @@ export class Renderer {
     }
 
     const markers = {
-      w: this.client.tool.settings.size.width / 15,
-      h: this.client.tool.settings.size.height / 15,
+      w: this.client.tool.tool.settings.size.width / 15,
+      h: this.client.tool.tool.settings.size.height / 15,
     };
 
     this.context.beginPath();
@@ -199,13 +199,13 @@ export class Renderer {
   }
 
   drawRulers() {
-    if (!this.client.cursor.translation?.to) {
+    if (!this.client.cursor.cursor.translation?.to) {
       return;
     }
 
-    const pos = this.client.cursor.translation.to;
-    const bottom = this.client.tool.settings.size.height * this.scale;
-    const right = this.client.tool.settings.size.width * this.scale;
+    const pos = this.client.cursor.cursor.translation.to;
+    const bottom = this.client.tool.tool.settings.size.height * this.scale;
+    const right = this.client.tool.tool.settings.size.width * this.scale;
 
     this.drawRule(
       { x: pos.x * this.scale, y: 0 },
@@ -219,8 +219,8 @@ export class Renderer {
 
   drawPreview() {
     const operation =
-      this.client.cursor.operation && this.client.cursor.operation.cast
-        ? this.client.cursor.operation.cast
+      this.client.cursor.cursor.operation && this.client.cursor.cursor.operation.cast
+        ? this.client.cursor.cursor.operation.cast
         : null;
 
     if (!this.client.tool.canCast(operation)) {
@@ -239,7 +239,7 @@ export class Renderer {
         strokeLineDash: [5, 15],
       } as SingleStyle;
       const path = generate_wrap(this.client, [
-        { vertices: this.client.tool.vertices, type: operation },
+        { vertices: this.client.tool.tool.vertices, type: operation },
       ], style, { x: 0, y: 0 }, 2);
       this.drawPath(path, style);
     }
@@ -331,10 +331,10 @@ export class Renderer {
 
   drawTranslation() {
     if (this.context === null) return;
-    if (!this.client.cursor.translation?.to) {
+    if (!this.client.cursor.cursor.translation?.to) {
       return;
     }
-    if (!this.client.cursor.translation?.from) {
+    if (!this.client.cursor.cursor.translation?.from) {
       return;
     }
 
@@ -342,19 +342,19 @@ export class Renderer {
 
     this.context.beginPath();
     this.context.moveTo(
-      this.client.cursor.translation.from.x * this.scale,
-      this.client.cursor.translation.from.y * this.scale
+      this.client.cursor.cursor.translation.from.x * this.scale,
+      this.client.cursor.cursor.translation.from.y * this.scale
     );
     this.context.lineTo(
-      this.client.cursor.translation.to.x * this.scale,
-      this.client.cursor.translation.to.y * this.scale
+      this.client.cursor.cursor.translation.to.x * this.scale,
+      this.client.cursor.cursor.translation.to.y * this.scale
     );
     this.context.lineCap = "round";
     this.context.lineWidth = 5;
     this.context.strokeStyle =
-      this.client.cursor.translation.multi === true
+      this.client.cursor.cursor.translation.multi === true
         ? this.client.theme.active.b_inv
-        : this.client.cursor.translation.copy === true
+        : this.client.cursor.cursor.translation.copy === true
         ? this.client.theme.active.f_med
         : this.client.theme.active.f_low;
     this.context.setLineDash([5, 10]);
@@ -366,7 +366,7 @@ export class Renderer {
   }
 
   drawCursor(
-    pos = this.client.cursor.pos,
+    pos = this.client.cursor.cursor.pos,
     radius = this.client.tool.style().thickness - 1
   ) {
     if (this.context === null) return;

@@ -48,7 +48,7 @@ interface CursorI {
 };
 
 
-const legacy_translate = (tool: Tool, from: Point, to: Point, meta: TranslateKeys) => {
+export const legacy_translate = (tool: Tool, from: Point, to: Point, meta: TranslateKeys) => {
   if (meta.layer === true) {
     tool.translateLayer( from, to );
   } else if (meta.copy) {
