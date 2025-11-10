@@ -28,6 +28,11 @@ export interface Segment {
 export type SingleLayer = Array<Segment>;
 export type Layers = Array<SingleLayer>;
 
+export interface RenderingLayer {
+  style: SingleStyle;
+  path: string;
+}
+
 export interface SingleStyle {
   thickness: number;
   strokeLinecap: CanvasLineCap;

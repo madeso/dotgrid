@@ -1,9 +1,10 @@
 // was renderer
 
 import type { ReactElement } from "react";
-import type { Mirror, Point, SegmentType, SingleLayer, SingleStyle, Size } from "./_types";
+import type { Mirror, Point, RenderingLayer, SegmentType, SingleLayer, SingleStyle, Size } from "./_types";
 import { generate } from "./generator";
 import type { Colors } from "./theme";
+import type { Client } from "./client";
 
 
 const clamp = (v: number, min: number, max: number) => {
@@ -116,10 +117,6 @@ const Rulers = (props: {scale: number, size: Size, pos: Point | null | undefined
                 theme={props.theme}
             />
         </>;
-};
-
-const Render = () => {
-    return <></>;
 };
 
 // vertices = this_client.tool.vertices
@@ -355,6 +352,28 @@ const ClearRect = (props: {size: Size, scale: number, theme: Colors}) => {
     );
 }
 
+const SvgLayer = (props: {
+    style: SingleStyle,
+    path: string
+}) => {
+    return <path 
+        strokeWidth={props.style.thickness.toString()}
+        strokeLinecap={props.style.strokeLinecap}
+        strokeLinejoin={props.style.strokeLinejoin}
+        stroke={props.style.color}
+        fill={props.style.fill ?? "none"}
+        d={props.path}
+        />;
+}
+
+export const SvgLayers = (props: {
+    layers: RenderingLayer[]
+}) => {
+    return props.layers.map((layer, index) => {
+        return <SvgLayer key={index} path={layer.path} style={layer.style} />
+    });
+}
+
 // translation_from: this_client.cursor.translation.from
 // multi: this_client.cursor.translation.multi
 // copy: this_client.cursor.translation.copy
@@ -373,7 +392,8 @@ export const Canvas = (props: {
     mirror: Mirror, theme: Colors,
     translation_to: Point | null | undefined,
     translation_from: Point | null | undefined,
-    layer: SingleLayer,
+    active_layer: SingleLayer,
+    layers: RenderingLayer[],
     vertex_radius: number, tool_vertices: Point[]
     cursor_pos: Point, cursor_radius: number,
     can_cast: boolean, operation: SegmentType | null | undefined,
@@ -391,9 +411,9 @@ export const Canvas = (props: {
         <MirrorEl mirror_style={props.mirror} scale={props.scale} size={props.size} theme={props.theme}/>
         <Grid scale={props.scale} size={props.size} theme={props.theme} showExtras={props.showExtras}/>
         <Rulers pos={props.translation_to} scale={props.scale} size={props.size} theme={props.theme}/>
-        <Render />
+        <SvgLayers layers={props.layers}/>
         <Vertices radius={props.vertex_radius} scale={props.scale} theme={props.theme} vertices={props.tool_vertices} />
-        <Handles layer={props.layer} scale={props.scale} showExtras={props.showExtras} theme={props.theme}/>
+        <Handles layer={props.active_layer} scale={props.scale} showExtras={props.showExtras} theme={props.theme}/>
         <Translation from={props.translation_from} to={props.translation_to} scale={props.scale} theme={props.theme} copy={props.copy} multi={props.multi} />
         <Cursor pos={props.cursor_pos} radius={props.cursor_radius} scale={props.scale} theme={props.theme} />
         <Preview can_cast={props.can_cast} operation={props.operation} scale={props.scale} size={props.size} theme={props.theme} tool_vertices={props.tool_vertices} />

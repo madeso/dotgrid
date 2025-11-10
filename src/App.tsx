@@ -9,6 +9,7 @@ import { cursor_down, cursor_init, cursor_move, cursor_up, type Offset } from '.
 import type { Point, Size } from './_types';
 import { SvgButton } from './SvgButton';
 import { cast_arc_c, cast_arc_r, cast_bezier, cast_close, cast_line, misc_color, source_export, source_grid_no_extra, source_grid_with_extra, source_open, source_render, source_save, toggle_fill, toggle_linecap, toggle_linejoin, toggle_mirror, toggle_thickness } from './icons';
+import { tool_addVertex, tool_all_layers, tool_cast, tool_constructor, type ToolI } from './tool';
 
 const offset_from_canvas = (canvas: SVGSVGElement | null): Offset => {
   if (!canvas) {
@@ -41,44 +42,41 @@ const App = () => {
   // const [tool, setTool] = useState(() => tool_constructor());
   const [cursor, setCursor] = useState(() => cursor_init());
 
-  const [vertices, setVertices] = useState<Point[]>([]);
+  const [tool, setTool] = useState<ToolI>(tool_constructor());
 
-  const scale = 2;
+  const scale = 1;
 
   const size: Size = { width: 800, height: 800 };
 
   const events: React.SVGProps<SVGSVGElement> = {
     onMouseMove: (ev) => {
       const offset = offset_from_canvas(canvasElement.current);
-      setCursor( (c) => {
-        c = structuredClone(cursor);
-        cursor_move(c, ev, size, offset, scale);
-        return c;
-      });
+      
+      const c = structuredClone(cursor);
+      cursor_move(c, ev, size, offset, scale);
+      setCursor(c);
     },
     onMouseDown: (ev) => {
       const offset = offset_from_canvas(canvasElement.current);
-      setCursor((c) => {
-        const vertex_at = () => null;
-        c = structuredClone(cursor);
-        cursor_down(c, vertex_at, ev, size, offset, scale)
-        return c;
-      });
+      const vertex_at = () => null;
+
+      const c = structuredClone(cursor);
+      cursor_down(c, vertex_at, ev, size, offset, scale)
+      setCursor(c);
     },
     onMouseUp: (ev) => {
       const offset = offset_from_canvas(canvasElement.current);
-      setCursor((c) => {
-        const translation = () => {};
-        const add_vertex = (p: Point) => {
-          setVertices((v) => {
-            return [...v, p];
-          })
-        };
 
-        c = structuredClone(c);
-        cursor_up(c, ev, size, offset, translation, add_vertex, scale);
-        return c;
-      });
+      const translation = () => {};
+      const add_vertex = (p: Point) => {
+        const t = structuredClone(tool);
+        tool_addVertex(t, p, () => {})
+        setTool(t);
+      };
+
+      const c = structuredClone(cursor);
+      cursor_up(c, ev, size, offset, translation, add_vertex, scale);
+      setCursor(c);
     }
   };
 
@@ -104,17 +102,38 @@ const App = () => {
         translation_from={null}
         translation_to={null}
         vertex_radius={4}
-        layer={[]}
-        tool_vertices={vertices}
+        active_layer={[]}
+        layers={tool_all_layers(tool, size)}
+        tool_vertices={tool.vertices}
         theme={theme}
         props={events}
       />
       <div id='toolbar'>
-        <SvgButton icon={cast_line} name='cast_line' onClick={() => {}} />
-        <SvgButton icon={cast_arc_c} name='cast_arc_c' onClick={() => {}} />
-        <SvgButton icon={cast_arc_r} name='cast_arc_r' onClick={() => {}} />
-        <SvgButton icon={cast_bezier} name='cast_bezier' onClick={() => {}} />
-        <SvgButton icon={cast_close} name='cast_close' onClick={() => {}} />
+        <SvgButton icon={cast_line} name='cast_line' onClick={() => {
+          const t = structuredClone(tool);
+          tool_cast(t, 'line', () => {}, () => {});
+          setTool(t);
+        }} />
+        <SvgButton icon={cast_arc_c} name='cast_arc_c' onClick={() => {
+          const t = structuredClone(tool);
+          tool_cast(t, 'arc_c', () => {}, () => {});
+          setTool(t);
+        }} />
+        <SvgButton icon={cast_arc_r} name='cast_arc_r' onClick={() => {
+          const t = structuredClone(tool);
+          tool_cast(t, 'arc_r', () => {}, () => {});
+          setTool(t);
+        }} />
+        <SvgButton icon={cast_bezier} name='cast_bezier' onClick={() => {
+          const t = structuredClone(tool);
+          tool_cast(t, 'bezier', () => {}, () => {});
+          setTool(t);
+        }} />
+        <SvgButton icon={cast_close} name='cast_close' onClick={() => {
+          const t = structuredClone(tool);
+          tool_cast(t, 'close', () => {}, () => {});
+          setTool(t);
+        }} />
         <SvgButton icon={toggle_linecap} name='toggle_linecap' onClick={() => {}} />
         <SvgButton icon={toggle_linejoin} name='toggle_linejoin' onClick={() => {}} />
         <SvgButton icon={toggle_thickness} name='toggle_thickness' onClick={() => {}} />

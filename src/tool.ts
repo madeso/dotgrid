@@ -7,6 +7,7 @@ import type {
   Vertices,
   SingleStyle,
   Size,
+  RenderingLayer,
 } from "./_types";
 import { Client } from "./client";
 
@@ -80,6 +81,15 @@ export interface ToolI {
     close: number;
   };
   i: { linecap: number; linejoin: number; thickness: number };
+}
+
+export const tool_all_layers = (tool: ToolI, size: Size): RenderingLayer[] => {
+  return tool_paths(tool, size).map((path, index) => {
+    return {
+      path: path,
+      style: tool.styles[index]
+    };
+  });
 }
 
 export const tool_constructor = (): ToolI => {
@@ -307,7 +317,7 @@ export const tool_cast = (tool: ToolI, type: SegmentType, update: UpdateCallback
     tool.layers[tool.index] = [];
   }
   if (!tool_canCast(tool, type)) {
-    console.warn("Cannot cast");
+    console.warn(`Cannot cast ${type}`);
     return;
   }
 
@@ -442,7 +452,7 @@ export const tool_paths = (tool: ToolI, size: Size): [string, string, string] =>
       tool.layers[index],
       mirror_from_style(tool.styles[index]),
       { x: 0, y: 0 },
-      1, size
+      1, size // todo(Gustav): expose scale
     );
   };
 

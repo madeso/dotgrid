@@ -21,7 +21,9 @@ export const SvgButton = (props: {
             if(!props.onLeave) return
             props.onLeave();
         }}
-        onMouseUp={() => {
+        onMouseUp={(ev) => {
+            ev.stopPropagation();
+            ev.preventDefault();
             props.onClick();
         }}
         >
