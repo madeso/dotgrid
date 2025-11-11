@@ -307,21 +307,21 @@ const App = () => {
               setBrowseColor(!browseColor);
             }} />
           </div>
-        </div>
-        <div className='border'>
-          <SvgButton icon={toggle_thickness} name='toggle_thickness' theme={theme} is_selected={thicknessVisible} onClick={() => {
-            setThicknessVisible(!thicknessVisible);
-          }} />
-          {thicknessVisible && 
-          <input id="thickness-slider" type="range" name="thickness" min={1} max={100} value={tool_style(tool).thickness}
-            onChange={(e) => {
-              const thickness = parseFloat(e.target.value);
-              const t = structuredClone(tool);
-              tool_set_thickness(t, thickness);
-              setTool(t);
-            }}
-          />
-          }
+          <div className='relative'>
+            <SvgButton icon={toggle_thickness} name='toggle_thickness' theme={theme} is_selected={thicknessVisible} onClick={() => {
+              setThicknessVisible(!thicknessVisible);
+            }} />
+            {thicknessVisible && 
+            <input id="thickness-slider" type="range" name="thickness" min={1} max={100} value={tool_style(tool).thickness}
+              onChange={(e) => {
+                const thickness = parseFloat(e.target.value);
+                const t = structuredClone(tool);
+                tool_set_thickness(t, thickness);
+                setTool(t);
+              }}
+            />
+            }
+          </div>
         </div>
         <div className='border'>
           <MirrorButton icon={toggle_mirror.zero} name='toggle_mirror' mirror='zero' />
