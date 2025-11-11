@@ -75,8 +75,24 @@ Dotgrid's source code is licensed under MIT and the images, text and assets are 
 ## Dev / the goal of this fork
 
 1. Add types (mostly done)
-2. Port to a non-browser system?
-3. Add quality of life features?
+2. Port to react
+3. Remove duplicated and old code
+4. Add quality of life features?
+  - add / remove points to existing shapes
+  - undo adding points
+  - change existing shapes?
+  - toggle close
+  - delete shapes
+  - color palette
+  - mobile/touch support
+  - change shape?
+  - visualize layers
+  - more than 3 layers
+  - view drawing area
+  - move shapes between layers
+  - a project with multiple icons?
+  - save to/from local storage
+  - move data to url for easy sharing
 
 ```bash
 cd dotgrid
