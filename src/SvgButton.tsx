@@ -16,7 +16,7 @@ export const SvgButton = (props: {
     is_selected?: boolean;
 }) => {
     const th = props.theme;
-    const inv = props.is_selected ?? true;
+    const inv = props.is_selected ?? false;
     const bkg = th ? (inv ? th.b_inv : th.b_low) : 'white';
     const fg = th ? (inv ? th.f_inv : th.f_low) : 'black';
 

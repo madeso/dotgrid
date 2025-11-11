@@ -8,7 +8,8 @@ import type { Colors } from './theme';
 import { cursor_down, cursor_init, cursor_move, cursor_up, type Offset, type TranslateKeys } from './cursor';
 import { type SegmentType, type Point, type Size, type Mirror } from './_types';
 import { SvgButton } from './SvgButton';
-import { cast_arc_c, cast_arc_r, cast_bezier, cast_close, cast_line, misc_color, source_export, source_grid_no_extra, source_grid_with_extra, source_open, source_render, source_save, toggle_fill, toggle_linecap, toggle_mirror, toggle_thickness } from './icons';
+import { cast_arc_c, cast_arc_r, cast_bezier, cast_close, cast_line, misc_color, source_export, source_grid_no_extra, source_grid_with_extra, source_open, source_layers, source_save, fill_color, fill_transparent, toggle_mirror, linecap_butt, linecap_round, linecap_square, toggle_thickness, linejoin_miter, linejoin_bevel, linejoin_round, cast_arc_c_full, cast_arc_r_full, source_new, source_settings, source_undo, source_redo, icon_size, icon_project } from './icons';
+
 import { tool_addVertex, tool_all_layers, tool_canCast, tool_cast, tool_constructor, tool_layer, tool_select_color, tool_set_linecap, tool_set_linejoin, tool_set_mirror, tool_set_thickness, tool_style, tool_toggle, tool_translate, tool_translateCopy, tool_translateLayer, tool_translateMulti, tool_vertexAt, type ToolI } from './tool';
 import { mirror_from_style } from './generator';
 import { colors } from './colors';
@@ -76,7 +77,7 @@ const App = () => {
   const scale = 1;
   const current_mirror = mirror_from_style(tool_style(tool));
 
-  const size: Size = { width: 800, height: 800 };
+  const size: Size = { width: 300, height: 300 };
 
   const events: React.SVGProps<SVGSVGElement> = {
     onMouseMove: (ev) => {
@@ -173,7 +174,7 @@ const App = () => {
       <div>
         <img src={viteLogo} className="logo" alt="dotgrid logo" />
       </div>
-      <h1>dotgrid test</h1>
+      <h1>dotgrid</h1>
 
       <Canvas
         ref={canvasElement}
@@ -196,12 +197,16 @@ const App = () => {
         props={events}
       />
       <div id='toolbar'>
+        <div className='border'>
+          <SvgButton icon={source_undo} name='undo' onClick={() => {}} />
+          <SvgButton icon={source_redo} name='redo' onClick={() => {}} />
+        </div>
         <div className="border">
           <CastButton icon={cast_line} name='cast line' segment='line'/>
           <CastButton icon={cast_arc_c} name='cast arc c' segment='arc_c' />
-          <CastButton icon={cast_arc_c} name='cast arc c full' segment='arc_c_full' />
+          <CastButton icon={cast_arc_c_full} name='cast arc c full' segment='arc_c_full' />
           <CastButton icon={cast_arc_r} name='cast arc r' segment='arc_r' />
-          <CastButton icon={cast_arc_r} name='cast arc r full' segment='arc_r_full' />
+          <CastButton icon={cast_arc_r_full} name='cast arc r full' segment='arc_r_full' />
           <CastButton icon={cast_bezier} name='cast bezier' segment='bezier'/>
           <SvgButton icon={cast_close} name='cast close' isEnabled={tool_canCast(tool, 'close')} onClick={() => {
             const t = structuredClone(tool);
@@ -210,17 +215,17 @@ const App = () => {
           }} />
         </div>
         <div className='border'>
-          <LineCapButton icon={toggle_linecap} name='butt cap' linecap='butt' />
-          <LineCapButton icon={toggle_linecap} name='square cap' linecap='square' />
-          <LineCapButton icon={toggle_linecap} name='round cap' linecap='round' />
+          <LineCapButton icon={linecap_butt} name='butt cap' linecap='butt' />
+          <LineCapButton icon={linecap_round} name='round cap' linecap='round' />
+          <LineCapButton icon={linecap_square} name='square cap' linecap='square' />
         </div>
         <div className='border'>
-          <LineJoinButton icon={toggle_linecap} name='miter join' linejoin='miter' />
-          <LineJoinButton icon={toggle_linecap} name='round join' linejoin='round' />
-          <LineJoinButton icon={toggle_linecap} name='bevel join' linejoin='bevel' />
+          <LineJoinButton icon={linejoin_miter} name='miter join' linejoin='miter' />
+          <LineJoinButton icon={linejoin_round} name='round join' linejoin='round' />
+          <LineJoinButton icon={linejoin_bevel} name='bevel join' linejoin='bevel' />
         </div>
         <div className='border'>
-          <SvgButton icon={toggle_fill} name='toggle_fill' theme={theme} is_selected={(tool_style(tool).fill ?? 'none') !== 'none'} onClick={() => {
+          <SvgButton icon={(tool_style(tool).fill ?? 'none') !== 'none' ? fill_color : fill_transparent} name='toggle_fill' theme={theme} onClick={() => {
             const t = structuredClone(tool);
             tool_toggle(t, 'fill', ()=>{});
             setTool(t);
@@ -260,14 +265,24 @@ const App = () => {
           <MirrorButton icon={toggle_mirror.three} name='toggle_mirror' mirror='three' />
         </div>
         <div className='border'>
-          <SvgButton icon={source_open} name='source_open' onClick={() => {}} />
-          <SvgButton icon={source_render} name='source_render' onClick={() => {}} />
+          <SvgButton icon={source_new} name='new' onClick={() => {}} />
+          <SvgButton icon={source_open} name='open' onClick={() => {}} />
+          <SvgButton icon={source_save} name='save' onClick={() => {}} />
           <SvgButton icon={source_export} name='source_export' onClick={() => {}} />
-          <SvgButton icon={source_save} name='source_save' onClick={() => {}} />
-          <SvgButton icon={showExtra ? source_grid_with_extra : source_grid_no_extra} name='Extra' onClick={() => {
+          <SvgButton icon={source_settings} name='settings' onClick={() => {}} />
+        </div>
+        <div className='border'>
+          <SvgButton icon={icon_size} name='size' onClick={() => {}} />
+          <SvgButton icon={icon_project} name='project' onClick={() => {}} />
+          <SvgButton icon={source_layers} name='layers' onClick={() => {}} />
+          <SvgButton icon={showExtra ? source_grid_with_extra : source_grid_no_extra} name='widgets' onClick={() => {
             setShowExtra(!showExtra);
           }} />
         </div>
+      </div>
+
+      <div>
+        <img src={viteLogo} className="logo" alt="dotgrid logo" />
       </div>
     </>
   )
