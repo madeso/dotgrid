@@ -83,7 +83,7 @@ const Grid = (props: {size: Size, theme: Colors, scale: number, showExtras: bool
                     cx={pos.x}
                     cy={pos.y}
                     r={radius}
-                    fill={theme.b_med}
+                    fill={theme.f_low}
                 />
             );
         }
@@ -174,7 +174,7 @@ const Translation = (props: {
             y2={props.to.y * this_scale}
             stroke={
                 props.multi === true
-                    ? theme.b_inv
+                    ? theme.f_high
                     : props.copy === true
                         ? theme.f_med
                         : theme.f_low
@@ -205,7 +205,7 @@ const Cursor = (
                 cx={Math.abs(pos.x * this_scale)}
                 cy={Math.abs(pos.y * this_scale)}
                 r={5}
-                stroke={theme.background}
+                stroke={theme.b_low}
                 strokeWidth={3}
                 fill="none"
             />
@@ -267,7 +267,7 @@ const Vertex = (props: {pos: Point, radius: number|null|undefined, scale: number
             cx={pos.x * this_scale}
             cy={pos.y * this_scale}
             r={radius}
-            fill={theme.f_low}
+            fill={theme.b_low}
             stroke={theme.f_med}
             strokeWidth={2}
         />
@@ -278,7 +278,7 @@ const Rule = (props: { id?: string, from: Point, to: Point, theme: Colors }) => 
     return <path
         id={props.id}
         d={`M${props.from.x},${props.from.y} L${props.to.x},${props.to.y}`}
-        stroke={props.theme.b_low}
+        stroke={props.theme.f_low}
         strokeWidth={3}
         strokeLinecap="round"
         fill="none"
@@ -345,7 +345,7 @@ const ClearRect = (props: {size: Size, scale: number, theme: Colors}) => {
         <rect
             width={props.size.width * props.scale}
             height={props.size.height * props.scale}
-            fill={props.theme.background}
+            fill={props.theme.b_low}
         />
     );
 }
@@ -385,7 +385,8 @@ cosnt can_cast = this_client.tool.canCast(operation));
 */
 export const Canvas = (props: {
     ref?: React.Ref<SVGSVGElement>,
-    showExtras: boolean, size: Size, scale: number
+    showExtras: boolean,
+    size: Size, scale: number
     copy: boolean, multi: boolean
     mirror: Mirror, theme: Colors,
     translation_to: Point | null | undefined,

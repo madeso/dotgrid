@@ -1,8 +1,15 @@
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
   text-align: center;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+}
+#app {
+  background-color: var(--background);
+  color: var(--f-low);
+  width: 100%;
+  padding: 0;
+  margin: 0;
 }
 
 .logo {
@@ -10,29 +17,20 @@
   padding: 1.5em;
 }
 
-#toolbar {
+#menubar, #toolbar {
   -webkit-app-region: no-drag;
   transition: all 150ms;
   width: 100%;
   position: fixed;
-  bottom: 6px;
   left: 40px;
   max-width: calc(100vw - 75px);
   line-height: 0;
 }
-#toolbar #menu {
-  opacity: 1;
-  position: absolute;
-  top: 0px;
-  transition: all 250ms;
-  z-index: 900;
-  height: 30px;
-  width: 100%;
-  font-size: 11px;
-  line-height: 30px;
-  text-transform: uppercase;
-}
-#toolbar svg.icon {
+
+#menubar { top: 6px; }
+#toolbar { bottom: 6px; }
+
+svg.icon {
   width: 30px;
   height: 30px;
   margin-left: 2px;
@@ -40,22 +38,14 @@
   opacity: 0.6;
   transition: opacity 250ms;
 }
-#toolbar svg.icon.disabled {
-  opacity: 0.2;
-}
-#toolbar svg.icon:hover {
+svg.icon:hover {
   cursor: pointer;
-}
-#toolbar svg.icon.enabled:hover {
   opacity: 1;
 }
-#toolbar svg.icon.disabled:hover {
-  opacity: 0.5;
-}
-#toolbar svg.icon:last-child {
+svg.icon:last-child {
   margin-right: 0;
 }
-#toolbar svg.icon path {
+svg.icon path {
   fill: none;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -65,7 +55,7 @@
 .border {
   display: inline-block;
   border-width: 1px;
-  border-color: #aaa;
+  border-color: var(--f-low);
   border-style: solid;
   padding: 3px;
   margin: 3px;

@@ -8,7 +8,7 @@ import type { Colors } from './theme';
 import { cursor_down, cursor_init, cursor_move, cursor_up, type Offset, type TranslateKeys } from './cursor';
 import { type SegmentType, type Point, type Size, type Mirror } from './_types';
 import { SvgButton } from './SvgButton';
-import { cast_arc_c, cast_arc_r, cast_bezier, cast_close, cast_line, misc_color, source_export, source_grid_no_extra, source_grid_with_extra, source_open, source_layers, source_save, fill_color, fill_transparent, toggle_mirror, linecap_butt, linecap_round, linecap_square, toggle_thickness, linejoin_miter, linejoin_bevel, linejoin_round, cast_arc_c_full, cast_arc_r_full, source_new, source_settings, source_undo, source_redo, icon_size, icon_project } from './icons';
+import { cast_arc_c, cast_arc_r, cast_bezier, cast_close, cast_line, misc_color, source_export, source_grid_no_extra, source_grid_with_extra, source_open, source_layers, source_save, fill_color, fill_transparent, toggle_mirror, linecap_butt, linecap_round, linecap_square, toggle_thickness, linejoin_miter, linejoin_bevel, linejoin_round, cast_arc_c_full, cast_arc_r_full, source_new, source_settings, source_undo, source_redo, icon_size, icon_project, icon_show_grid, icon_show_achor, icon_show_guides, icon_about } from './icons';
 
 import { tool_addVertex, tool_all_layers, tool_canCast, tool_cast, tool_constructor, tool_layer, tool_select_color, tool_set_linecap, tool_set_linejoin, tool_set_mirror, tool_set_thickness, tool_style, tool_toggle, tool_translate, tool_translateCopy, tool_translateLayer, tool_translateMulti, tool_vertexAt, type ToolI } from './tool';
 import { mirror_from_style } from './generator';
@@ -54,7 +54,7 @@ const App = () => {
 
   const canvasElement = createRef<SVGSVGElement>();
 
-  const theme: Colors = {
+  const light_theme: Colors = {
     background: "#eeeeee",
     f_high: "#0a0a0a",
     f_med: "#4a4a4a",
@@ -65,6 +65,22 @@ const App = () => {
     b_low: "#ffffff",
     b_inv: "#ffb545",
   };
+
+  const apollo_theme: Colors = {
+      background: '#29272b',
+      f_high: '#ffffff',
+      f_med: '#e47464',
+      f_low: '#66606b',
+      f_inv: '#000000',
+      b_high: '#000000',
+      b_med: '#201e21',
+      b_low: '#322e33',
+      b_inv: '#e47464',
+  };
+
+  // Detect if user prefers dark mode
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const theme = prefersDark ? apollo_theme : light_theme;
 
   // const [tool, setTool] = useState(() => tool_constructor());
   const [cursor, setCursor] = useState(() => cursor_init());
@@ -134,7 +150,7 @@ const App = () => {
     icon: string;
     name: string;
     segment: SegmentType;
-  }) => <SvgButton icon={props.icon} name={props.name} isEnabled={tool_canCast(tool, props.segment)} onEnter={() => setPreview(props.segment)} onLeave={() => setPreview(null)} onClick={() => {
+  }) => <SvgButton theme={theme} icon={props.icon} name={props.name} isEnabled={tool_canCast(tool, props.segment)} onEnter={() => setPreview(props.segment)} onLeave={() => setPreview(null)} onClick={() => {
           const t = structuredClone(tool);
           tool_cast(t, props.segment, () => {}, () => {});
           setTool(t);
@@ -170,11 +186,50 @@ const App = () => {
   }} />
 
   return (
-    <>
+    <div id="app" style={{
+      "--background": theme.background,
+      "--f-high": theme.f_high,
+      "--f-med": theme.f_med,
+      "--f-low": theme.f_low,
+      "--f-inv": theme.f_inv,
+      "--b-high": theme.b_high,
+      "--b-med": theme.b_med,
+      "--b-low": theme.b_low,
+      "--b-inv": theme.b_inv
+    }}>
       <div>
         <img src={viteLogo} className="logo" alt="dotgrid logo" />
       </div>
       <h1>dotgrid</h1>
+
+      <div id='menubar'>
+        <div className='border'>
+          <SvgButton theme={theme} icon={source_new} name='new' onClick={() => {}} />
+          <SvgButton theme={theme} icon={source_open} name='open' onClick={() => {}} />
+          <SvgButton theme={theme} icon={source_save} name='save' onClick={() => {}} />
+          <SvgButton theme={theme} icon={source_export} name='source_export' onClick={() => {}} />
+          <SvgButton theme={theme} icon={source_settings} name='settings' onClick={() => {}} />
+          <SvgButton theme={theme} icon={icon_about} name='about' onClick={() => {}} />
+        </div>
+        <div className='border'>
+          <SvgButton theme={theme} icon={source_undo} name='undo' onClick={() => {}} />
+          <SvgButton theme={theme} icon={source_redo} name='redo' onClick={() => {}} />
+        </div>
+        <div className='border'>
+          <SvgButton theme={theme} icon={icon_size} name='size' onClick={() => {}} />
+          <SvgButton theme={theme} icon={icon_project} name='project' onClick={() => {}} />
+          <SvgButton theme={theme} icon={source_layers} name='layers' onClick={() => {}} />
+        </div>
+
+        <div className='border'>
+          <SvgButton theme={theme} icon={showExtra ? source_grid_with_extra : source_grid_no_extra} name='widgets' onClick={() => {
+            setShowExtra(!showExtra);
+          }} />
+          <SvgButton theme={theme} icon={icon_show_grid} name='grid' onClick={() => {}} />
+          <SvgButton theme={theme} icon={icon_show_achor} name='anchor' onClick={() => {}} />
+          <SvgButton theme={theme} icon={icon_show_guides} name='guide' onClick={() => {}} />
+        </div>
+      </div>
 
       <Canvas
         ref={canvasElement}
@@ -197,10 +252,6 @@ const App = () => {
         props={events}
       />
       <div id='toolbar'>
-        <div className='border'>
-          <SvgButton icon={source_undo} name='undo' onClick={() => {}} />
-          <SvgButton icon={source_redo} name='redo' onClick={() => {}} />
-        </div>
         <div className="border">
           <CastButton icon={cast_line} name='cast line' segment='line'/>
           <CastButton icon={cast_arc_c} name='cast arc c' segment='arc_c' />
@@ -208,7 +259,7 @@ const App = () => {
           <CastButton icon={cast_arc_r} name='cast arc r' segment='arc_r' />
           <CastButton icon={cast_arc_r_full} name='cast arc r full' segment='arc_r_full' />
           <CastButton icon={cast_bezier} name='cast bezier' segment='bezier'/>
-          <SvgButton icon={cast_close} name='cast close' isEnabled={tool_canCast(tool, 'close')} onClick={() => {
+          <SvgButton theme={theme} icon={cast_close} name='cast close' isEnabled={tool_canCast(tool, 'close')} onClick={() => {
             const t = structuredClone(tool);
             tool_cast(t, 'close', () => {}, () => {});
             setTool(t);
@@ -264,27 +315,12 @@ const App = () => {
           <MirrorButton icon={toggle_mirror.two} name='toggle_mirror' mirror='two' />
           <MirrorButton icon={toggle_mirror.three} name='toggle_mirror' mirror='three' />
         </div>
-        <div className='border'>
-          <SvgButton icon={source_new} name='new' onClick={() => {}} />
-          <SvgButton icon={source_open} name='open' onClick={() => {}} />
-          <SvgButton icon={source_save} name='save' onClick={() => {}} />
-          <SvgButton icon={source_export} name='source_export' onClick={() => {}} />
-          <SvgButton icon={source_settings} name='settings' onClick={() => {}} />
-        </div>
-        <div className='border'>
-          <SvgButton icon={icon_size} name='size' onClick={() => {}} />
-          <SvgButton icon={icon_project} name='project' onClick={() => {}} />
-          <SvgButton icon={source_layers} name='layers' onClick={() => {}} />
-          <SvgButton icon={showExtra ? source_grid_with_extra : source_grid_no_extra} name='widgets' onClick={() => {
-            setShowExtra(!showExtra);
-          }} />
-        </div>
       </div>
 
       <div>
         <img src={viteLogo} className="logo" alt="dotgrid logo" />
       </div>
-    </>
+    </div>
   )
 }
 

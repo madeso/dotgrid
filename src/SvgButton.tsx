@@ -4,6 +4,23 @@ const capitalize = (str: string) => {
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 };
 
+const select_color = (theme: Colors, is_selected: boolean, is_enabled: boolean): {fg: string, bg: string} => {
+    if(!is_enabled) return {
+        fg: theme.f_low,
+        bg: theme.b_low
+    };
+
+    if(is_selected) return {
+        fg: theme.f_inv,
+        bg: theme.b_inv
+    };
+
+    return {
+        fg: theme.f_med,
+        bg: theme.b_med
+    };
+}
+
 export const SvgButton = (props: {
     icon: string;
     name: string;
@@ -11,18 +28,14 @@ export const SvgButton = (props: {
     onClick: () => void;
     onEnter?: ()=>void;
     onLeave?: ()=>void;
-    // todo(Gustav): force theme
-    theme?: Colors;
+    theme: Colors;
     is_selected?: boolean;
 }) => {
-    const th = props.theme;
-    const inv = props.is_selected ?? false;
-    const bkg = th ? (inv ? th.b_inv : th.b_low) : 'white';
-    const fg = th ? (inv ? th.f_inv : th.f_low) : 'black';
+    const {fg,bg} = select_color(props.theme, props.is_selected ?? false, props.isEnabled ?? true);
 
     // title: capitalize(name),
     return <svg
-        className={`icon ${props.isEnabled??true?"enabled":"disabled"}`}
+        className={'icon'}
         viewBox="0 0 300 300"
         onMouseOver={() => {
             if(!props.onEnter) return;
@@ -38,7 +51,7 @@ export const SvgButton = (props: {
             props.onClick();
         }}
         >
-            <rect fill={bkg} width={300} height={300} rx={15} ry={15}>
+            <rect fill={bg} width={300} height={300} rx={15} ry={15}>
                 <title>{capitalize(props.name)}</title>
             </rect>
             <path className="icon_path" d={props.icon}
