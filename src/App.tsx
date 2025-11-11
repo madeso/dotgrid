@@ -87,6 +87,9 @@ const App = () => {
   const [tool, setTool] = useState<ToolI>(tool_constructor());
   const [preview, setPreview] = useState<SegmentType | null>(null);
   const [showExtra, setShowExtra] = useState(true);
+  const [showGrid, setShowGrid] = useState(true);
+  const [showHandles, setShowHandles] = useState(true);
+  const [showGuides, setShowGuides] = useState(true);
   const [thicknessVisible, setThicknessVisible] = useState(false);
   const [browseColor, setBrowseColor] = useState(false);
 
@@ -225,9 +228,18 @@ const App = () => {
           <SvgButton theme={theme} icon={showExtra ? source_grid_with_extra : source_grid_no_extra} name='widgets' onClick={() => {
             setShowExtra(!showExtra);
           }} />
-          <SvgButton theme={theme} icon={icon_show_grid} name='grid' onClick={() => {}} />
-          <SvgButton theme={theme} icon={icon_show_achor} name='anchor' onClick={() => {}} />
-          <SvgButton theme={theme} icon={icon_show_guides} name='guide' onClick={() => {}} />
+          <SvgButton theme={theme} isEnabled={showExtra} is_selected={showGrid} icon={icon_show_grid} name='grid' onClick={() => {
+            if(!showExtra) return;
+            setShowGrid(!showGrid);
+          }} />
+          <SvgButton theme={theme} isEnabled={showExtra} is_selected={showHandles} icon={icon_show_achor} name='handles' onClick={() => {
+            if(!showExtra) return;
+            setShowHandles(!showHandles);
+          }} />
+          <SvgButton theme={theme} isEnabled={showExtra} is_selected={showGuides} icon={icon_show_guides} name='guide' onClick={() => {
+            if(!showExtra) return;
+            setShowGuides(!showGuides);
+          }} />
         </div>
       </div>
 
@@ -242,7 +254,9 @@ const App = () => {
         translation_to={cursor.translation?.to}
         scale={scale}
         size={size}
-        showExtras={showExtra}
+        show_grid={showExtra && showGrid}
+        show_handles={showExtra && showHandles}
+        show_guides={showExtra && showGuides}
         cast_preview={preview}
         vertex_radius={4}
         active_layer={tool_layer(tool)}

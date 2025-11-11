@@ -10,7 +10,10 @@ const clamp = (v: number, min: number, max: number) => {
     return v < min ? min : v > max ? max : v;
 };
 
-const MirrorEl = (props: { mirror_style: Mirror, size: Size, scale: number, theme: Colors }) => {
+const MirrorEl = (props: { show: boolean, mirror_style: Mirror, size: Size, scale: number, theme: Colors }) => {
+    if(props.show === false) {
+        return <></>;
+    }
     if (props.mirror_style === "zero") {
         return <></>;
     }
@@ -385,7 +388,9 @@ cosnt can_cast = this_client.tool.canCast(operation));
 */
 export const Canvas = (props: {
     ref?: React.Ref<SVGSVGElement>,
-    showExtras: boolean,
+    show_grid: boolean,
+    show_handles: boolean,
+    show_guides: boolean,
     size: Size, scale: number
     copy: boolean, multi: boolean
     mirror: Mirror, theme: Colors,
@@ -407,12 +412,12 @@ export const Canvas = (props: {
             height: props.size.height
         }}>
             <ClearRect size={props.size} scale={props.scale} theme={props.theme}/>
-        <MirrorEl mirror_style={props.mirror} scale={props.scale} size={props.size} theme={props.theme}/>
-        <Grid scale={props.scale} size={props.size} theme={props.theme} showExtras={props.showExtras}/>
+        <MirrorEl show={props.show_guides} mirror_style={props.mirror} scale={props.scale} size={props.size} theme={props.theme}/>
+        <Grid scale={props.scale} size={props.size} theme={props.theme} showExtras={props.show_grid}/>
         <Rulers pos={props.translation_to} scale={props.scale} size={props.size} theme={props.theme}/>
         <SvgLayers layers={props.layers}/>
         <Vertices radius={props.vertex_radius} scale={props.scale} theme={props.theme} vertices={props.tool_vertices} />
-        <Handles layer={props.active_layer} scale={props.scale} showExtras={props.showExtras} theme={props.theme}/>
+        <Handles layer={props.active_layer} scale={props.scale} showExtras={props.show_handles} theme={props.theme}/>
         <Translation from={props.translation_from} to={props.translation_to} scale={props.scale} theme={props.theme} copy={props.copy} multi={props.multi} />
         <Cursor pos={props.cursor_pos} radius={props.cursor_radius} scale={props.scale} theme={props.theme} />
         <Preview cast_preview={props.cast_preview} scale={props.scale} size={props.size} theme={props.theme} tool_vertices={props.tool_vertices} />
