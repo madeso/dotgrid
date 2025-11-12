@@ -31,11 +31,13 @@ export const SvgButton = (props: {
     theme: Colors;
     is_selected?: boolean;
 }) => {
-    const {fg,bg} = select_color(props.theme, props.is_selected ?? false, props.isEnabled ?? true);
+    const is_selected = props.is_selected ?? false;
+    const is_enabled = props.isEnabled ?? true;
+    const {fg,bg} = select_color(props.theme, is_selected, is_enabled);
 
     // title: capitalize(name),
     return <svg
-        className={'icon'}
+        className={`icon ${is_enabled ? "enabled" : "disabled"} ${is_selected ? "selected" : "not-selected"}`}
         viewBox="0 0 300 300"
         onMouseOver={() => {
             if(!props.onEnter) return;
