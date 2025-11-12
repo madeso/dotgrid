@@ -96,10 +96,9 @@ div.color-button:hover {
   cursor: pointer;
 }
 
-div.color-dialog {
+div.dialog {
   position: absolute;
   left: -10px;
-  bottom: 38px;
   background: #fff;
   border: 1px solid #ccc;
   border-radius: 8px;
@@ -110,14 +109,24 @@ div.color-dialog {
   white-space: nowrap;
   z-index: 10;
 }
+div.dialog.up { bottom: 38px; }
+div.dialog.down { top: 38px; }
 
-div.speech-point {
-  position: absolute;
+div.point {
   left: 20px;
-  top: 100%;
   width: 0;
   height: 0;
+  position: absolute;
   border-left: 8px solid transparent;
   border-right: 8px solid transparent;
+}
+
+.down .point {
+  bottom: 100%;
+  border-bottom: 8px solid #fff;
+}
+
+.up .point {
+  top: 100%;
   border-top: 8px solid #fff;
 }

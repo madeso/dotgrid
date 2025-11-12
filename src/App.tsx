@@ -36,7 +36,7 @@ TODO
 const ColorDialog = (props: {
   select_color: (c: string) => void;
 }) => {
-  return <div className='color-dialog'>
+  return <div className='dialog up'>
     {
       Object.values(colors).map((list, list_index) => <div className='color-map'>
         {list.map((color, color_index) => <div key={`${list_index}-${color_index}`} className='color-button'
@@ -46,8 +46,290 @@ const ColorDialog = (props: {
           style={{background: color}} />)}
       </div>)
     }
-    <div className='speech-point'/>
+    <div className='point'/>
   </div>
+}
+
+const Theme = (props: {theme: Colors, name: string, onClick: ()=>void, onEnter: ()=>void, onLeave: ()=>void}) => {
+  const t = props.theme;
+  return <svg  onClick={props.onClick} onMouseEnter={props.onEnter} onMouseLeave={props.onLeave} width="96px" height="64px" xmlns="http://www.w3.org/2000/svg" baseProfile="full" version="1.1">
+    <rect width='96' height='64'  id='background' fill={t.background}>
+      <title>{props.name}</title>
+    </rect>
+    <circle cx='24' cy='24' r='8' id='f_high' fill={t.f_high}/>
+    <circle cx='40' cy='24' r='8' id='f_med' fill={t.f_med}/>
+    <circle cx='56' cy='24' r='8' id='f_low' fill={t.f_low}/>
+    <circle cx='72' cy='24' r='8' id='f_inv' fill={t.f_inv}/>
+    <circle cx='24' cy='40' r='8' id='b_high' fill={t.b_high}/>
+    <circle cx='40' cy='40' r='8' id='b_med' fill={t.b_med}/>
+    <circle cx='56' cy='40' r='8' id='b_low' fill={t.b_low}/>
+    <circle cx='72' cy='40' r='8' id='b_inv' fill={t.b_inv}/>
+  </svg>;
+}
+
+interface NamedTheme {
+  name: string;
+  theme: Colors;
+}
+
+const dark_themes: NamedTheme[] =
+[
+  {name: 'Apollo', theme: {
+      background: '#29272b',
+      f_high: '#ffffff',
+      f_med: '#e47464',
+      f_low: '#66606b',
+      f_inv: '#000000',
+      b_high: '#000000',
+      b_med: '#201e21',
+      b_low: '#322e33',
+      b_inv: '#e47464',
+  }},
+  {name: 'Orca', theme: {
+    background: '#000000',
+    f_high: '#ffffff',
+    f_med: '#777777',
+    f_low: '#444444',
+    f_inv: '#000000',
+    b_high: '#dddddd',
+    b_med: '#72dec2',
+    b_low: '#222222',
+    b_inv: '#ffb545',
+  }},
+  {
+     name: 'Battlestation',
+     theme: {
+      background: '#222222',
+      f_high: '#ffffff',
+      f_med: '#affec7',
+      f_low: '#888888',
+      f_inv: '#000000',
+      b_high: '#555555',
+      b_med: '#333333',
+      b_low: '#111111',
+      b_inv: '#affec7',
+     }
+  },
+  {
+    name: 'souyuz',
+    theme: {
+      background: '#111111',
+      f_high: '#ffffff',
+      f_med: '#aaaaaa',
+      f_low: '#555555',
+      f_inv: '#000000',
+      b_high: '#fc533e',
+      b_med: '#666666',
+      b_low: '#333333',
+      b_inv: '#fc533e',
+    }
+  },
+  {
+    name: 'Lotus',
+    theme: {
+      background: '#161616',
+      f_high: '#f0c098',
+      f_med: '#999999',
+      f_low: '#444444',
+      f_inv: '#222222',
+      b_high: '#ffffff',
+      b_med: '#333333',
+      b_low: '#222222',
+      b_inv: '#f0c098',
+    }
+  },
+  {
+    name: 'Solarized (dark)',
+    theme: {
+        background: "#073642",
+        b_high: "#fdf6e3",
+        b_med: "#eee8d5",
+        b_low: "#002b36",
+        b_inv: "#cb4b16",
+        f_high: "#93a1a1",
+        f_med: "#6c71c4",
+        f_low: "#586e75",
+        f_inv: "#002b36",
+    }
+  }
+];
+
+const light_themes: NamedTheme[] = [
+  {
+    name: 'Coal',
+    theme: {
+      background: '#EDEAEA',
+      f_high: '#393B3F',
+      f_med: '#808790',
+      f_low: '#A3A3A4',
+      f_inv: '#000000',
+      b_high: '#333333',
+      b_med: '#777777',
+      b_low: '#DDDDDD',
+      b_inv: '#ffffff',
+    }
+  },
+  {
+    name: 'Marble',
+    theme: {
+      background: '#FBFBF2',
+      f_high: '#3a3738',
+      f_med: '#847577',
+      f_low: '#bdb8b8',
+      f_inv: '#A6A2A2',
+      b_high: '#676164',
+      b_med: '#A6A2A2',
+      b_low: '#CFD2CD',
+      b_inv: '#676164',
+    }
+  },
+  {
+    name: 'Snow', theme: {
+      background: '#eeefee',
+      f_high: '#222222',
+      f_med: '#999999',
+      f_low: '#bbbcbb',
+      f_inv: '#545454',
+      b_high: '#545454',
+      b_med: '#ced0ce',
+      b_low: '#f5f5f5',
+      b_inv: '#ed2c3e',
+    }
+  },
+  {
+    name: 'Teenage',
+    theme: {
+      background: '#a1a1a1',
+      f_high: '#222222',
+      f_med: '#e00b30',
+      f_low: '#888888',
+      f_inv: '#ffffff',
+      b_high: '#555555',
+      b_med: '#fbba2d',
+      b_low: '#b3b3b3',
+      b_inv: '#0e7242',
+    }
+  },
+  {
+    name: 'Tape',
+    theme: {
+      background: '#dad7cd',
+      f_high: '#696861',
+      f_med: '#ffffff',
+      f_low: '#b3b2ac',
+      f_inv: '#43423e',
+      b_high: '#43423e',
+      b_med: '#c2c1bb',
+      b_low: '#e5e3dc',
+      b_inv: '#eb3f48',
+    }
+  },
+  {
+    name: 'Solarized (light)',
+    theme: {
+      background: "#eee8d5",
+      b_high: "#002b36",
+      b_med: "#073642",
+      b_low: "#fdf6e3",
+      b_inv: "#cb4b16",
+      f_high: "#586e75",
+      f_med: "#6c71c4",
+      f_low: "#93a1a1",
+      f_inv: "#fdf6e3",
+      }
+  }
+];
+
+const color_themes: NamedTheme[] = [
+  {
+    name: 'Mahou',
+    theme: {
+      background: '#E0B1CB',
+      f_high: '#231942',
+      f_med: '#48416d',
+      f_low: '#917296',
+      f_inv: '#E0B1CB',
+      b_high: '#5E548E',
+      b_med: '#FFFFFF',
+      b_low: '#BE95C4',
+      b_inv: '#9F86C0',
+    }
+  },
+  {
+    name: 'Pico-8',
+    theme: {
+      background: '#000000',
+      f_high: '#ffffff',
+      f_med: '#fff1e8',
+      f_low: '#ff78a9',
+      f_inv: '#ffffff',
+      b_high: '#c2c3c7',
+      b_med: '#83769c',
+      b_low: '#695f56',
+      b_inv: '#00aefe',
+    }
+  },
+  {
+    name: 'Frameio',
+    theme: {
+      background: '#333848',
+      f_high: '#cccccc',
+      f_med: '#5b52fe',
+      f_low: '#4c576f',
+      f_inv: '#ffffff',
+      b_high: '#edeef2',
+      b_med: '#262b37',
+      b_low: '#394153',
+      b_inv: '#5b52fe',
+    }
+  },
+  {
+    name: 'Berry',
+    theme: {
+      background: '#9EB7FF',
+    f_high: '#3e8281',
+    f_med: '#FFFFFF',
+    f_low: '#c5f0ec',
+    f_inv: '#FFFFFF',
+    b_high: '#1C0A16',
+    b_med: '#499897',
+    b_low: '#6ADEDC',
+    b_inv: '#6ADEDC',
+    }
+  },
+  {
+    name: 'Roguelight',
+    theme: {
+      background: '#352b31',
+      f_high: '#f5f5d4',
+      f_med: '#70838c',
+      f_low: '#4a6b83',
+      f_inv: '#352b31',
+      b_high: '#96cf85',
+      b_med: '#5a6970',
+      b_low: '#4a3b44',
+      b_inv: '#f5f5d4',
+    }
+  }
+];
+
+const ThemeList = (props: {
+  selectTheme: (theme: Colors) => void,
+  setHover: (theme: Colors | null) => void
+}) => {
+  const all_themes = [
+    dark_themes, light_themes, color_themes
+  ];
+
+  return all_themes.map((themes, list_index) => <div key={list_index}>
+    {themes.map(((theme, theme_index)=><Theme key={theme_index}
+      onEnter={() => props.setHover(theme.theme)}
+      onLeave={() => props.setHover(null)}
+      onClick={() => {
+        props.selectTheme(theme.theme);
+      }}
+      theme={theme.theme} name={theme.name}/>))}
+  </div>);
 }
 
 const App = () => {
@@ -78,9 +360,12 @@ const App = () => {
       b_inv: '#e47464',
   };
 
-  // Detect if user prefers dark mode
-  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const theme = prefersDark ? apollo_theme : light_theme;
+  const [hoverTheme, setHoverTheme] = useState<null | Colors>(null);
+  const [selectedTheme, setSelectedTheme] = useState<Colors>(() => {
+    // Detect if user prefers dark mode
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    return prefersDark ? apollo_theme : light_theme;
+  });
 
   // const [tool, setTool] = useState(() => tool_constructor());
   const [cursor, setCursor] = useState(() => cursor_init());
@@ -92,6 +377,9 @@ const App = () => {
   const [showGuides, setShowGuides] = useState(true);
   const [thicknessVisible, setThicknessVisible] = useState(false);
   const [browseColor, setBrowseColor] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+
+  const theme = hoverTheme ?? selectedTheme;
 
   const scale = 1;
   const current_mirror = mirror_from_style(tool_style(tool));
@@ -211,7 +499,22 @@ const App = () => {
           <SvgButton theme={theme} icon={source_open} name='open' onClick={() => {}} />
           <SvgButton theme={theme} icon={source_save} name='save' onClick={() => {}} />
           <SvgButton theme={theme} icon={source_export} name='source_export' onClick={() => {}} />
-          <SvgButton theme={theme} icon={source_settings} name='settings' onClick={() => {}} />
+          <div className='relative'>
+            <SvgButton theme={theme} icon={source_settings} is_selected={showSettings} name='settings' onClick={() => {
+              setShowSettings(!showSettings);
+            }} />
+            {showSettings && <div className='dialog down'>
+              <div className='point' />
+              <hr/>
+              <h4>Themes</h4>
+               <ThemeList setHover={setHoverTheme} selectTheme={theme => {
+                setSelectedTheme(theme);
+                setHoverTheme(null);
+                setShowSettings(false);
+               }}
+              />
+            </div>}
+          </div>
           <SvgButton theme={theme} icon={icon_about} name='about' onClick={() => {}} />
         </div>
         <div className='border'>
