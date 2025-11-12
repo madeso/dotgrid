@@ -113,6 +113,7 @@ const App = () => {
   const [thicknessVisible, setThicknessVisible] = useState(false);
   const [browseColor, setBrowseColor] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
 
   const theme = hoverTheme ?? selectedTheme;
 
@@ -258,7 +259,20 @@ const App = () => {
               </table></div>}
             </div>}
           </div>
-          <SvgButton theme={theme} icon={icon_about} name='about' onClick={() => {}} />
+          <div className='relative'>
+            <SvgButton theme={theme} is_selected={showAbout} icon={icon_about} name='about' onClick={() => {
+              setShowAbout(!showAbout);
+            }} />
+            {showAbout && <div className='dialog down'>
+              <div className='point'/>
+              <p>
+                Dotgrid is a simple vector drawing app <a href="https://hundredrabbits.itch.io/dotgrid">orignially by 100 rabbits</a>.
+              </p>
+              <p>
+                This is <a href="https://github.com/madeso/dotgrid">a fork</a> with some different features.
+              </p>
+            </div>}
+          </div>
         </div>
         <div className='border'>
           <SvgButton theme={theme} icon={source_undo} name='undo' onClick={() => {}} />
