@@ -195,6 +195,10 @@ export const light_themes: NamedTheme[] = [
 
 export const color_themes: NamedTheme[] = [
   {
+    name: "Default",
+    theme: the_default_theme,
+  },
+  {
     name: "Mahou",
     theme: {
       background: "#E0B1CB",

@@ -130,3 +130,57 @@ div.point {
   top: 100%;
   border-top: 8px solid #fff;
 }
+
+div.theme-eval {
+  padding: 3px;
+  margin: 3px;
+}
+
+.theme-eval table {
+  	font-family: 'Open Sans', sans-serif;
+	line-height: 1;
+}
+
+table {
+	display: table;
+  border-spacing: 3px;
+  border-collapse: separate;
+  box-sizing: border-box;
+  text-indent: 0;
+}
+
+tr th {
+  font-weight: bold;
+  text-align: right;
+}
+
+tr td {
+  text-align: left;
+}
+
+div.distribution {
+  height: 10px;
+}
+div.distribution div {
+  display: inline;
+}
+
+div.theme-icon {
+  padding: 3px;
+  display: inline;
+}
+
+div.theme-icon div {
+  display: inline-grid;
+}
+div.theme-icon div p {
+  display: inline;
+  position: relative;
+  text-align: left;
+  padding: 0;
+  left: -3px;
+  bottom: -3px;
+}
+div.theme-icon div svg {
+  display: inline;
+}

@@ -14,6 +14,7 @@ import { tool_addVertex, tool_all_layers, tool_canCast, tool_cast, tool_construc
 import { mirror_from_style } from './generator';
 import { colors } from './colors';
 import { color_themes, dark_themes, light_themes, the_apollo_theme, the_default_theme } from './themes';
+import { evaluate_theme } from './color-benchmark';
 
 const offset_from_canvas = (canvas: SVGSVGElement | null): Offset => {
   if (!canvas) {
@@ -53,21 +54,23 @@ const ColorDialog = (props: {
 
 const Theme = (props: {theme: Colors, name: string, onClick: ()=>void, onEnter: ()=>void, onLeave: ()=>void}) => {
   const t = props.theme;
-  return <svg  onClick={props.onClick} onMouseEnter={props.onEnter} onMouseLeave={props.onLeave} width="96px" height="64px" xmlns="http://www.w3.org/2000/svg" baseProfile="full" version="1.1">
-    <rect width='96' height='64'  id='background' fill={t.background}>
-      <title>{props.name}</title>
-    </rect>
-    <circle cx='24' cy='24' r='8' id='f_high' fill={t.f_high}/>
-    <circle cx='40' cy='24' r='8' id='f_med' fill={t.f_med}/>
-    <circle cx='56' cy='24' r='8' id='f_low' fill={t.f_low}/>
-    <circle cx='72' cy='24' r='8' id='f_inv' fill={t.f_inv}/>
-    <circle cx='24' cy='40' r='8' id='b_high' fill={t.b_high}/>
-    <circle cx='40' cy='40' r='8' id='b_med' fill={t.b_med}/>
-    <circle cx='56' cy='40' r='8' id='b_low' fill={t.b_low}/>
-    <circle cx='72' cy='40' r='8' id='b_inv' fill={t.b_inv}/>
-  </svg>;
+  return <div className='theme-icon'>
+    <div>
+      <p>{props.name}</p>
+      <svg onClick={props.onClick} onMouseEnter={props.onEnter} onMouseLeave={props.onLeave} width="96px" height="64px" xmlns="http://www.w3.org/2000/svg" baseProfile="full" version="1.1">
+        <rect width='96' height='64'  id='background' fill={t.background}/>
+        <circle cx='24' cy='24' r='8' id='f_high' fill={t.f_high}/>
+        <circle cx='40' cy='24' r='8' id='f_med' fill={t.f_med}/>
+        <circle cx='56' cy='24' r='8' id='f_low' fill={t.f_low}/>
+        <circle cx='72' cy='24' r='8' id='f_inv' fill={t.f_inv}/>
+        <circle cx='24' cy='40' r='8' id='b_high' fill={t.b_high}/>
+        <circle cx='40' cy='40' r='8' id='b_med' fill={t.b_med}/>
+        <circle cx='56' cy='40' r='8' id='b_low' fill={t.b_low}/>
+        <circle cx='72' cy='40' r='8' id='b_inv' fill={t.b_inv}/>
+      </svg>
+    </div>
+  </div>;
 }
-
 
 const ThemeList = (props: {
   selectTheme: (theme: Colors) => void,
@@ -77,7 +80,7 @@ const ThemeList = (props: {
     dark_themes, light_themes, color_themes
   ];
 
-  return all_themes.map((themes, list_index) => <div key={list_index}>
+  return all_themes.map((themes, list_index) => <div className="theme-row" key={list_index}>
     {themes.map(((theme, theme_index)=><Theme key={theme_index}
       onEnter={() => props.setHover(theme.theme)}
       onLeave={() => props.setHover(null)}
@@ -208,6 +211,8 @@ const App = () => {
     setTool(t);
   }} />
 
+  const theme_eval = hoverTheme ? evaluate_theme(hoverTheme) : null;
+
   return (
     <div id="app" style={{
       "--background": theme.background,
@@ -245,6 +250,12 @@ const App = () => {
                 setShowSettings(false);
                }}
               />
+              {theme_eval && <div className='theme-eval'><table><tbody>
+                <tr><th>Category</th><td>{theme_eval.cat}</td></tr>
+                <tr><th>Score</th><td>{theme_eval.score}/{theme_eval.max_score}</td></tr>
+                {theme_eval.debug.length > 0 && <tr><th>Log</th><td>{theme_eval.debug}</td></tr>}
+                </tbody>
+              </table></div>}
             </div>}
           </div>
           <SvgButton theme={theme} icon={icon_about} name='about' onClick={() => {}} />
