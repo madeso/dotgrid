@@ -99,13 +99,12 @@ div.color-button:hover {
 div.dialog {
   position: absolute;
   left: -10px;
-  background: #fff;
-  border: 1px solid #ccc;
+  background-color: var(--b-med);
+  color: var(--f-med);
+  border: 1px solid var(--f-med);
   border-radius: 8px;
   padding: 8px 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   font-size: 14px;
-  color: #333;
   white-space: nowrap;
   z-index: 10;
 }
@@ -121,14 +120,18 @@ div.point {
   border-right: 8px solid transparent;
 }
 
+.dialog hr {
+  color: var(--f-med);
+}
+
 .down .point {
   bottom: 100%;
-  border-bottom: 8px solid #fff;
+  border-bottom: 8px solid var(--b-med);
 }
 
 .up .point {
   top: 100%;
-  border-top: 8px solid #fff;
+  border-top: 8px solid var(--b-med);
 }
 
 div.theme-eval {
