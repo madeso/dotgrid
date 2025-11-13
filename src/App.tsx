@@ -1,4 +1,4 @@
-import { createRef, useState } from 'react'
+import React, { createRef, useState } from 'react'
 import viteLogo from '/logo.svg'
 import './App.css'
 
@@ -37,8 +37,7 @@ TODO
 
 const ColorDialog = (props: {
   select_color: (c: string) => void;
-}) => {
-  return <div className='dialog up'>
+}) => <Dialog direction='up'>
     {
       Object.values(colors).map((list, list_index) => <div className='color-map'>
         {list.map((color, color_index) => <div key={`${list_index}-${color_index}`} className='color-button'
@@ -48,9 +47,7 @@ const ColorDialog = (props: {
           style={{background: color}} />)}
       </div>)
     }
-    <div className='point'/>
-  </div>
-}
+  </Dialog>;
 
 const Theme = (props: {theme: Colors, name: string, onClick: ()=>void, onEnter: ()=>void, onLeave: ()=>void}) => {
   const t = props.theme;
@@ -90,6 +87,15 @@ const ThemeList = (props: {
       theme={theme.theme} name={theme.name}/>))}
   </div>);
 }
+
+const Relative = (props: {children: React.ReactNode}) => <div className='relative'>{props.children}</div>;
+
+const Dialog = (props: {children: React.ReactNode, direction: "up" | "down"}) =>
+  <div className={`dialog ${props.direction}`}>
+    {props.direction === 'down' && <div className='point'/>}
+    {props.children}
+    {props.direction === 'up' && <div className='point'/>}
+  </div>
 
 const App = () => {
 
@@ -256,12 +262,11 @@ const App = () => {
           <SvgButton theme={theme} icon={source_open} name='open' onClick={() => {}} />
           <SvgButton theme={theme} icon={source_save} name='save' onClick={() => {}} />
           <SvgButton theme={theme} icon={source_export} name='source_export' onClick={() => {}} />
-          <div className='relative'>
+          <Relative>
             <SvgButton theme={theme} icon={source_settings} is_selected={showSettings} name='settings' onClick={() => {
               setShowSettings(!showSettings);
             }} />
-            {showSettings && <div className='dialog down'>
-              <div className='point' />
+            {showSettings && <Dialog direction='down'>
               <hr/>
               <h4>Themes</h4>
                <ThemeList setHover={setHoverTheme} selectTheme={theme => {
@@ -276,22 +281,21 @@ const App = () => {
                 {theme_eval.debug.length > 0 && <tr><th>Log</th><td>{theme_eval.debug}</td></tr>}
                 </tbody>
               </table></div>}
-            </div>}
-          </div>
-          <div className='relative'>
+            </Dialog>}
+          </Relative>
+          <Relative>
             <SvgButton theme={theme} is_selected={showAbout} icon={icon_about} name='about' onClick={() => {
               setShowAbout(!showAbout);
             }} />
-            {showAbout && <div className='dialog down'>
-              <div className='point'/>
+            {showAbout && <Dialog direction='down'>
               <p>
                 Dotgrid is a simple vector drawing app <a href="https://hundredrabbits.itch.io/dotgrid">orignially by 100 rabbits</a>.
               </p>
               <p>
                 This is <a href="https://github.com/madeso/dotgrid">a fork</a> with some different features.
               </p>
-            </div>}
-          </div>
+            </Dialog>}
+          </Relative>
         </div>
         <div className='border'>
           <SvgButton theme={theme} icon={source_undo} isEnabled={history_can_prev(history)} name='undo' onClick={() => {
@@ -391,7 +395,7 @@ const App = () => {
             setTool(t);
           }} />
 
-          <div className='relative'>
+          <Relative>
             {browseColor && <ColorDialog select_color={(new_color) => {
               const t = structuredClone(tool);
               tool_select_color(t, new_color);
@@ -401,8 +405,8 @@ const App = () => {
             <SvgButton icon={misc_color} name='misc_color' theme={theme} is_selected={browseColor} onClick={() => {
               setBrowseColor(!browseColor);
             }} />
-          </div>
-          <div className='relative'>
+          </Relative>
+          <Relative>
             <SvgButton icon={toggle_thickness} name='toggle_thickness' theme={theme} is_selected={thicknessVisible} onClick={() => {
               setThicknessVisible(!thicknessVisible);
             }} />
@@ -416,7 +420,7 @@ const App = () => {
               }}
             />
             }
-          </div>
+          </Relative>
         </div>
         <div className='border'>
           <MirrorButton icon={toggle_mirror.zero} name='toggle_mirror' mirror='zero' />
