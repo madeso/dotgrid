@@ -43,7 +43,7 @@ const ColorDialog = (props: {
   select_color: (c: string) => void;
 }) => <Dialog direction='up'>
     {
-      Object.values(colors).map((list, list_index) => <div className='color-map'>
+      Object.values(colors).map((list, list_index) => <div key={list_index} className='color-map'>
         {list.map((color, color_index) => <div key={`${list_index}-${color_index}`} className='color-button'
           onClick={() => {
             props.select_color(color);
@@ -441,8 +441,7 @@ const App = () => {
 
             {dialog === 'layers' && <Dialog direction="down"><ul className='layers'>
               {
-                tool.layers.map((layer, layer_index) => <>
-                  <li><Button is_selected={layer_index === tool.index} onClick={() => {
+                tool.layers.map((layer, layer_index) => <li key={layer_index}><Button is_selected={layer_index === tool.index} onClick={() => {
                     const t = structuredClone(tool);
                     tool_selectLayer(t, layer_index, () => {});
                     setTool(t);
@@ -450,7 +449,7 @@ const App = () => {
                   }}>
                     <LayerIcon color={tool.styles[layer_index].color}/> Layer {layer_index} | Shapes: {layer.length}
                   </Button></li>
-                </>)
+                )
               }
               </ul>
             </Dialog>}
