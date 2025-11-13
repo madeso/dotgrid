@@ -1,15 +1,17 @@
+html, body, #root, #app{
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 #root {
   text-align: center;
-  padding: 0;
-  margin: 0;
-  width: 100%;
 }
+
 #app {
   background-color: var(--background);
   color: var(--f-low);
-  width: 100%;
-  padding: 0;
-  margin: 0;
 }
 
 .logo {
