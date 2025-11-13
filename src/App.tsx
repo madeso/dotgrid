@@ -22,6 +22,7 @@ import { color_themes, dark_themes, light_themes, the_apollo_theme, the_default_
 import { evaluate_theme } from './color-benchmark';
 import { history_can_next, history_can_prev, history_constructor, history_next, history_prev, history_push, type HistoryI } from './history';
 import { source_open, source_write } from './source';
+import { manager_toPNG, manager_toString } from './manager';
 
 const offset_from_canvas = (canvas: SVGSVGElement | null): Offset => {
   if (!canvas) {
@@ -97,7 +98,7 @@ const Dialog = (props: {children: React.ReactNode, direction: "up" | "down"}) =>
     {props.direction === 'up' && <div className='point'/>}
   </div>
 
-type Dialog = 'color' | 'thickness' | 'settings' | 'about' | 'layers' | 'canvas-size';
+type Dialog = 'color' | 'thickness' | 'settings' | 'about' | 'layers' | 'canvas-size' | 'export';
 
 const LayerIcon = (props: {color: string}) => {
   const size = 16;
@@ -311,7 +312,29 @@ const App = () => {
               "text/plain"
             );
           }} />
-          <SvgButton theme={theme} icon={source_export} name='source_export' onClick={() => {}} />
+          <Relative>
+            <DialogButton icon={source_export} dialog='export'/>
+            {dialog==='export' && <Dialog direction='down'>
+              <div className='export'>
+                <h3>Export</h3>
+                <Button onClick={() => {
+                  source_write(
+                    "dotgrid",
+                    "svg",
+                    manager_toString(size, tool),
+                    "image/svg+xml"
+                  );
+                  setDialog(null);
+                }}>SVG</Button>
+                <Button onClick={() => {
+                  manager_toPNG(size, (dataUrl) => {
+                      source_write("dotgrid", "png", dataUrl, "image/png");
+                    }, tool);
+                  setDialog(null);
+                }}>PNG</Button>
+              </div>
+            </Dialog>}
+          </Relative>
           <Relative>
             <DialogButton icon={source_settings} dialog='settings'/>
             {dialog ==='settings' && <Dialog direction='down'>
