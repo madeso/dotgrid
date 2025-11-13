@@ -93,6 +93,7 @@ Dotgrid's source code is licensed under MIT and the images, text and assets are 
   - a project with multiple icons?
   - save to/from local storage
   - move data to url for easy sharing
+  - vs code extension
 
 ```bash
 cd dotgrid
