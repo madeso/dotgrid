@@ -21,15 +21,29 @@ const select_color = (theme: Colors, is_selected: boolean, is_enabled: boolean):
     };
 }
 
+const not = (name: string, b: boolean) => b ? `is-${name}` : `not-${name}`;
+
+export const Button = (props: {
+    children: React.ReactNode;
+    isEnabled?: boolean;
+    is_selected?: boolean;
+    onClick: () => void;
+}) => {
+    const is_selected = props.is_selected ?? false;
+    const is_enabled = props.isEnabled ?? true;
+
+    return <button className={`${not('selected', is_selected)} ${not('enabled', is_enabled)}`} onClick={props.onClick}>{props.children}</button>
+}
+
 export const SvgButton = (props: {
     icon: string;
     name: string;
     isEnabled?: boolean;
+    is_selected?: boolean;
     onClick: () => void;
     onEnter?: ()=>void;
     onLeave?: ()=>void;
     theme: Colors;
-    is_selected?: boolean;
 }) => {
     const is_selected = props.is_selected ?? false;
     const is_enabled = props.isEnabled ?? true;

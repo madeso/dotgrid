@@ -2,15 +2,20 @@ import React, { createRef, useState } from 'react'
 import viteLogo from '/logo.svg'
 import './App.css'
 
+/*
+TODO
+ - save/load export
+ - shortcuts/keymap
+*/
+
 import { Canvas } from './Canvas';
 import type { Colors } from './theme';
-// import { tool_constructor } from './tool';
 import { cursor_down, cursor_init, cursor_move, cursor_up, type Offset, type TranslateKeys } from './cursor';
 import { type SegmentType, type Point, type Size, type Mirror, type Layers } from './_types';
-import { SvgButton } from './SvgButton';
+import { Button, SvgButton } from './SvgButton';
 import { cast_arc_c, cast_arc_r, cast_bezier, cast_close, cast_line, misc_color, source_export, source_grid_no_extra, source_grid_with_extra, source_open, source_layers, source_save, fill_color, fill_transparent, toggle_mirror, linecap_butt, linecap_round, linecap_square, toggle_thickness, linejoin_miter, linejoin_bevel, linejoin_round, cast_arc_c_full, cast_arc_r_full, source_new, source_settings, source_undo, source_redo, icon_size, icon_project, icon_show_grid, icon_show_achor, icon_show_guides, icon_about } from './icons';
 
-import { empty_layers, tool_addVertex, tool_all_layers, tool_canCast, tool_cast, tool_constructor, tool_layer, tool_redo, tool_select_color, tool_set_linecap, tool_set_linejoin, tool_set_mirror, tool_set_thickness, tool_style, tool_toggle, tool_translate, tool_translateCopy, tool_translateLayer, tool_translateMulti, tool_undo, tool_vertexAt, type ToolI } from './tool';
+import { empty_layers, tool_addVertex, tool_all_layers, tool_canCast, tool_cast, tool_constructor, tool_layer, tool_redo, tool_select_color, tool_selectLayer, tool_set_linecap, tool_set_linejoin, tool_set_mirror, tool_set_thickness, tool_style, tool_toggle, tool_translate, tool_translateCopy, tool_translateLayer, tool_translateMulti, tool_undo, tool_vertexAt, type ToolI } from './tool';
 import { mirror_from_style } from './generator';
 import { colors } from './colors';
 import { color_themes, dark_themes, light_themes, the_apollo_theme, the_default_theme } from './themes';
@@ -28,12 +33,6 @@ const offset_from_canvas = (canvas: SVGSVGElement | null): Offset => {
     top: rect.top
   };
 }
-
-/*
-TODO
- - layers
- - save/load export
-*/
 
 const ColorDialog = (props: {
   select_color: (c: string) => void;
@@ -97,7 +96,14 @@ const Dialog = (props: {children: React.ReactNode, direction: "up" | "down"}) =>
     {props.direction === 'up' && <div className='point'/>}
   </div>
 
-type Dialog = 'color' | 'thickness' | 'settings' | 'about';
+type Dialog = 'color' | 'thickness' | 'settings' | 'about' | 'layers';
+
+const LayerIcon = (props: {color: string}) => {
+  const size = 16;
+  return <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size}>
+          <circle fill={props.color} cx={size/2} cy={size/2} r={size/2}/>
+  </svg>;
+}
 
 const App = () => {
   const canvasElement = createRef<SVGSVGElement>();
@@ -322,7 +328,26 @@ const App = () => {
         <div className='border'>
           <SvgButton theme={theme} icon={icon_size} name='size' onClick={() => {}} />
           <SvgButton theme={theme} icon={icon_project} name='project' onClick={() => {}} />
-          <SvgButton theme={theme} icon={source_layers} name='layers' onClick={() => {}} />
+
+          <Relative>
+            <DialogButton icon={source_layers} dialog='layers' />
+
+            {dialog === 'layers' && <Dialog direction="down"><ul className='layers'>
+              {
+                tool.layers.map((layer, layer_index) => <>
+                  <li><Button is_selected={layer_index === tool.index} onClick={() => {
+                    const t = structuredClone(tool);
+                    tool_selectLayer(t, layer_index, () => {});
+                    setTool(t);
+                    setDialog(null);
+                  }}>
+                    <LayerIcon color={tool.styles[layer_index].color}/> Layer {layer_index} | Shapes: {layer.length}
+                  </Button></li>
+                </>)
+              }
+              </ul>
+            </Dialog>}
+          </Relative>
         </div>
 
         <div className='border'>

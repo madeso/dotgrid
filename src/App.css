@@ -187,3 +187,28 @@ div.theme-icon div p {
 div.theme-icon div svg {
   display: inline;
 }
+
+ul.layers {
+  margin: 3px;
+  list-style: none;
+  padding: 0;
+}
+
+ul.layers li {
+  padding: 3px;
+}
+
+button {
+    color: var(--f-med);
+    background-color: var(--b-med);
+}
+
+button.not-enabled {
+    color: var(--f-low);
+    background-color: var(--b-low);
+}
+
+button.is-selected.is-enabled {
+    color: var(--f-inv);
+    background-color: var(--b-inv);
+}
