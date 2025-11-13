@@ -4,8 +4,9 @@ import './App.css'
 
 /*
 TODO
- - save/load export
  - shortcuts/keymap
+ - save all state to local storage
+ - remove unused code
 */
 
 import { Canvas } from './Canvas';
