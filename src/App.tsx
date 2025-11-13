@@ -15,7 +15,7 @@ import { type SegmentType, type Point, type Size, type Mirror, type Layers } fro
 import { Button, SvgButton } from './SvgButton';
 import { cast_arc_c, cast_arc_r, cast_bezier, cast_close, cast_line, misc_color, source_export, source_grid_no_extra, source_grid_with_extra, source_open, source_layers, source_save, fill_color, fill_transparent, toggle_mirror, linecap_butt, linecap_round, linecap_square, toggle_thickness, linejoin_miter, linejoin_bevel, linejoin_round, cast_arc_c_full, cast_arc_r_full, source_new, source_settings, source_undo, source_redo, icon_size, icon_project, icon_show_grid, icon_show_achor, icon_show_guides, icon_about } from './icons';
 
-import { empty_layers, tool_addVertex, tool_all_layers, tool_canCast, tool_cast, tool_constructor, tool_layer, tool_redo, tool_select_color, tool_selectLayer, tool_set_linecap, tool_set_linejoin, tool_set_mirror, tool_set_thickness, tool_style, tool_toggle, tool_translate, tool_translateCopy, tool_translateLayer, tool_translateMulti, tool_undo, tool_vertexAt, type ToolI } from './tool';
+import { empty_layers, tool_addVertex, tool_all_layers, tool_canCast, tool_cast, tool_constructor, tool_layer, tool_redo, tool_reset, tool_select_color, tool_selectLayer, tool_set_linecap, tool_set_linejoin, tool_set_mirror, tool_set_thickness, tool_style, tool_toggle, tool_translate, tool_translateCopy, tool_translateLayer, tool_translateMulti, tool_undo, tool_vertexAt, type ToolI } from './tool';
 import { mirror_from_style } from './generator';
 import { colors } from './colors';
 import { color_themes, dark_themes, light_themes, the_apollo_theme, the_default_theme } from './themes';
@@ -108,6 +108,12 @@ const LayerIcon = (props: {color: string}) => {
 const Properties = (props: {children: React.ReactNode}) => <div className='properties'>{props.children}</div>;
 const Row = (props: {children: React.ReactNode}) => <div className='row'>{props.children}</div>
 
+const create_new_history = () => {
+  const h = history_constructor<Layers>();
+  history_push(h, empty_layers());
+  return h;
+};
+
 const App = () => {
   const canvasElement = createRef<SVGSVGElement>();
 
@@ -120,11 +126,7 @@ const App = () => {
 
   const [cursor, setCursor] = useState(cursor_init);
   const [tool, setTool] = useState<ToolI>(tool_constructor);
-  const [history, setHistory] = useState<HistoryI<Layers>>(() => {
-    const h = history_constructor<Layers>();
-    history_push(h, empty_layers());
-    return h;
-  })
+  const [history, setHistory] = useState<HistoryI<Layers>>(create_new_history());
 
 
   const [preview, setPreview] = useState<SegmentType | null>(null);
@@ -279,7 +281,13 @@ const App = () => {
 
       <div id='menubar'>
         <div className='border'>
-          <SvgButton theme={theme} icon={source_new} name='new' onClick={() => {}} />
+          <SvgButton theme={theme} icon={source_new} name='new' onClick={() => {
+            // todo(Gustav): change size?
+            const t = structuredClone(tool);
+            tool_reset(t, ()=>{});
+            setTool(t);
+            setHistory(create_new_history());
+          }} />
           <SvgButton theme={theme} icon={source_open} name='open' onClick={() => {}} />
           <SvgButton theme={theme} icon={source_save} name='save' onClick={() => {}} />
           <SvgButton theme={theme} icon={source_export} name='source_export' onClick={() => {}} />
