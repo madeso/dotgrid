@@ -25,7 +25,7 @@ const extract = (xml: string): Colors | undefined => {
   }
 };
 
-const colorFromUnknown = (u: unknown): Colors | null => {
+const color_from_unknown_object = (u: unknown): Colors | null => {
   if (!u) return null;
   if (typeof u !== "object") return null;
   const o = u as { [s: string]: unknown };
@@ -71,8 +71,8 @@ const colorFromUnknown = (u: unknown): Colors | null => {
   };
 };
 
-const isValid = (json: unknown) => {
-  const c = colorFromUnknown(json);
+const is_valid_json_object = (json: unknown) => {
+  const c = color_from_unknown_object(json);
   return c !== null;
 };
 
@@ -111,6 +111,38 @@ export interface Colors {
 }
 type ColorName = keyof Colors;
 
+
+const LOCAL_STORAGE_KEY = 'theme';
+
+export const load_color_theme = (): Colors | null => {
+  const source = (() => {
+    try {
+      return localStorage.getItem(LOCAL_STORAGE_KEY);
+    }
+    catch(x) {
+      console.warn("Failure to get from local storage", x);
+      return null;
+    }
+  })();
+  if(source === null) return null;
+  const object = JSON.parse(source);
+  const parsed = color_from_unknown_object(object);
+  if(parsed === null) {
+    console.warn("Failed to parse local storage json", source, parsed);
+    return null;
+  }
+
+  return parsed;
+}
+export const save_color_theme = (theme: Colors) => {
+  try {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(theme));
+  }
+  catch(x) {
+    console.warn("Failure to save to local storage", x);
+  }
+}
+
 export class Theme {
   el: HTMLStyleElement;
   default: Colors;
@@ -147,7 +179,7 @@ export class Theme {
     console.log("Theme", "Starting..");
     if (isJson(localStorage.theme)) {
       const storage = JSON.parse(localStorage.theme);
-      if (isValid(storage)) {
+      if (is_valid_json_object(storage)) {
         console.log("Theme", "Loading theme in localStorage..");
         this.load(storage);
         return;
@@ -169,7 +201,7 @@ export class Theme {
 
   load(data: unknown) {
     const theme = this.parse(data);
-    if (theme === undefined || !isValid(theme)) {
+    if (theme === undefined || !is_valid_json_object(theme)) {
       console.warn("Theme", "Invalid format");
       return;
     }
@@ -185,7 +217,7 @@ export class Theme {
       --b_low: ${theme.b_low}; 
       --b_inv: ${theme.b_inv};
     }`;
-    localStorage.setItem("theme", JSON.stringify(theme));
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(theme));
     this.active = theme;
     this.onLoad();
   }
@@ -211,7 +243,7 @@ export class Theme {
   }
 
   parse(any: unknown): Colors | undefined {
-    const parsed = colorFromUnknown(any);
+    const parsed = color_from_unknown_object(any);
     if (parsed !== null) {
       return parsed;
     }

@@ -6,11 +6,15 @@ import './App.css'
 TODO
  - shortcuts/keymap
  - save all state to local storage
+      - app state
+ - drag/drop support for
+      - themes
+      - app file
  - remove unused code
 */
 
 import { Canvas } from './Canvas';
-import type { Colors } from './theme';
+import { load_color_theme, save_color_theme, type Colors } from './theme';
 import { cursor_down, cursor_init, cursor_move, cursor_up, type Offset, type TranslateKeys } from './cursor';
 import { type SegmentType, type Point, type Size, type Mirror, type Layers } from './_types';
 import { Button, SvgButton } from './SvgButton';
@@ -121,11 +125,20 @@ const App = () => {
   const canvasElement = createRef<SVGSVGElement>();
 
   const [hoverTheme, setHoverTheme] = useState<null | Colors>(null);
-  const [selectedTheme, setSelectedTheme] = useState<Colors>(() => {
+  const [selectedTheme, setSelectedThemeData] = useState<Colors>(() => {
     // Detect if user prefers dark mode
+    const loaded = load_color_theme();
+    if(loaded !== null) {
+      return loaded;
+    }
     const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
     return prefersDark ? the_apollo_theme : the_default_theme;
   });
+
+  const setSelectedTheme = (theme: Colors) => {
+    setSelectedThemeData(theme);
+    save_color_theme(theme);
+  }
 
   const [cursor, setCursor] = useState(cursor_init);
   const [tool, setTool] = useState<ToolI>(tool_constructor);
