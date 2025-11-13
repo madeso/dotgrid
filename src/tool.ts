@@ -93,11 +93,13 @@ export const tool_all_layers = (tool: ToolI, size: Size): RenderingLayer[] => {
   });
 }
 
+export const empty_layers = (): Layers =>  [[], [], []];
+
 export const tool_constructor = (): ToolI => {
   return {
     index: 0,
     settings: { size: { width: 600, height: 300 } },
-    layers: [[], [], []],
+    layers: empty_layers(),
     styles: [
       {
         thickness: 15,

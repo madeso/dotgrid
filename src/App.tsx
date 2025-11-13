@@ -6,15 +6,16 @@ import { Canvas } from './Canvas';
 import type { Colors } from './theme';
 // import { tool_constructor } from './tool';
 import { cursor_down, cursor_init, cursor_move, cursor_up, type Offset, type TranslateKeys } from './cursor';
-import { type SegmentType, type Point, type Size, type Mirror } from './_types';
+import { type SegmentType, type Point, type Size, type Mirror, type Layers } from './_types';
 import { SvgButton } from './SvgButton';
 import { cast_arc_c, cast_arc_r, cast_bezier, cast_close, cast_line, misc_color, source_export, source_grid_no_extra, source_grid_with_extra, source_open, source_layers, source_save, fill_color, fill_transparent, toggle_mirror, linecap_butt, linecap_round, linecap_square, toggle_thickness, linejoin_miter, linejoin_bevel, linejoin_round, cast_arc_c_full, cast_arc_r_full, source_new, source_settings, source_undo, source_redo, icon_size, icon_project, icon_show_grid, icon_show_achor, icon_show_guides, icon_about } from './icons';
 
-import { tool_addVertex, tool_all_layers, tool_canCast, tool_cast, tool_constructor, tool_layer, tool_select_color, tool_set_linecap, tool_set_linejoin, tool_set_mirror, tool_set_thickness, tool_style, tool_toggle, tool_translate, tool_translateCopy, tool_translateLayer, tool_translateMulti, tool_vertexAt, type ToolI } from './tool';
+import { empty_layers, tool_addVertex, tool_all_layers, tool_canCast, tool_cast, tool_constructor, tool_layer, tool_redo, tool_select_color, tool_set_linecap, tool_set_linejoin, tool_set_mirror, tool_set_thickness, tool_style, tool_toggle, tool_translate, tool_translateCopy, tool_translateLayer, tool_translateMulti, tool_undo, tool_vertexAt, type ToolI } from './tool';
 import { mirror_from_style } from './generator';
 import { colors } from './colors';
 import { color_themes, dark_themes, light_themes, the_apollo_theme, the_default_theme } from './themes';
 import { evaluate_theme } from './color-benchmark';
+import { history_constructor, history_next, history_prev, history_push, type HistoryI } from './history';
 
 const offset_from_canvas = (canvas: SVGSVGElement | null): Offset => {
   if (!canvas) {
@@ -103,8 +104,15 @@ const App = () => {
   });
 
   // const [tool, setTool] = useState(() => tool_constructor());
-  const [cursor, setCursor] = useState(() => cursor_init());
-  const [tool, setTool] = useState<ToolI>(tool_constructor());
+  const [cursor, setCursor] = useState(cursor_init);
+  const [tool, setTool] = useState<ToolI>(tool_constructor);
+  const [history, setHistory] = useState<HistoryI<Layers>>(() => {
+    const h = history_constructor<Layers>();
+    history_push(h, empty_layers());
+    return h;
+  })
+
+
   const [preview, setPreview] = useState<SegmentType | null>(null);
   const [showExtra, setShowExtra] = useState(true);
   const [showGrid, setShowGrid] = useState(true);
@@ -140,13 +148,19 @@ const App = () => {
     onMouseUp: (ev) => {
       const offset = offset_from_canvas(canvasElement.current);
 
-      const push = () => {};
-
       const t = structuredClone(tool);
-      let tool_changed = true;
+      let tool_changed = false;
+
+      const h = structuredClone(history);
+      let history_changed = false;
+
+      const push = (lay:Layers) => {
+        history_push(h, lay);
+        history_changed = true;
+      };
 
       const add_vertex = (p: Point) => {
-        tool_addVertex(t, p, push)
+        tool_addVertex(t, p, ()=>{})
         tool_changed = true;
       };
 
@@ -170,6 +184,9 @@ const App = () => {
       if(tool_changed) {
         setTool(t);
       }
+      if(history_changed) {
+        setHistory(h);
+      }
     }
   };
 
@@ -179,8 +196,12 @@ const App = () => {
     segment: SegmentType;
   }) => <SvgButton theme={theme} icon={props.icon} name={props.name} isEnabled={tool_canCast(tool, props.segment)} onEnter={() => setPreview(props.segment)} onLeave={() => setPreview(null)} onClick={() => {
           const t = structuredClone(tool);
-          tool_cast(t, props.segment, () => {}, () => {});
+          const h = structuredClone(history);
+          tool_cast(t, props.segment, () => {}, (lay) => {
+            history_push(h, lay);
+          });
           setTool(t);
+          setHistory(h);
         }} />;
   const MirrorButton = (props: {
     icon: string;
@@ -275,8 +296,20 @@ const App = () => {
           </div>
         </div>
         <div className='border'>
-          <SvgButton theme={theme} icon={source_undo} name='undo' onClick={() => {}} />
-          <SvgButton theme={theme} icon={source_redo} name='redo' onClick={() => {}} />
+          <SvgButton theme={theme} icon={source_undo} name='undo' onClick={() => {
+            const t = structuredClone(tool);
+            const h = structuredClone(history);
+            tool_undo(t, ()=>{}, () => history_prev(h));
+            setTool(t);
+            setHistory(h);
+          }} />
+          <SvgButton theme={theme} icon={source_redo} name='redo' onClick={() => {
+            const t = structuredClone(tool);
+            const h = structuredClone(history);
+            tool_redo(t, () => history_next(h), ()=>{});
+            setTool(t);
+            setHistory(h);
+          }} />
         </div>
         <div className='border'>
           <SvgButton theme={theme} icon={icon_size} name='size' onClick={() => {}} />
