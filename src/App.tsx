@@ -15,7 +15,7 @@ import { mirror_from_style } from './generator';
 import { colors } from './colors';
 import { color_themes, dark_themes, light_themes, the_apollo_theme, the_default_theme } from './themes';
 import { evaluate_theme } from './color-benchmark';
-import { history_constructor, history_next, history_prev, history_push, type HistoryI } from './history';
+import { history_can_next, history_can_prev, history_constructor, history_next, history_prev, history_push, type HistoryI } from './history';
 
 const offset_from_canvas = (canvas: SVGSVGElement | null): Offset => {
   if (!canvas) {
@@ -296,14 +296,14 @@ const App = () => {
           </div>
         </div>
         <div className='border'>
-          <SvgButton theme={theme} icon={source_undo} name='undo' onClick={() => {
+          <SvgButton theme={theme} icon={source_undo} isEnabled={history_can_prev(history)} name='undo' onClick={() => {
             const t = structuredClone(tool);
             const h = structuredClone(history);
             tool_undo(t, ()=>{}, () => history_prev(h));
             setTool(t);
             setHistory(h);
           }} />
-          <SvgButton theme={theme} icon={source_redo} name='redo' onClick={() => {
+          <SvgButton theme={theme} icon={source_redo} isEnabled={history_can_next(history)} name='redo' onClick={() => {
             const t = structuredClone(tool);
             const h = structuredClone(history);
             tool_redo(t, () => history_next(h), ()=>{});

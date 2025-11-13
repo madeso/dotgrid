@@ -53,6 +53,16 @@ export const history_next = <Container>(history: HistoryI<Container>) => {
   return structuredClone(history.a[history.index]);
 };
 
+export const history_can_prev = <Container>(history: HistoryI<Container>) => {
+  const next_index = clamp(history.index - 1, 0, history.a.length - 1);
+  return next_index !== history.index;
+};
+
+export const history_can_next = <Container>(history: HistoryI<Container>) => {
+  const next_index = clamp(history.index + 1, 0, history.a.length - 1);
+  return next_index !== history.index;
+};
+
 export class History<Container> {
   index: number;
   a: Array<Container>;
