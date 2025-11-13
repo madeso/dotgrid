@@ -31,7 +31,6 @@ const offset_from_canvas = (canvas: SVGSVGElement | null): Offset => {
 
 /*
 TODO
- - undo/redo
  - layers
  - save/load export
 */
@@ -103,7 +102,6 @@ const App = () => {
     return prefersDark ? the_apollo_theme : the_default_theme;
   });
 
-  // const [tool, setTool] = useState(() => tool_constructor());
   const [cursor, setCursor] = useState(cursor_init);
   const [tool, setTool] = useState<ToolI>(tool_constructor);
   const [history, setHistory] = useState<HistoryI<Layers>>(() => {
