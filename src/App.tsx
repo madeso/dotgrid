@@ -368,8 +368,12 @@ const App = () => {
           <CastButton icon={cast_bezier} name='cast bezier' segment='bezier'/>
           <SvgButton theme={theme} icon={cast_close} name='cast close' isEnabled={tool_canCast(tool, 'close')} onClick={() => {
             const t = structuredClone(tool);
-            tool_cast(t, 'close', () => {}, () => {});
+            const h = structuredClone(history);
+            tool_cast(t, 'close', () => {}, (lay) => {
+              history_push(h, lay);
+            });
             setTool(t);
+            setHistory(h);
           }} />
         </div>
         <div className='border'>
