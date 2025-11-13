@@ -84,6 +84,35 @@ export interface ToolI {
   i: { linecap: number; linejoin: number; thickness: number };
 }
 
+const LOCAL_STORAGE_KEY = 'dotgrid-file';
+
+export const load_tool = (): ToolI | null => {
+  const source = (() => {
+    try {
+      return localStorage.getItem(LOCAL_STORAGE_KEY);
+    }
+    catch(x) {
+      console.warn("Failure to get from local storage", x);
+      return null;
+    }
+  })();
+  if(source === null) return null;
+
+  const tool = tool_constructor();
+  tool_replace(tool, JSON.parse(source), () => {}, () => {}, () => {});
+
+  return tool;
+}
+
+export const save_tool = (tool: ToolI) => {
+  try {
+    localStorage.setItem(LOCAL_STORAGE_KEY, tool_export(tool));
+  }
+  catch(x) {
+    console.warn("Failure to save to local storage", x);
+  }
+}
+
 export const tool_all_layers = (tool: ToolI, size: Size): RenderingLayer[] => {
   return tool_paths(tool, size).map((path, index) => {
     return {
