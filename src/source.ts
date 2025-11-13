@@ -32,25 +32,64 @@ function timestamp() {
 type Content = string;
 type Callback = (file: File, content: Content) => void;
 
-export class Source {
-  cache: {
-    [key: string]: string | undefined;
+export const source_open = (ext: string, callback?: Callback) => {
+  console.log("Source", "Open file..");
+  const input = document.createElement("input");
+  input.type = "file";
+  input.onchange = () => {
+    if (input.files === null) return;
+    const file = input.files[0];
+    if (file.name.indexOf("." + ext) < 0) {
+      console.warn("Source", `Skipped ${file.name}`);
+      return;
+    }
+    source_read(file, callback);
   };
+  input.click();
+};
 
-  constructor() {
-    this.cache = {};
+// I/O
+
+const source_read = (file: File, callback?: Callback) => {
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    const res = event.target?.result ?? null;
+    if (typeof res !== "string") return;
+    if (callback) {
+      callback(file, res);
+    }
+  };
+  reader.readAsText(file, "UTF-8");
+};
+
+export const source_write = (
+  name: string,
+  ext: string,
+  content: Content,
+  type: string,
+  settings = "charset=utf-8"
+) => {
+  const link = document.createElement("a");
+  link.setAttribute("download", `${name}-${timestamp()}.${ext}`);
+  if (type === "image/png" || type === "image/jpeg") {
+    link.setAttribute("href", content);
+  } else {
+    link.setAttribute(
+      "href",
+      "data:" + type + ";" + settings + "," + encodeURIComponent(content)
+    );
   }
+  link.dispatchEvent(
+    new MouseEvent("click", { bubbles: true, cancelable: true, view: window })
+  );
+};
+
+export class Source {
+  constructor() {}
 
   install() {}
-
-  start() {
-    this.new();
-  }
-
-  new() {
-    console.log("Source", "New file..");
-    this.cache = {};
-  }
+  start() {}
+  new() {}
 
   test = () => {
     const input = document.createElement("input");
@@ -61,7 +100,7 @@ export class Source {
     input.click();
   };
 
-  open(ext: string, callback?: Callback, store = false) {
+  open(ext: string, callback?: Callback) {
     console.log("Source", "Open file..");
     const input = document.createElement("input");
     input.type = "file";
@@ -72,7 +111,7 @@ export class Source {
         console.warn("Source", `Skipped ${file.name}`);
         return;
       }
-      this.read(file, callback, store);
+      this.read(file, callback);
     };
     input.click();
   }
@@ -89,15 +128,10 @@ export class Source {
           console.warn("Source", `Skipped ${file.name}`);
           continue;
         }
-        this.read(file, this.store);
+        this.read(file, () => {});
       }
     };
     input.click();
-  }
-
-  store(file: File, content: string) {
-    console.info("Source", "Stored " + file.name);
-    this.cache[file.name] = content;
   }
 
   save(name: string, content: Content, type = "text/plain", settings?: string) {
@@ -117,16 +151,13 @@ export class Source {
 
   // I/O
 
-  read(file: File, callback?: Callback, store = false) {
+  read(file: File, callback?: Callback) {
     const reader = new FileReader();
     reader.onload = (event) => {
       const res = event.target?.result ?? null;
       if (typeof res !== "string") return;
       if (callback) {
         callback(file, res);
-      }
-      if (store) {
-        this.store(file, res);
       }
     };
     reader.readAsText(file, "UTF-8");

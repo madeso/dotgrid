@@ -13,14 +13,15 @@ import type { Colors } from './theme';
 import { cursor_down, cursor_init, cursor_move, cursor_up, type Offset, type TranslateKeys } from './cursor';
 import { type SegmentType, type Point, type Size, type Mirror, type Layers } from './_types';
 import { Button, SvgButton } from './SvgButton';
-import { cast_arc_c, cast_arc_r, cast_bezier, cast_close, cast_line, misc_color, source_export, source_grid_no_extra, source_grid_with_extra, source_open, source_layers, source_save, fill_color, fill_transparent, toggle_mirror, linecap_butt, linecap_round, linecap_square, toggle_thickness, linejoin_miter, linejoin_bevel, linejoin_round, cast_arc_c_full, cast_arc_r_full, source_new, source_settings, source_undo, source_redo, icon_size, icon_project, icon_show_grid, icon_show_achor, icon_show_guides, icon_about } from './icons';
+import { cast_arc_c, cast_arc_r, cast_bezier, cast_close, cast_line, misc_color, source_export, source_grid_no_extra, source_grid_with_extra, icon_open, source_layers, source_save, fill_color, fill_transparent, toggle_mirror, linecap_butt, linecap_round, linecap_square, toggle_thickness, linejoin_miter, linejoin_bevel, linejoin_round, cast_arc_c_full, cast_arc_r_full, source_new, source_settings, source_undo, source_redo, icon_size, icon_project, icon_show_grid, icon_show_achor, icon_show_guides, icon_about } from './icons';
 
-import { empty_layers, tool_addVertex, tool_all_layers, tool_canCast, tool_cast, tool_constructor, tool_layer, tool_redo, tool_reset, tool_select_color, tool_selectLayer, tool_set_linecap, tool_set_linejoin, tool_set_mirror, tool_set_thickness, tool_style, tool_toggle, tool_translate, tool_translateCopy, tool_translateLayer, tool_translateMulti, tool_undo, tool_vertexAt, type ToolI } from './tool';
+import { empty_layers, tool_addVertex, tool_all_layers, tool_canCast, tool_cast, tool_constructor, tool_export, tool_layer, tool_redo, tool_replace, tool_reset, tool_select_color, tool_selectLayer, tool_set_linecap, tool_set_linejoin, tool_set_mirror, tool_set_thickness, tool_style, tool_toggle, tool_translate, tool_translateCopy, tool_translateLayer, tool_translateMulti, tool_undo, tool_vertexAt, type ToolI } from './tool';
 import { mirror_from_style } from './generator';
 import { colors } from './colors';
 import { color_themes, dark_themes, light_themes, the_apollo_theme, the_default_theme } from './themes';
 import { evaluate_theme } from './color-benchmark';
 import { history_can_next, history_can_prev, history_constructor, history_next, history_prev, history_push, type HistoryI } from './history';
+import { source_open, source_write } from './source';
 
 const offset_from_canvas = (canvas: SVGSVGElement | null): Offset => {
   if (!canvas) {
@@ -288,8 +289,28 @@ const App = () => {
             setTool(t);
             setHistory(create_new_history());
           }} />
-          <SvgButton theme={theme} icon={source_open} name='open' onClick={() => {}} />
-          <SvgButton theme={theme} icon={source_save} name='save' onClick={() => {}} />
+          <SvgButton theme={theme} icon={icon_open} name='open' onClick={() => {
+            source_open("grid", (file, content) => {
+              console.log("Opening", file);
+              const t = structuredClone(tool);
+              const h = structuredClone(history);
+
+              // todo(Gustav): validate parsed file...
+              tool_replace(t, JSON.parse(content), () => {}, (lay) => {
+                history_push(h, lay);
+              }, () => {});
+              setTool(t);
+              setHistory(h);
+            });
+          }} />
+          <SvgButton theme={theme} icon={source_save} name='save' onClick={() => {
+            source_write(
+              "dotgrid",
+              "grid",
+              tool_export(tool),
+              "text/plain"
+            );
+          }} />
           <SvgButton theme={theme} icon={source_export} name='source_export' onClick={() => {}} />
           <Relative>
             <DialogButton icon={source_settings} dialog='settings'/>
