@@ -320,14 +320,11 @@ const App = () => {
             source_open("grid", (file, content) => {
               console.log("Opening", file);
               const t = structuredClone(tool);
-              const h = structuredClone(history);
 
               // todo(Gustav): validate parsed file...
-              tool_replace(t, JSON.parse(content), () => {}, (lay) => {
-                history_push(h, lay);
-              }, () => {});
+              tool_replace(t, JSON.parse(content), () => {}, () => {}, () => {});
               setTool(t);
-              setHistory(h);
+              setHistory(create_new_history(t.layers));
             });
           }} />
           <SvgButton theme={theme} icon={source_save} name='save' onClick={() => {
