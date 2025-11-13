@@ -97,8 +97,9 @@ const Dialog = (props: {children: React.ReactNode, direction: "up" | "down"}) =>
     {props.direction === 'up' && <div className='point'/>}
   </div>
 
-const App = () => {
+type Dialog = 'color' | 'thickness' | 'settings' | 'about';
 
+const App = () => {
   const canvasElement = createRef<SVGSVGElement>();
 
   const [hoverTheme, setHoverTheme] = useState<null | Colors>(null);
@@ -122,10 +123,7 @@ const App = () => {
   const [showGrid, setShowGrid] = useState(true);
   const [showHandles, setShowHandles] = useState(true);
   const [showGuides, setShowGuides] = useState(true);
-  const [thicknessVisible, setThicknessVisible] = useState(false);
-  const [browseColor, setBrowseColor] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const [showAbout, setShowAbout] = useState(false);
+  const [dialog, setDialog] = useState<Dialog | null>(null);
 
   const theme = hoverTheme ?? selectedTheme;
 
@@ -193,6 +191,18 @@ const App = () => {
       }
     }
   };
+
+  const DialogButton = (props: {
+    icon: string;
+    dialog: Dialog;
+  }) => <SvgButton theme={theme} icon={props.icon} name={props.dialog} is_selected={dialog === props.dialog} onClick={() => {
+    if(dialog === null) {
+      setDialog(props.dialog);
+    }
+    else {
+      setDialog(null);
+    }
+  }} />;
 
   const CastButton = (props: {
     icon: string;
@@ -263,16 +273,14 @@ const App = () => {
           <SvgButton theme={theme} icon={source_save} name='save' onClick={() => {}} />
           <SvgButton theme={theme} icon={source_export} name='source_export' onClick={() => {}} />
           <Relative>
-            <SvgButton theme={theme} icon={source_settings} is_selected={showSettings} name='settings' onClick={() => {
-              setShowSettings(!showSettings);
-            }} />
-            {showSettings && <Dialog direction='down'>
+            <DialogButton icon={source_settings} dialog='settings'/>
+            {dialog ==='settings' && <Dialog direction='down'>
               <hr/>
               <h4>Themes</h4>
                <ThemeList setHover={setHoverTheme} selectTheme={theme => {
                 setSelectedTheme(theme);
                 setHoverTheme(null);
-                setShowSettings(false);
+                setDialog(null);
                }}
               />
               {theme_eval && <div className='theme-eval'><table><tbody>
@@ -284,10 +292,8 @@ const App = () => {
             </Dialog>}
           </Relative>
           <Relative>
-            <SvgButton theme={theme} is_selected={showAbout} icon={icon_about} name='about' onClick={() => {
-              setShowAbout(!showAbout);
-            }} />
-            {showAbout && <Dialog direction='down'>
+            <DialogButton icon={icon_about} dialog='about' />
+            {dialog === 'about' && <Dialog direction='down'>
               <p>
                 Dotgrid is a simple vector drawing app <a href="https://hundredrabbits.itch.io/dotgrid">orignially by 100 rabbits</a>.
               </p>
@@ -396,21 +402,17 @@ const App = () => {
           }} />
 
           <Relative>
-            {browseColor && <ColorDialog select_color={(new_color) => {
+            {dialog === 'color' && <ColorDialog select_color={(new_color) => {
               const t = structuredClone(tool);
               tool_select_color(t, new_color);
               setTool(t);
-              setBrowseColor(false);
+              setDialog(null);
             }}/>}
-            <SvgButton icon={misc_color} name='misc_color' theme={theme} is_selected={browseColor} onClick={() => {
-              setBrowseColor(!browseColor);
-            }} />
+            <DialogButton icon={misc_color} dialog='color'/>
           </Relative>
           <Relative>
-            <SvgButton icon={toggle_thickness} name='toggle_thickness' theme={theme} is_selected={thicknessVisible} onClick={() => {
-              setThicknessVisible(!thicknessVisible);
-            }} />
-            {thicknessVisible && 
+            <DialogButton icon={toggle_thickness} dialog='thickness' />
+            {dialog ==='thickness' && 
             <input id="thickness-slider" type="range" name="thickness" min={1} max={100} value={tool_style(tool).thickness}
               onChange={(e) => {
                 const thickness = parseFloat(e.target.value);
