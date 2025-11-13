@@ -149,21 +149,21 @@ const App = () => {
   const current_mirror = mirror_from_style(tool_style(tool));
 
   const events: React.SVGProps<SVGSVGElement> = {
-    onMouseMove: (ev) => {
+    onPointerMove: (ev) => {
       const offset = offset_from_canvas(canvasElement.current);
       
       const c = structuredClone(cursor);
       cursor_move(c, ev, size, offset, scale);
       setCursor(c);
     },
-    onMouseDown: (ev) => {
+    onPointerDown: (ev) => {
       const offset = offset_from_canvas(canvasElement.current);
 
       const c = structuredClone(cursor);
       cursor_down(c, (p) => tool_vertexAt(tool, p), ev, size, offset, scale)
       setCursor(c);
     },
-    onMouseUp: (ev) => {
+    onPointerUp: (ev) => {
       const offset = offset_from_canvas(canvasElement.current);
 
       const t = structuredClone(tool);
