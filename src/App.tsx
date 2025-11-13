@@ -5,8 +5,6 @@ import './App.css'
 /*
 TODO
  - shortcuts/keymap
- - save all state to local storage
-      - app state
  - drag/drop support for
       - themes
       - app file
