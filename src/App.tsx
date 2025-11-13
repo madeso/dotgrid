@@ -96,7 +96,7 @@ const Dialog = (props: {children: React.ReactNode, direction: "up" | "down"}) =>
     {props.direction === 'up' && <div className='point'/>}
   </div>
 
-type Dialog = 'color' | 'thickness' | 'settings' | 'about' | 'layers';
+type Dialog = 'color' | 'thickness' | 'settings' | 'about' | 'layers' | 'canvas-size';
 
 const LayerIcon = (props: {color: string}) => {
   const size = 16;
@@ -104,6 +104,9 @@ const LayerIcon = (props: {color: string}) => {
           <circle fill={props.color} cx={size/2} cy={size/2} r={size/2}/>
   </svg>;
 }
+
+const Properties = (props: {children: React.ReactNode}) => <div className='properties'>{props.children}</div>;
+const Row = (props: {children: React.ReactNode}) => <div className='row'>{props.children}</div>
 
 const App = () => {
   const canvasElement = createRef<SVGSVGElement>();
@@ -130,13 +133,15 @@ const App = () => {
   const [showHandles, setShowHandles] = useState(true);
   const [showGuides, setShowGuides] = useState(true);
   const [dialog, setDialog] = useState<Dialog | null>(null);
+  const [size, setSize] = useState<Size>({ width: 300, height: 300 });
+  
+  const [newWidth, setNewWidth] = useState<number>(300);
+  const [newHeight, setNewHeight] = useState<number>(300);
 
   const theme = hoverTheme ?? selectedTheme;
 
   const scale = 1;
   const current_mirror = mirror_from_style(tool_style(tool));
-
-  const size: Size = { width: 300, height: 300 };
 
   const events: React.SVGProps<SVGSVGElement> = {
     onMouseMove: (ev) => {
@@ -326,7 +331,36 @@ const App = () => {
           }} />
         </div>
         <div className='border'>
-          <SvgButton theme={theme} icon={icon_size} name='size' onClick={() => {}} />
+          <Relative>
+            <DialogButton icon={icon_size} dialog='canvas-size'/>
+            {dialog == 'canvas-size' && <Dialog direction='down'><div className='canvas-size'>
+                <h3>Canvas Size</h3>
+                <Properties>
+                  <Row>
+                    <label>Width</label>
+                    <input type='number' value={newWidth} min={1}
+                      onChange={(v) => setNewWidth(parseInt(v.target.value))} />
+                  </Row>
+                  <Row>
+                    <label>Height</label>
+                    <input type='number' value={newHeight} min={1}
+                      onChange={(v) => setNewHeight(parseInt(v.target.value))} />
+                  </Row>
+                  <Row>
+                    <Button isEnabled={newHeight !== size.height || newWidth !== size.width} onClick={() => {
+                        setSize({ width: newWidth, height: newHeight });
+                        setDialog(null);
+                      }}>Change</Button>
+                    <Button onClick={() => {
+                      setNewWidth(size.width);
+                      setNewHeight(size.height);
+                      setDialog(null);
+                    }} > Cancel </Button>
+                  </Row>
+                </Properties>
+              </div>
+            </Dialog>}
+          </Relative>
           <SvgButton theme={theme} icon={icon_project} name='project' onClick={() => {}} />
 
           <Relative>

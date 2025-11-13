@@ -212,3 +212,51 @@ button.is-selected.is-enabled {
     color: var(--f-inv);
     background-color: var(--b-inv);
 }
+
+h3 {
+  text-align: left;
+}
+
+.canvas-size {
+  margin: 3px;
+  padding: 0;
+}
+
+.properties {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.properties .row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.properties .row:last-child  {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.properties .row input
+{
+  flex: 1;
+  padding: 4px;
+  border-radius: 4px;
+  border: 1px solid var(--f-med);
+
+  color: var(--f-med);
+  background-color: var(--b-med);
+}
+
+.properties .row label
+{
+  min-width: 50;
+}
+
+.properties .row button
+{
+  flex: 1;
+}

@@ -28,11 +28,12 @@ export const Button = (props: {
     isEnabled?: boolean;
     is_selected?: boolean;
     onClick: () => void;
+    style?: React.CSSProperties | undefined;
 }) => {
     const is_selected = props.is_selected ?? false;
     const is_enabled = props.isEnabled ?? true;
 
-    return <button className={`${not('selected', is_selected)} ${not('enabled', is_enabled)}`} onClick={props.onClick}>{props.children}</button>
+    return <button style={props.style} className={`${not('selected', is_selected)} ${not('enabled', is_enabled)}`} onClick={props.onClick}>{props.children}</button>
 }
 
 export const SvgButton = (props: {
