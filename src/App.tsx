@@ -8,7 +8,12 @@ TODO
  - drag/drop support for
       - themes
       - app file
+ - delete all vertices/esc
+ - merge layers
+ - erase segment? (seems random)
+ - remove point? (can't add points)
  - remove unused code
+ - enter hex code
 */
 
 import { Canvas } from './Canvas';
