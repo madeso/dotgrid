@@ -6,7 +6,6 @@ import './App.css'
 TODO
  - shortcuts/keymap
  - fix scaling issue, weird rendering + cropped drawing area
- - remove size duplication
  - drag/drop support for
       - themes
       - app file
@@ -154,19 +153,17 @@ const App = () => {
     const h = create_new_history(tool.layers);
     return h;
   });
-
-
   const [preview, setPreview] = useState<SegmentType | null>(null);
   const [showExtra, setShowExtra] = useState(true);
   const [showGrid, setShowGrid] = useState(true);
   const [showHandles, setShowHandles] = useState(true);
   const [showGuides, setShowGuides] = useState(true);
   const [dialog, setDialog] = useState<Dialog | null>(null);
-  const [size, setSize] = useState<Size>({ width: 300, height: 300 });
   const [scale, setScale] = useState(1);
-  
-  const [newWidth, setNewWidth] = useState<number>(300);
-  const [newHeight, setNewHeight] = useState<number>(300);
+  const [newWidth, setNewWidth] = useState<number>(tool.settings.size.width);
+  const [newHeight, setNewHeight] = useState<number>(tool.settings.size.height);
+
+  const size = tool.settings.size;
 
   const setTool = (tool: ToolI) => {
     save_tool(tool);
@@ -427,7 +424,9 @@ const App = () => {
                   </Row>
                   <Row>
                     <Button isEnabled={newHeight !== size.height || newWidth !== size.width} onClick={() => {
-                        setSize({ width: newWidth, height: newHeight });
+                        const t = structuredClone(tool);
+                        t.settings.size = { width: newWidth, height: newHeight };
+                        setTool(t);
                         setDialog(null);
                       }}>Change</Button>
                     <Button onClick={() => {
