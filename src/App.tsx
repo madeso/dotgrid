@@ -5,6 +5,9 @@ import './App.css'
 /*
 TODO
  - shortcuts/keymap
+ - fix scaling issue
+ - allow user to change scale/zoom
+ - remove size duplication
  - drag/drop support for
       - themes
       - app file
