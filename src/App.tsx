@@ -5,8 +5,7 @@ import './App.css'
 /*
 TODO
  - shortcuts/keymap
- - fix scaling issue
- - allow user to change scale/zoom
+ - fix scaling issue, weird rendering + cropped drawing area
  - remove size duplication
  - drag/drop support for
       - themes
@@ -164,6 +163,7 @@ const App = () => {
   const [showGuides, setShowGuides] = useState(true);
   const [dialog, setDialog] = useState<Dialog | null>(null);
   const [size, setSize] = useState<Size>({ width: 300, height: 300 });
+  const [scale, setScale] = useState(1);
   
   const [newWidth, setNewWidth] = useState<number>(300);
   const [newHeight, setNewHeight] = useState<number>(300);
@@ -175,7 +175,6 @@ const App = () => {
 
   const theme = hoverTheme ?? selectedTheme;
 
-  const scale = 1;
   const current_mirror = mirror_from_style(tool_style(tool));
 
   const events: React.SVGProps<SVGSVGElement> = {
@@ -436,6 +435,13 @@ const App = () => {
                       setNewHeight(size.height);
                       setDialog(null);
                     }} > Cancel </Button>
+                  </Row>
+                </Properties>
+                <Properties>
+                  <Row>
+                    <label>Scale</label>
+                    <input type='number' value={scale} min={1}
+                      onChange={(v) => setScale(parseInt(v.target.value))} />
                   </Row>
                 </Properties>
               </div>
