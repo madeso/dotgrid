@@ -113,8 +113,8 @@ export const save_tool = (tool: ToolI) => {
   }
 }
 
-export const tool_all_layers = (tool: ToolI, size: Size): RenderingLayer[] => {
-  return tool_paths(tool, size).map((path, index) => {
+export const tool_all_layers = (tool: ToolI, scale: number, size: Size): RenderingLayer[] => {
+  return tool_paths(tool, scale, size).map((path, index) => {
     return {
       path: path,
       style: tool.styles[index]
@@ -497,13 +497,13 @@ export const tool_canCast = (tool: ToolI, type?: SegmentType | null) => {
   return tool.vertices.length >= tool.reqs[type];
 };
 
-export const tool_paths = (tool: ToolI, size: Size): [string, string, string] => {
+export const tool_paths = (tool: ToolI, scale: number, size: Size): [string, string, string] => {
   const gen = (index: number) => {
     return generate(
       tool.layers[index],
       mirror_from_style(tool.styles[index]),
       { x: 0, y: 0 },
-      1, size // todo(Gustav): expose scale
+      scale, size
     );
   };
 
@@ -793,7 +793,7 @@ export class Tool {
   }
 
   paths(): [string, string, string] {
-    return tool_paths(this.tool, this.tool.settings.size);
+    return tool_paths(this.tool, 1, this.tool.settings.size);
   }
 
   path() {

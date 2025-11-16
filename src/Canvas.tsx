@@ -406,16 +406,12 @@ export const Canvas = (props: {
     return <svg id="guide" ref={props.ref}
         width={props.size.width * props.scale}
         height={props.size.height * props.scale}
-        {...props.props}
-        style={{
-            width: props.size.width,
-            height: props.size.height
-        }}>
+        {...props.props}>
             <ClearRect size={props.size} scale={props.scale} theme={props.theme}/>
         <MirrorEl show={props.show_guides} mirror_style={props.mirror} scale={props.scale} size={props.size} theme={props.theme}/>
         <Grid scale={props.scale} size={props.size} theme={props.theme} showExtras={props.show_grid}/>
         <Rulers pos={props.translation_to} scale={props.scale} size={props.size} theme={props.theme}/>
-        <SvgLayers layers={props.layers}/>
+        <SvgLayers layers={props.layers} />
         <Vertices radius={props.vertex_radius} scale={props.scale} theme={props.theme} vertices={props.tool_vertices} />
         <Handles layer={props.active_layer} scale={props.scale} showExtras={props.show_handles} theme={props.theme}/>
         <Translation from={props.translation_from} to={props.translation_to} scale={props.scale} theme={props.theme} copy={props.copy} multi={props.multi} />

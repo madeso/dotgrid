@@ -5,7 +5,6 @@ import './App.css'
 /*
 TODO
  - shortcuts/keymap
- - fix scaling issue, weird rendering + cropped drawing area
  - drag/drop support for
       - themes
       - app file
@@ -19,7 +18,7 @@ TODO
 import { Canvas } from './Canvas';
 import { load_color_theme, save_color_theme, type Colors } from './theme';
 import { cursor_down, cursor_init, cursor_move, cursor_up, type Offset, type TranslateKeys } from './cursor';
-import { type SegmentType, type Point, type Size, type Mirror, type Layers } from './_types';
+import { type SegmentType, type Point, type Mirror, type Layers } from './_types';
 import { Button, SvgButton } from './SvgButton';
 import { cast_arc_c, cast_arc_r, cast_bezier, cast_close, cast_line, misc_color, source_export, source_grid_no_extra, source_grid_with_extra, icon_open, source_layers, source_save, fill_color, fill_transparent, toggle_mirror, linecap_butt, linecap_round, linecap_square, toggle_thickness, linejoin_miter, linejoin_bevel, linejoin_round, cast_arc_c_full, cast_arc_r_full, source_new, source_settings, source_undo, source_redo, icon_size, icon_project, icon_show_grid, icon_show_achor, icon_show_guides, icon_about } from './icons';
 
@@ -513,7 +512,7 @@ const App = () => {
         cast_preview={preview}
         vertex_radius={4}
         active_layer={tool_layer(tool)}
-        layers={tool_all_layers(tool, size)}
+        layers={tool_all_layers(tool, scale, size)}
         tool_vertices={tool.vertices}
         theme={theme}
         props={events}
