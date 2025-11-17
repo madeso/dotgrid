@@ -32,6 +32,7 @@ import { evaluate_theme } from './color-benchmark';
 import { history_can_next, history_can_prev, history_constructor, history_next, history_prev, history_push, type HistoryI } from './history';
 import { source_open, source_write } from './source';
 import { manager_toPNG, manager_toString } from './manager';
+import { keymap_onkey, keymap_register } from './acels';
 
 const offset_from_canvas = (canvas: SVGSVGElement | null): Offset => {
   if (!canvas) {
@@ -130,7 +131,6 @@ const App = () => {
 
   const [hoverTheme, setHoverTheme] = useState<null | Colors>(null);
   const [selectedTheme, setSelectedThemeData] = useState<Colors>(() => {
-    // Detect if user prefers dark mode
     const loaded = load_color_theme();
     if(loaded !== null) {
       return loaded;
@@ -175,7 +175,13 @@ const App = () => {
 
   const current_mirror = mirror_from_style(tool_style(tool));
 
+  const keymap = keymap_register([
+  ]);
+
   const events: React.SVGProps<SVGSVGElement> = {
+    onKeyDown: (ev) => {
+      keymap_onkey(keymap, ev);
+    },
     onPointerMove: (ev) => {
       const offset = offset_from_canvas(canvasElement.current);
       
