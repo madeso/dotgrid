@@ -11,6 +11,8 @@ TODO
  - delete all vertices/esc
  - erase segment? (seems random)
  - remove point? (can't add points)
+ - right click
+ - copy/paste
  - remove unused code
  - enter hex code
 */
