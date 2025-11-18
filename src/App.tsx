@@ -13,7 +13,6 @@ TODO
  - copy/paste
  - remove unused code
  - enter hex code in layer color dialog, shortcut
- - look into applying the theme via <style> tag https://react.dev/reference/react-dom/components/style
  - center canvas on page
 */
 
