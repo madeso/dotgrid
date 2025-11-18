@@ -29,6 +29,7 @@ interface Pipe {
 export interface Keymap {
   all: Map<string, Callback>;
   order: string[];
+  binds: Callback[];
 }
 
 interface Callback {
@@ -41,7 +42,8 @@ interface Callback {
 export const keymap_register = (data: Callback[]) => {
   const keymap: Keymap = {
     all: new Map(),
-    order: []
+    order: [],
+    binds: []
   };
 
   for(const d of data) {
@@ -56,6 +58,7 @@ export const keymap_register = (data: Callback[]) => {
       keymap.order.push(d.category);
     }
     keymap.all.set(d.accelerator, d);
+    keymap.binds.push(d);
   }
 
   return keymap;

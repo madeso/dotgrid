@@ -4,27 +4,25 @@ import './App.css'
 
 /*
 TODO
- - shortcuts/keymap
  - drag/drop support for
       - themes
       - app file
- - delete all vertices/esc
- - erase segment? (seems random)
- - remove point? (can't add points)
+ - remove point? (does it also remove the finished segment)
+ - erase segment? (seems random, change so that it is on hover)
  - right click
  - copy/paste
  - remove unused code
- - enter hex code
+ - enter hex code in layer color dialog, shortcut
 */
 
 import { Canvas } from './Canvas';
-import { load_color_theme, save_color_theme, type Colors } from './theme';
+import { load_color_theme, save_color_theme, theme_browse, type Colors } from './theme';
 import { cursor_down, cursor_init, cursor_move, cursor_up, type Offset, type TranslateKeys } from './cursor';
 import { type SegmentType, type Point, type Mirror, type Layers } from './_types';
 import { Button, SvgButton } from './SvgButton';
 import { cast_arc_c, cast_arc_r, cast_bezier, cast_close, cast_line, misc_color, source_export, source_grid_no_extra, source_grid_with_extra, icon_open, source_layers, source_save, fill_color, fill_transparent, toggle_mirror, linecap_butt, linecap_round, linecap_square, toggle_thickness, linejoin_miter, linejoin_bevel, linejoin_round, cast_arc_c_full, cast_arc_r_full, source_new, source_settings, source_undo, source_redo, icon_size, icon_project, icon_show_grid, icon_show_achor, icon_show_guides, icon_about } from './icons';
 
-import { empty_layers, load_tool, save_tool, tool_addVertex, tool_all_layers, tool_canCast, tool_cast, tool_constructor, tool_export, tool_layer, tool_merge, tool_redo, tool_replace, tool_reset, tool_select_color, tool_selectLayer, tool_set_linecap, tool_set_linejoin, tool_set_mirror, tool_set_thickness, tool_style, tool_toggle, tool_translate, tool_translateCopy, tool_translateLayer, tool_translateMulti, tool_undo, tool_vertexAt, type ToolI } from './tool';
+import { empty_layers, load_tool, save_tool, tool_addVertex, tool_all_layers, tool_canCast, tool_cast, tool_clear, tool_constructor, tool_export, tool_layer, tool_merge, tool_redo, tool_removeSegment, tool_removeSegmentsAt, tool_replace, tool_reset, tool_select_color, tool_selectLayer, tool_set_linecap, tool_set_linejoin, tool_set_mirror, tool_set_thickness, tool_style, tool_toggle, tool_translate, tool_translateCopy, tool_translateLayer, tool_translateMulti, tool_undo, tool_vertexAt, type ToolI } from './tool';
 import { mirror_from_style } from './generator';
 import { colors } from './colors';
 import { color_themes, dark_themes, light_themes, the_apollo_theme, the_default_theme } from './themes';
@@ -126,6 +124,25 @@ const create_new_history = (layers?: Layers) => {
   return h;
 };
 
+const pick_default_theme = () => {
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  return prefersDark ? the_apollo_theme : the_default_theme;
+}
+
+function toggle_enum<T>(current: T, all: T[]): T {
+  if(all.length <= 0) return current;
+
+  const index = all.indexOf(current);
+  if(index == -1) return all[0];
+
+  const next_index = (index + 1) % all.length;
+  return all[next_index];
+}
+
+const step_thickness = (current: number, change: number) => {
+  return Math.min(Math.max(current + change, 1), 100);
+}
+
 const App = () => {
   const canvasElement = createRef<SVGSVGElement>();
 
@@ -135,8 +152,7 @@ const App = () => {
     if(loaded !== null) {
       return loaded;
     }
-    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    return prefersDark ? the_apollo_theme : the_default_theme;
+    return pick_default_theme();
   });
 
   const setSelectedTheme = (theme: Colors) => {
@@ -163,6 +179,8 @@ const App = () => {
   const [scale, setScale] = useState(1);
   const [newWidth, setNewWidth] = useState<number>(tool.settings.size.width);
   const [newHeight, setNewHeight] = useState<number>(tool.settings.size.height);
+  const [menubarVisible, setMenubarVisible] = useState(true);
+  const [toolbarVisible, setToolbarVisible] = useState(true);
 
   const size = tool.settings.size;
 
@@ -175,13 +193,264 @@ const App = () => {
 
   const current_mirror = mirror_from_style(tool_style(tool));
 
+  const set_dialog = (new_dialog: Dialog) => {
+    if(dialog === null) {
+      setDialog(new_dialog);
+    }
+    else {
+      setDialog(null);
+    }
+  };
+
+  const import_theme = () => {
+    theme_browse((new_theme) => {
+      setSelectedTheme(new_theme);
+    });
+  }
+
+  const file_new = () => {
+    // todo(Gustav): change size?
+    const t = structuredClone(tool);
+    tool_reset(t, ()=>{});
+    setTool(t);
+    setHistory(create_new_history());
+  };
+
+  const file_open = () => {
+    source_open("grid", (file, content) => {
+      console.log("Opening", file);
+      const t = structuredClone(tool);
+
+      // todo(Gustav): validate parsed file...
+      tool_replace(t, JSON.parse(content), () => {}, () => {}, () => {});
+      setTool(t);
+      setHistory(create_new_history(t.layers));
+    });
+  };
+
+  const file_save = () => {
+    source_write(
+      "dotgrid",
+      "grid",
+      tool_export(tool),
+      "text/plain"
+    );
+  };
+
+  const export_svg = () => {
+    source_write("dotgrid", "svg", manager_toString(size, tool), "image/svg+xml");
+  }
+  const export_png = () => {
+    manager_toPNG(size, (dataUrl) => {
+      source_write("dotgrid", "png", dataUrl, "image/png");
+    }, tool);
+  };
+
+  const edit_undo = () => {
+    const t = structuredClone(tool);
+    const h = structuredClone(history);
+    tool_undo(t, ()=>{}, () => history_prev(h));
+    setTool(t);
+    setHistory(h);
+  };
+
+  const edit_redo = () => {
+    const t = structuredClone(tool);
+    const h = structuredClone(history);
+    tool_redo(t, () => history_next(h), ()=>{});
+    setTool(t);
+    setHistory(h);
+  };
+
+  const select_layer = (layer_index: number) => {
+    const t = structuredClone(tool);
+    tool_selectLayer(t, layer_index, () => {});
+    setTool(t);
+  }
+
+  const merge_layers = () => {
+    const t = structuredClone(tool);
+    const h = structuredClone(history);
+    tool_merge(t, (lay) => {
+      history_push(h, lay);
+    }, () => {});
+    setTool(t);
+    setHistory(h);
+  }
+
+  const cast_this = (segment: SegmentType) => {
+    const t = structuredClone(tool);
+      const h = structuredClone(history);
+      tool_cast(t, segment, () => {}, (lay) => {
+        history_push(h, lay);
+      });
+      setTool(t);
+      setHistory(h);
+  }
+
   const keymap = keymap_register([
+    {category: "∷", name: "Toggle Menubar", accelerator: "Tab", action: () => {
+      setMenubarVisible(!menubarVisible);
+    }},
+    {category: "∷", name: "Open Theme", accelerator: "CmdOrCtrl+Shift+O", action: () => {
+      import_theme();
+    }},
+    {category: "∷", name: "Reset Theme", accelerator: "CmdOrCtrl+Backspace", action: () => {
+      setSelectedTheme(pick_default_theme());
+    }},
+    {category: "File", name: "New", accelerator: "CmdOrCtrl+N", action: () => {
+      file_new();
+    }},
+    {category: "File", name: "Open", accelerator: "CmdOrCtrl+O", action: () => {
+      file_open();
+    }},
+    {category: "File", name: "Save", accelerator: "CmdOrCtrl+S", action: () => {
+      file_save();
+    }},
+    {category: "File", name: "Export Vector", accelerator: "CmdOrCtrl+E", action: () => {
+      export_svg();
+    }},
+    {category: "File", name: "Export Image", accelerator: "CmdOrCtrl+Shift+E", action: () => {
+      export_png();
+    }},
+    {category: "Edit", name: "Undo", accelerator: "CmdOrCtrl+Z", action: () => {
+      edit_undo();
+    }},
+    {category: "Edit", name: "Redo", accelerator: "CmdOrCtrl+Shift+Z", action: () => {
+      edit_redo();
+    }},
+    {category: "View", name: "Color Picker", accelerator: "G", action: () => {
+      set_dialog("color"); // todo(Gustav): also start the color picker
+    }},
+    {category: "View", name: "Toggle Grid", accelerator: "H", action: () => {
+      setShowExtra(!showExtra);
+    }},
+    {category: "View", name: "Toggle Tools", accelerator: "CmdOrCtrl+H", action: () => {
+      setToolbarVisible(!toolbarVisible);
+    }},
+    {category: "Layers", name: "Foreground", accelerator: "CmdOrCtrl+1", action: () => {
+      select_layer(0);
+    }},
+    {category: "Layers", name: "Middleground", accelerator: "CmdOrCtrl+2", action: () => {
+      select_layer(1);
+    }},
+    {category: "Layers", name: "Background", accelerator: "CmdOrCtrl+3", action: () => {
+      select_layer(2);
+    }},
+    {category: "Layers", name: "Merge Layers", accelerator: "CmdOrCtrl+M", action: () => {
+      merge_layers();
+    }},
+    {category: "Stroke", name: "Line", accelerator: "A", action: () => {
+      cast_this("line");
+    }},
+    {category: "Stroke", name: "Arc", accelerator: "S", action: () => {
+      cast_this("arc_c");
+    }},
+    {category: "Stroke", name: "Arc Rev", accelerator: "D", action: () => {
+      cast_this("arc_r");
+    }},
+    {category: "Stroke", name: "Bezier", accelerator: "F", action: () => {
+      cast_this("bezier");
+    }},
+    {category: "Stroke", name: "Close", accelerator: "Z", action: () => {
+      cast_this("close");
+    }},
+    {category: "Stroke", name: "Arc(full)", accelerator: "T", action: () => {
+      cast_this("arc_c_full");
+    }},
+    {category: "Stroke", name: "Arc Rev(full)", accelerator: "Y", action: () => {
+      cast_this("arc_r_full");
+    }},
+    {category: "Stroke", name: "Clear Selection", accelerator: "Escape", action: () => {
+      const t = structuredClone(tool);
+      tool_clear(t, () => {});
+      setTool(t);
+    }},
+    {category: "Stroke", name: "Erase Segment", accelerator: "Backspace", action: () => {
+      const t = structuredClone(tool);
+      tool_removeSegment(t, () => {});
+      setTool(t);
+    }},
+    {category: "Control", name: "Add Point", accelerator: "Enter", action: () => {
+      const t = structuredClone(tool);
+      tool_addVertex(t, cursor.pos, () => {});
+      setTool(t);
+    }},
+    {category: "Control", name: "Move Up", accelerator: "Up", action: () => {
+      const c = structuredClone(cursor);
+      c.pos.y -= 15;
+      setCursor(c);
+    }},
+    {category: "Control", name: "Move Right", accelerator: "Right", action: () => {
+      const c = structuredClone(cursor);
+      c.pos.x += 15;
+      setCursor(c);
+    }},
+    {category: "Control", name: "Move Down", accelerator: "Down", action: () => {
+      const c = structuredClone(cursor);
+      c.pos.y += 15;
+      setCursor(c);
+    }},
+    {category: "Control", name: "Move Left", accelerator: "Left", action: () => {
+      const c = structuredClone(cursor);
+      c.pos.x -= 15;
+      setCursor(c);
+    }},
+    {category: "Control", name: "Remove Point", accelerator: "X", action: () => {
+      const t = structuredClone(tool);
+      tool_removeSegmentsAt(t, cursor.pos, ()=>{}); // todo(Gustav: undo?
+      setTool(t);
+    }},
+    {category: "Style", name: "Linecap", accelerator: "Q", action: () => {
+      const t = structuredClone(tool);
+      const lay = tool_style(t);
+      lay.strokeLinecap = toggle_enum(lay.strokeLinecap, ["butt", "square", "round"]);
+      setTool(t);
+    }},
+    {category: "Style", name: "Linejoin", accelerator: "W", action: () => {
+      const t = structuredClone(tool);
+      const lay = tool_style(t);
+      lay.strokeLinejoin = toggle_enum(lay.strokeLinejoin, ["miter", "round", "bevel"]);
+      setTool(t);
+    }},
+    {category: "Style", name: "Mirror", accelerator: "E", action: () => {
+      const t = structuredClone(tool);
+      const lay = tool_style(t);
+      lay.mirror_style = (lay.mirror_style + 1)%4
+      setTool(t);
+    }},
+    {category: "Style", name: "Fill", accelerator: "R", action: () => {
+      const t = structuredClone(tool);
+      tool_toggle(t, 'fill', () => {});
+      setTool(t);
+    }},
+    {category: "Style", name: "Thicker", accelerator: "}", action: () => {
+      const t = structuredClone(tool);
+      const lay = tool_style(t);
+      lay.thickness = step_thickness(lay.thickness, 1);
+      setTool(t);
+    }},
+    {category: "Style", name: "Thinner", accelerator: "{", action: () => {
+      const t = structuredClone(tool);
+      const lay = tool_style(t);
+      lay.thickness = step_thickness(lay.thickness, -1);
+      setTool(t);
+    }},
+    {category: "Style", name: "Thicker +5", accelerator: "]", action: () => {
+      const t = structuredClone(tool);
+      const lay = tool_style(t);
+      lay.thickness = step_thickness(lay.thickness, 5);
+      setTool(t);
+    }},
+    {category: "Style", name: "Thinner -5", accelerator: "[", action: () => {
+      const t = structuredClone(tool);
+      const lay = tool_style(t);
+      lay.thickness = step_thickness(lay.thickness, -5);
+      setTool(t);
+    }}
   ]);
 
   const events: React.SVGProps<SVGSVGElement> = {
-    onKeyDown: (ev) => {
-      keymap_onkey(keymap, ev);
-    },
     onPointerMove: (ev) => {
       const offset = offset_from_canvas(canvasElement.current);
       
@@ -245,12 +514,7 @@ const App = () => {
     icon: string;
     dialog: Dialog;
   }) => <SvgButton theme={theme} icon={props.icon} name={props.dialog} is_selected={dialog === props.dialog} onClick={() => {
-    if(dialog === null) {
-      setDialog(props.dialog);
-    }
-    else {
-      setDialog(null);
-    }
+    set_dialog(props.dialog)
   }} />;
 
   const CastButton = (props: {
@@ -258,14 +522,9 @@ const App = () => {
     name: string;
     segment: SegmentType;
   }) => <SvgButton theme={theme} icon={props.icon} name={props.name} isEnabled={tool_canCast(tool, props.segment)} onEnter={() => setPreview(props.segment)} onLeave={() => setPreview(null)} onClick={() => {
-          const t = structuredClone(tool);
-          const h = structuredClone(history);
-          tool_cast(t, props.segment, () => {}, (lay) => {
-            history_push(h, lay);
-          });
-          setTool(t);
-          setHistory(h);
+          cast_this(props.segment);
         }} />;
+
   const MirrorButton = (props: {
     icon: string;
     name: string;
@@ -309,39 +568,28 @@ const App = () => {
       "--b-med": theme.b_med,
       "--b-low": theme.b_low,
       "--b-inv": theme.b_inv
-    }}>
+    }}
+    tabIndex={0}
+    onKeyDown={(ev) => {
+      keymap_onkey(keymap, ev);
+    }}
+    >
       <div>
         <img src={viteLogo} className="logo" alt="dotgrid logo" />
       </div>
       <h1>dotgrid</h1>
 
+      {menubarVisible && (
       <div id='menubar'>
         <div className='border'>
           <SvgButton theme={theme} icon={source_new} name='new' onClick={() => {
-            // todo(Gustav): change size?
-            const t = structuredClone(tool);
-            tool_reset(t, ()=>{});
-            setTool(t);
-            setHistory(create_new_history());
+            file_new();
           }} />
           <SvgButton theme={theme} icon={icon_open} name='open' onClick={() => {
-            source_open("grid", (file, content) => {
-              console.log("Opening", file);
-              const t = structuredClone(tool);
-
-              // todo(Gustav): validate parsed file...
-              tool_replace(t, JSON.parse(content), () => {}, () => {}, () => {});
-              setTool(t);
-              setHistory(create_new_history(t.layers));
-            });
+            file_open();
           }} />
           <SvgButton theme={theme} icon={source_save} name='save' onClick={() => {
-            source_write(
-              "dotgrid",
-              "grid",
-              tool_export(tool),
-              "text/plain"
-            );
+            file_save();
           }} />
           <Relative>
             <DialogButton icon={source_export} dialog='export'/>
@@ -349,18 +597,11 @@ const App = () => {
               <div className='export'>
                 <h3>Export</h3>
                 <Button onClick={() => {
-                  source_write(
-                    "dotgrid",
-                    "svg",
-                    manager_toString(size, tool),
-                    "image/svg+xml"
-                  );
+                  export_svg();
                   setDialog(null);
                 }}>SVG</Button>
                 <Button onClick={() => {
-                  manager_toPNG(size, (dataUrl) => {
-                      source_write("dotgrid", "png", dataUrl, "image/png");
-                    }, tool);
+                  export_png();
                   setDialog(null);
                 }}>PNG</Button>
               </div>
@@ -383,6 +624,16 @@ const App = () => {
                 {theme_eval.debug.length > 0 && <tr><th>Log</th><td>{theme_eval.debug}</td></tr>}
                 </tbody>
               </table></div>}
+              <Button onClick={() => {
+                import_theme();
+              }}>Import theme</Button>
+              <div className='keybinds'>
+              {
+                keymap.binds.map((b, index) => <div key={index}>
+                  <b>{b.name}:</b> {b.accelerator}
+                </div>)
+              }
+              </div>
             </Dialog>}
           </Relative>
           <Relative>
@@ -399,18 +650,10 @@ const App = () => {
         </div>
         <div className='border'>
           <SvgButton theme={theme} icon={source_undo} isEnabled={history_can_prev(history)} name='undo' onClick={() => {
-            const t = structuredClone(tool);
-            const h = structuredClone(history);
-            tool_undo(t, ()=>{}, () => history_prev(h));
-            setTool(t);
-            setHistory(h);
+            edit_undo();
           }} />
           <SvgButton theme={theme} icon={source_redo} isEnabled={history_can_next(history)} name='redo' onClick={() => {
-            const t = structuredClone(tool);
-            const h = structuredClone(history);
-            tool_redo(t, () => history_next(h), ()=>{});
-            setTool(t);
-            setHistory(h);
+            edit_redo();
           }} />
         </div>
         <div className='border'>
@@ -461,9 +704,7 @@ const App = () => {
             {dialog === 'layers' && <Dialog direction="down"><ul className='layers'>
               {
                 tool.layers.map((layer, layer_index) => <li key={layer_index}><Button is_selected={layer_index === tool.index} onClick={() => {
-                    const t = structuredClone(tool);
-                    tool_selectLayer(t, layer_index, () => {});
-                    setTool(t);
+                    select_layer(layer_index);
                     setDialog(null);
                   }}>
                     <LayerIcon color={tool.styles[layer_index].color}/> Layer {layer_index} | Shapes: {layer.length}
@@ -472,13 +713,7 @@ const App = () => {
               }
               </ul>
               <Button onClick={() => {
-                const t = structuredClone(tool);
-                const h = structuredClone(history);
-                tool_merge(t, (lay) => {
-                  history_push(h, lay);
-                }, () => {});
-                setTool(t);
-                setHistory(h);
+                merge_layers();
               }}>Merge layers</Button>
             </Dialog>}
           </Relative>
@@ -502,6 +737,7 @@ const App = () => {
           }} />
         </div>
       </div>
+      )}
 
       <Canvas
         ref={canvasElement}
@@ -525,6 +761,8 @@ const App = () => {
         theme={theme}
         props={events}
       />
+
+      {toolbarVisible && (
       <div id='toolbar'>
         <div className="border">
           <CastButton icon={cast_line} name='cast line' segment='line'/>
@@ -590,6 +828,7 @@ const App = () => {
           <MirrorButton icon={toggle_mirror.three} name='toggle_mirror' mirror='three' />
         </div>
       </div>
+      )}
 
       <div>
         <img src={viteLogo} className="logo" alt="dotgrid logo" />

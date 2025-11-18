@@ -9,6 +9,7 @@ export interface Size {
 }
 
 export type Mirror = "zero" | "one" | "two" | "three";
+export type MirrorStyle = "none" | "horizontal" | "vertical" | "diagonal";
 
 export type SegmentType =
   | "arc_c_full"

@@ -143,6 +143,51 @@ export const save_color_theme = (theme: Colors) => {
   }
 }
 
+const read_file = (file: Blob, callback: (content: string | ArrayBuffer | null) => void) => {
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    const result = event.target?.result ?? null;
+    callback(result);
+  };
+  reader.readAsText(file, "UTF-8");
+}
+
+const parse_color = (any: unknown): Colors | undefined => {
+    const parsed = color_from_unknown_object(any);
+    if (parsed !== null) {
+      return parsed;
+    }
+
+    if (typeof any === "string") {
+      if (isJson(any)) {
+        return JSON.parse(any);
+      }
+      if (isHtml(any)) {
+        return extract(any);
+      }
+    }
+
+    return undefined;
+  }
+
+export const theme_browse = ( on_theme: (theme: Colors) =>void ) => {
+  console.log("Theme", "Open theme..");
+    const input = document.createElement("input");
+    input.type = "file";
+    input.onchange = () => {
+      if (input.files === null) return;
+      read_file(input.files[0], (data) => {
+        const theme = parse_color(data);
+        if (theme === undefined || !is_valid_json_object(theme)) {
+          console.warn("Theme", "Invalid format");
+          return;
+        }
+        on_theme(theme);
+      });
+    };
+    input.click();
+};
+
 export class Theme {
   el: HTMLStyleElement;
   default: Colors;

@@ -262,3 +262,19 @@ h3 {
 {
   flex: 1;
 }
+
+
+.keybinds {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 8px;
+  row-gap: 16px;
+  align-items: center;
+  max-width: 100%;
+}
+
+.keybinds div {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
