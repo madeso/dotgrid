@@ -1,4 +1,4 @@
-import React, { createRef, useState } from 'react'
+import React, { createRef, useEffect, useState } from 'react'
 import './App.css'
 
 /*
@@ -187,6 +187,20 @@ const App = () => {
     save_tool(tool);
     setToolData(tool);
   }
+
+  useEffect(() => {
+    const t = hoverTheme ?? selectedTheme;
+    const style = document.documentElement.style;
+    style.setProperty("--background", t.background);
+    style.setProperty("--f-high", t.f_high);
+    style.setProperty("--f-med", t.f_med);
+    style.setProperty("--f-low", t.f_low);
+    style.setProperty("--f-inv", t.f_inv);
+    style.setProperty("--b-high", t.b_high);
+    style.setProperty("--b-med", t.b_med);
+    style.setProperty("--b-low", t.b_low);
+    style.setProperty("--b-inv", t.b_inv);
+  }, [hoverTheme, selectedTheme]);
 
   const theme = hoverTheme ?? selectedTheme;
 
@@ -559,17 +573,6 @@ const App = () => {
   return (
     <div
       id="app"
-      style={{
-      "--background": theme.background,
-      "--f-high": theme.f_high,
-      "--f-med": theme.f_med,
-      "--f-low": theme.f_low,
-      "--f-inv": theme.f_inv,
-      "--b-high": theme.b_high,
-      "--b-med": theme.b_med,
-      "--b-low": theme.b_low,
-      "--b-inv": theme.b_inv
-      }}
       tabIndex={0}
       onKeyDown={(ev) => {
       keymap_onkey(keymap, ev);
