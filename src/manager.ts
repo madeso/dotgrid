@@ -152,7 +152,7 @@ const create_elements = (): SvgExport => {
     svg.el.style.height = setting_size.height.toString();
 
     const styles = tool.styles;
-    const paths = tool_paths(tool, setting_size);
+    const paths = tool_paths(tool, 1, setting_size);
 
     for (const id in svg.layers) {
       const style = styles[id];
