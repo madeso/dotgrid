@@ -1,5 +1,4 @@
 import React, { createRef, useState } from 'react'
-import viteLogo from '/logo.svg'
 import './App.css'
 
 /*
@@ -13,7 +12,6 @@ TODO
  - copy/paste
  - remove unused code
  - enter hex code in layer color dialog, shortcut
- - center canvas on page
 */
 
 import { Canvas } from './Canvas';
@@ -559,7 +557,9 @@ const App = () => {
   const theme_eval = hoverTheme ? evaluate_theme(hoverTheme) : null;
 
   return (
-    <div id="app" style={{
+    <div
+      id="app"
+      style={{
       "--background": theme.background,
       "--f-high": theme.f_high,
       "--f-med": theme.f_med,
@@ -569,16 +569,36 @@ const App = () => {
       "--b-med": theme.b_med,
       "--b-low": theme.b_low,
       "--b-inv": theme.b_inv
-    }}
-    tabIndex={0}
-    onKeyDown={(ev) => {
+      }}
+      tabIndex={0}
+      onKeyDown={(ev) => {
       keymap_onkey(keymap, ev);
-    }}
+      }}
     >
-      <div>
-        <img src={viteLogo} className="logo" alt="dotgrid logo" />
+      <div id="canvas-container">
+      <Canvas
+        ref={canvasElement}
+        cursor_pos={cursor.pos}
+        cursor_radius={5}
+        mirror={current_mirror}
+        copy={cursor.translation?.copy ?? false}
+        multi={cursor.translation?.multi ?? false}
+        translation_from={cursor.translation?.from}
+        translation_to={cursor.translation?.to}
+        scale={scale}
+        size={size}
+        show_grid={showExtra && showGrid}
+        show_handles={showExtra && showHandles}
+        show_guides={showExtra && showGuides}
+        cast_preview={preview}
+        vertex_radius={4}
+        active_layer={tool_layer(tool)}
+        layers={tool_all_layers(tool, scale, size)}
+        tool_vertices={tool.vertices}
+        theme={theme}
+        props={events}
+      />
       </div>
-      <h1>dotgrid</h1>
 
       {menubarVisible && (
       <div id='menubar'>
@@ -740,29 +760,6 @@ const App = () => {
       </div>
       )}
 
-      <Canvas
-        ref={canvasElement}
-        cursor_pos={cursor.pos}
-        cursor_radius={5}
-        mirror={current_mirror}
-        copy={cursor.translation?.copy ?? false}
-        multi={cursor.translation?.multi ?? false}
-        translation_from={cursor.translation?.from}
-        translation_to={cursor.translation?.to}
-        scale={scale}
-        size={size}
-        show_grid={showExtra && showGrid}
-        show_handles={showExtra && showHandles}
-        show_guides={showExtra && showGuides}
-        cast_preview={preview}
-        vertex_radius={4}
-        active_layer={tool_layer(tool)}
-        layers={tool_all_layers(tool, scale, size)}
-        tool_vertices={tool.vertices}
-        theme={theme}
-        props={events}
-      />
-
       {toolbarVisible && (
       <div id='toolbar'>
         <div className="border">
@@ -830,10 +827,6 @@ const App = () => {
         </div>
       </div>
       )}
-
-      <div>
-        <img src={viteLogo} className="logo" alt="dotgrid logo" />
-      </div>
     </div>
   )
 }
