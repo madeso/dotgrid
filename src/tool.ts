@@ -263,7 +263,34 @@ export const tool_replace = (tool: ToolI, dot: ParsedTool, update: UpdateCallbac
 
 // EDIT
 
-export const tool_removeSegment = (tool: ToolI, update: UpdateCallback) => {
+interface FoundPoint
+{
+  segment: number;
+  point: number;
+}
+
+export const tool_find_points = (tool: ToolI, pos: Point, layer_index?: number): FoundPoint[] => {
+  const found_points = new Array<FoundPoint>();
+
+  const layer = tool_layer(tool, layer_index);
+
+  for (let segmentId = 0; segmentId < layer.length; segmentId += 1) {
+    const segment = layer[segmentId];
+    for (let vertexId = 0; vertexId < segment.vertices.length; vertexId += 1) {
+      const vertex = segment.vertices[vertexId];
+      if (
+        Math.abs(pos.x) === Math.abs(vertex.x) &&
+        Math.abs(pos.y) === Math.abs(vertex.y)
+      ) {
+        found_points.push({segment: segmentId, point: vertexId});
+      }
+    }
+  }
+
+  return found_points;
+};
+
+const tool_removeLastSegment = (tool: ToolI, update: UpdateCallback) => {
   if (tool.vertices.length > 0) {
     tool_clear(tool, update);
     return;
@@ -272,6 +299,15 @@ export const tool_removeSegment = (tool: ToolI, update: UpdateCallback) => {
   tool_layer(tool).pop();
   tool_clear(tool, update);
   update();
+};
+
+export const tool_removeSegmentAt = (tool: ToolI, point: Point, push: PushCallback, layer?: number) => {
+  tool_clear(tool, ()=>{});
+
+  const found = tool_find_points(tool, point, layer);
+  if(found.length <= 0) return;
+  tool_layer(tool, layer).splice(found[0].segment, 1);
+  push(tool.layers);
 };
 
 export const tool_removePointAt = (tool: ToolI, pos: Point, update: UpdateCallback, push: PushCallback) => {
@@ -705,7 +741,7 @@ export class Tool {
   // EDIT
 
   removeSegment() {
-    tool_removeSegment(this.tool, () => legacy_update(this.client.renderer, this.client.interface));
+    tool_removeLastSegment(this.tool, () => legacy_update(this.client.renderer, this.client.interface));
   }
 
   removeSegmentsAt(pos: Point) {
