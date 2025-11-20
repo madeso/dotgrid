@@ -730,7 +730,9 @@ const App = () => {
               </div>
             </Dialog>}
           </Relative>
-          <SvgButton theme={theme} icon={icon_project} name='project' onClick={() => {}} />
+          <SvgButton theme={theme} icon={icon_project} name='project' onClick={() => {
+            alert("not implemented / coming soon");
+          }} />
 
           <Relative>
             <DialogButton icon={source_layers} dialog='layers' />
