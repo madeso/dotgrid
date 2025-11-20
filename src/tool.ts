@@ -274,7 +274,7 @@ export const tool_removeSegment = (tool: ToolI, update: UpdateCallback) => {
   update();
 };
 
-export const tool_removeSegmentsAt = (tool: ToolI, pos: Point, update: UpdateCallback) => {
+export const tool_removeSegmentsAt = (tool: ToolI, pos: Point, update: UpdateCallback, push: PushCallback) => {
   for (let segmentId = 0; segmentId < tool_layer(tool).length; segmentId += 1) {
     const segment = tool_layer(tool)[segmentId];
     for (let vertexId = 0; vertexId < segment.vertices.length; vertexId += 1) {
@@ -292,6 +292,7 @@ export const tool_removeSegmentsAt = (tool: ToolI, pos: Point, update: UpdateCal
   }
   tool_clear(tool, update);
   update();
+  push(tool.layers);
 };
 
 export const tool_selectSegmentAt = (
@@ -708,7 +709,7 @@ export class Tool {
   }
 
   removeSegmentsAt(pos: Point) {
-    tool_removeSegmentsAt(this.tool, pos, () => legacy_update(this.client.renderer, this.client.interface));
+    tool_removeSegmentsAt(this.tool, pos, () => legacy_update(this.client.renderer, this.client.interface), ()=>{});
   }
 
   selectSegmentAt(pos: Point, source = this.layer()) {

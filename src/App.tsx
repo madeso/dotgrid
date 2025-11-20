@@ -6,7 +6,6 @@ TODO
  - drag/drop support for
       - themes
       - app file
- - remove point? (does it also remove the finished segment)
  - erase segment? (seems random, change so that it is on hover)
  - right click
  - copy/paste
@@ -411,8 +410,12 @@ const App = () => {
     }},
     {category: "Control", name: "Remove Point", accelerator: "X", action: () => {
       const t = structuredClone(tool);
-      tool_removeSegmentsAt(t, cursor.pos, ()=>{}); // todo(Gustav: undo?
+      const h = structuredClone(history);
+      tool_removeSegmentsAt(t, cursor.pos, ()=>{}, (lay) => {
+        history_push(h, lay);
+      });
       setTool(t);
+      setHistory(h);
     }},
     {category: "Style", name: "Linecap", accelerator: "Q", action: () => {
       const t = structuredClone(tool);
