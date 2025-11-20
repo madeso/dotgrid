@@ -127,7 +127,7 @@ export const empty_layers = (): Layers =>  [[], [], []];
 export const tool_constructor = (): ToolI => {
   return {
     index: 0,
-    settings: { size: { width: 600, height: 300 } },
+    settings: { size: { width: 300, height: 300 } },
     layers: empty_layers(),
     styles: [
       {
