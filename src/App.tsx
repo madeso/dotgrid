@@ -20,7 +20,7 @@ import { type SegmentType, type Point, type Mirror, type Layers } from './_types
 import { Button, SvgButton } from './SvgButton';
 import { cast_arc_c, cast_arc_r, cast_bezier, cast_close, cast_line, misc_color, source_export, source_grid_no_extra, source_grid_with_extra, icon_open, source_layers, source_save, fill_color, fill_transparent, toggle_mirror, linecap_butt, linecap_round, linecap_square, toggle_thickness, linejoin_miter, linejoin_bevel, linejoin_round, cast_arc_c_full, cast_arc_r_full, source_new, source_settings, source_undo, source_redo, icon_size, icon_project, icon_show_grid, icon_show_achor, icon_show_guides, icon_about } from './icons';
 
-import { empty_layers, load_tool, save_tool, tool_addVertex, tool_all_layers, tool_canCast, tool_cast, tool_clear, tool_constructor, tool_export, tool_layer, tool_merge, tool_redo, tool_removeSegment, tool_removeSegmentsAt, tool_replace, tool_reset, tool_select_color, tool_selectLayer, tool_set_linecap, tool_set_linejoin, tool_set_mirror, tool_set_thickness, tool_style, tool_toggle, tool_translate, tool_translateCopy, tool_translateLayer, tool_translateMulti, tool_undo, tool_vertexAt, type ToolI } from './tool';
+import { empty_layers, load_tool, save_tool, tool_addVertex, tool_all_layers, tool_canCast, tool_cast, tool_clear, tool_constructor, tool_export, tool_layer, tool_merge, tool_redo, tool_removeSegment, tool_removePointAt, tool_replace, tool_reset, tool_select_color, tool_selectLayer, tool_set_linecap, tool_set_linejoin, tool_set_mirror, tool_set_thickness, tool_style, tool_toggle, tool_translate, tool_translateCopy, tool_translateLayer, tool_translateMulti, tool_undo, tool_vertexAt, type ToolI } from './tool';
 import { mirror_from_style } from './generator';
 import { colors } from './colors';
 import { color_themes, dark_themes, light_themes, the_apollo_theme, the_default_theme } from './themes';
@@ -411,7 +411,7 @@ const App = () => {
     {category: "Control", name: "Remove Point", accelerator: "X", action: () => {
       const t = structuredClone(tool);
       const h = structuredClone(history);
-      tool_removeSegmentsAt(t, cursor.pos, ()=>{}, (lay) => {
+      tool_removePointAt(t, cursor.pos, ()=>{}, (lay) => {
         history_push(h, lay);
       });
       setTool(t);
