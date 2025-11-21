@@ -282,6 +282,10 @@ h3 {
   white-space: nowrap;
 }
 
+/* stop the browser from interfering with touch drag */
+#canvas-container {
+  touch-action: none;
+}
 
 /* center the canvas */
 #app {

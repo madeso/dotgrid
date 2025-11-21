@@ -475,6 +475,7 @@ const App = () => {
 
   const events: React.SVGProps<SVGSVGElement> = {
     onPointerMove: (ev) => {
+      ev.preventDefault();
       const offset = offset_from_canvas(canvasElement.current);
       
       const c = structuredClone(cursor);
@@ -482,6 +483,7 @@ const App = () => {
       setCursor(c);
     },
     onPointerDown: (ev) => {
+      ev.preventDefault();
       const offset = offset_from_canvas(canvasElement.current);
 
       const c = structuredClone(cursor);
@@ -489,6 +491,7 @@ const App = () => {
       setCursor(c);
     },
     onPointerUp: (ev) => {
+      ev.preventDefault();
       const offset = offset_from_canvas(canvasElement.current);
 
       const t = structuredClone(tool);
