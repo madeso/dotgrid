@@ -588,7 +588,9 @@ const App = () => {
       id="app"
       tabIndex={0}
       onKeyDown={(ev) => {
-      keymap_onkey(keymap, ev);
+        if(dialog === null) {
+          keymap_onkey(keymap, ev);
+        }
       }}
     >
       <div id="canvas-container">
