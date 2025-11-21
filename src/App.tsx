@@ -17,7 +17,7 @@ import { load_color_theme, save_color_theme, theme_browse, type Colors } from '.
 import { cursor_down, cursor_init, cursor_move, cursor_up, type Offset, type TranslateKeys } from './cursor';
 import { type SegmentType, type Point, type Mirror, type Layers } from './_types';
 import { Button, SvgButton } from './SvgButton';
-import { cast_arc_c, cast_arc_r, cast_bezier, cast_close, cast_line, misc_color, source_export, source_grid_no_extra, source_grid_with_extra, icon_open, source_layers, source_save, fill_color, fill_transparent, toggle_mirror, linecap_butt, linecap_round, linecap_square, toggle_thickness, linejoin_miter, linejoin_bevel, linejoin_round, cast_arc_c_full, cast_arc_r_full, source_new, source_settings, source_undo, source_redo, icon_size, icon_project, icon_show_grid, icon_show_achor, icon_show_guides, icon_about } from './icons';
+import * as icons from './icons';
 
 import { empty_layers, load_tool, save_tool, tool_addVertex, tool_all_layers, tool_canCast, tool_cast, tool_clear, tool_constructor, tool_export, tool_layer, tool_merge, tool_redo, tool_removePointAt, tool_removeSegmentAt, tool_replace, tool_reset, tool_select_color, tool_selectLayer, tool_set_linecap, tool_set_linejoin, tool_set_mirror, tool_set_thickness, tool_style, tool_toggle, tool_translate, tool_translateCopy, tool_translateLayer, tool_translateMulti, tool_undo, tool_vertexAt, type ToolI } from './tool';
 import { mirror_from_style } from './generator';
@@ -621,17 +621,17 @@ const App = () => {
       {menubarVisible && (
       <div id='menubar'>
         <div className='border'>
-          <SvgButton theme={theme} icon={source_new} name='new' onClick={() => {
+          <SvgButton theme={theme} icon={icons.new_file} name='new' onClick={() => {
             file_new();
           }} />
-          <SvgButton theme={theme} icon={icon_open} name='open' onClick={() => {
+          <SvgButton theme={theme} icon={icons.open_file} name='open' onClick={() => {
             file_open();
           }} />
-          <SvgButton theme={theme} icon={source_save} name='save' onClick={() => {
+          <SvgButton theme={theme} icon={icons.save_file} name='save' onClick={() => {
             file_save();
           }} />
           <Relative>
-            <DialogButton icon={source_export} dialog='export'/>
+            <DialogButton icon={icons.export_file} dialog='export'/>
             {dialog==='export' && <Dialog direction='down'>
               <div className='export'>
                 <h3>Export</h3>
@@ -647,7 +647,7 @@ const App = () => {
             </Dialog>}
           </Relative>
           <Relative>
-            <DialogButton icon={source_settings} dialog='settings'/>
+            <DialogButton icon={icons.settings} dialog='settings'/>
             {dialog ==='settings' && <Dialog direction='down'>
               <hr/>
               <h4>Themes</h4>
@@ -676,7 +676,7 @@ const App = () => {
             </Dialog>}
           </Relative>
           <Relative>
-            <DialogButton icon={icon_about} dialog='about' />
+            <DialogButton icon={icons.about} dialog='about' />
             {dialog === 'about' && <Dialog direction='down'>
               <p>
                 Dotgrid is a simple vector drawing app <a href="https://hundredrabbits.itch.io/dotgrid">orignially by 100 rabbits</a>.
@@ -688,16 +688,16 @@ const App = () => {
           </Relative>
         </div>
         <div className='border'>
-          <SvgButton theme={theme} icon={source_undo} isEnabled={history_can_prev(history)} name='undo' onClick={() => {
+          <SvgButton theme={theme} icon={icons.undo} isEnabled={history_can_prev(history)} name='undo' onClick={() => {
             edit_undo();
           }} />
-          <SvgButton theme={theme} icon={source_redo} isEnabled={history_can_next(history)} name='redo' onClick={() => {
+          <SvgButton theme={theme} icon={icons.redo} isEnabled={history_can_next(history)} name='redo' onClick={() => {
             edit_redo();
           }} />
         </div>
         <div className='border'>
           <Relative>
-            <DialogButton icon={icon_size} dialog='canvas-size'/>
+            <DialogButton icon={icons.canvas_size} dialog='canvas-size'/>
             {dialog == 'canvas-size' && <Dialog direction='down'><div className='canvas-size'>
                 <h3>Canvas Size</h3>
                 <Properties>
@@ -735,12 +735,12 @@ const App = () => {
               </div>
             </Dialog>}
           </Relative>
-          <SvgButton theme={theme} icon={icon_project} name='project' onClick={() => {
+          <SvgButton theme={theme} icon={icons.project} name='project' onClick={() => {
             alert("not implemented / coming soon");
           }} />
 
           <Relative>
-            <DialogButton icon={source_layers} dialog='layers' />
+            <DialogButton icon={icons.browse_layers} dialog='layers' />
 
             {dialog === 'layers' && <Dialog direction="down"><ul className='layers'>
               {
@@ -761,18 +761,18 @@ const App = () => {
         </div>
 
         <div className='border'>
-          <SvgButton theme={theme} icon={showExtra ? source_grid_with_extra : source_grid_no_extra} name='widgets' onClick={() => {
+          <SvgButton theme={theme} icon={showExtra ? icons.grid_with_extra : icons.grid_no_extra} name='widgets' onClick={() => {
             setShowExtra(!showExtra);
           }} />
-          <SvgButton theme={theme} isEnabled={showExtra} is_selected={showGrid} icon={icon_show_grid} name='grid' onClick={() => {
+          <SvgButton theme={theme} isEnabled={showExtra} is_selected={showGrid} icon={icons.show_grid} name='grid' onClick={() => {
             if(!showExtra) return;
             setShowGrid(!showGrid);
           }} />
-          <SvgButton theme={theme} isEnabled={showExtra} is_selected={showHandles} icon={icon_show_achor} name='handles' onClick={() => {
+          <SvgButton theme={theme} isEnabled={showExtra} is_selected={showHandles} icon={icons.show_achor} name='handles' onClick={() => {
             if(!showExtra) return;
             setShowHandles(!showHandles);
           }} />
-          <SvgButton theme={theme} isEnabled={showExtra} is_selected={showGuides} icon={icon_show_guides} name='guide' onClick={() => {
+          <SvgButton theme={theme} isEnabled={showExtra} is_selected={showGuides} icon={icons.show_guides} name='guide' onClick={() => {
             if(!showExtra) return;
             setShowGuides(!showGuides);
           }} />
@@ -783,13 +783,13 @@ const App = () => {
       {toolbarVisible && (
       <div id='toolbar'>
         <div className="border">
-          <CastButton icon={cast_line} name='cast line' segment='line'/>
-          <CastButton icon={cast_arc_c} name='cast arc c' segment='arc_c' />
-          <CastButton icon={cast_arc_c_full} name='cast arc c full' segment='arc_c_full' />
-          <CastButton icon={cast_arc_r} name='cast arc r' segment='arc_r' />
-          <CastButton icon={cast_arc_r_full} name='cast arc r full' segment='arc_r_full' />
-          <CastButton icon={cast_bezier} name='cast bezier' segment='bezier'/>
-          <SvgButton theme={theme} icon={cast_close} name='cast close' isEnabled={tool_canCast(tool, 'close')} onClick={() => {
+          <CastButton icon={icons.cast_line} name='cast line' segment='line'/>
+          <CastButton icon={icons.cast_arc_c} name='cast arc c' segment='arc_c' />
+          <CastButton icon={icons.cast_arc_c_full} name='cast arc c full' segment='arc_c_full' />
+          <CastButton icon={icons.cast_arc_r} name='cast arc r' segment='arc_r' />
+          <CastButton icon={icons.cast_arc_r_full} name='cast arc r full' segment='arc_r_full' />
+          <CastButton icon={icons.cast_bezier} name='cast bezier' segment='bezier'/>
+          <SvgButton theme={theme} icon={icons.cast_close} name='cast close' isEnabled={tool_canCast(tool, 'close')} onClick={() => {
             const t = structuredClone(tool);
             const h = structuredClone(history);
             tool_cast(t, 'close', () => {}, (lay) => {
@@ -800,17 +800,17 @@ const App = () => {
           }} />
         </div>
         <div className='border'>
-          <LineCapButton icon={linecap_butt} name='butt cap' linecap='butt' />
-          <LineCapButton icon={linecap_round} name='round cap' linecap='round' />
-          <LineCapButton icon={linecap_square} name='square cap' linecap='square' />
+          <LineCapButton icon={icons.linecap_butt} name='butt cap' linecap='butt' />
+          <LineCapButton icon={icons.linecap_round} name='round cap' linecap='round' />
+          <LineCapButton icon={icons.linecap_square} name='square cap' linecap='square' />
         </div>
         <div className='border'>
-          <LineJoinButton icon={linejoin_miter} name='miter join' linejoin='miter' />
-          <LineJoinButton icon={linejoin_round} name='round join' linejoin='round' />
-          <LineJoinButton icon={linejoin_bevel} name='bevel join' linejoin='bevel' />
+          <LineJoinButton icon={icons.linejoin_miter} name='miter join' linejoin='miter' />
+          <LineJoinButton icon={icons.linejoin_round} name='round join' linejoin='round' />
+          <LineJoinButton icon={icons.linejoin_bevel} name='bevel join' linejoin='bevel' />
         </div>
         <div className='border'>
-          <SvgButton icon={(tool_style(tool).fill ?? 'none') !== 'none' ? fill_color : fill_transparent} name='toggle_fill' theme={theme} onClick={() => {
+          <SvgButton icon={(tool_style(tool).fill ?? 'none') !== 'none' ? icons.fill_color : icons.fill_transparent} name='toggle_fill' theme={theme} onClick={() => {
             const t = structuredClone(tool);
             tool_toggle(t, 'fill', ()=>{});
             setTool(t);
@@ -823,10 +823,10 @@ const App = () => {
               setTool(t);
               setDialog(null);
             }}/>}
-            <DialogButton icon={misc_color} dialog='color'/>
+            <DialogButton icon={icons.browse_color} dialog='color'/>
           </Relative>
           <Relative>
-            <DialogButton icon={toggle_thickness} dialog='thickness' />
+            <DialogButton icon={icons.toggle_thickness} dialog='thickness' />
             {dialog ==='thickness' && 
             <input id="thickness-slider" type="range" name="thickness" min={1} max={100} value={tool_style(tool).thickness}
               onChange={(e) => {
@@ -840,10 +840,10 @@ const App = () => {
           </Relative>
         </div>
         <div className='border'>
-          <MirrorButton icon={toggle_mirror.zero} name='toggle_mirror' mirror='zero' />
-          <MirrorButton icon={toggle_mirror.one} name='toggle_mirror' mirror='one' />
-          <MirrorButton icon={toggle_mirror.two} name='toggle_mirror' mirror='two' />
-          <MirrorButton icon={toggle_mirror.three} name='toggle_mirror' mirror='three' />
+          <MirrorButton icon={icons.toggle_mirror.zero} name='toggle_mirror' mirror='zero' />
+          <MirrorButton icon={icons.toggle_mirror.one} name='toggle_mirror' mirror='one' />
+          <MirrorButton icon={icons.toggle_mirror.two} name='toggle_mirror' mirror='two' />
+          <MirrorButton icon={icons.toggle_mirror.three} name='toggle_mirror' mirror='three' />
         </div>
       </div>
       )}
