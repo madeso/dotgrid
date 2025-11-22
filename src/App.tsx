@@ -7,7 +7,6 @@ TODO
       - themes
       - app file
  - right click
- - copy/paste
  - remove unused code
  - enter hex code in layer color dialog, shortcut
 */
@@ -19,7 +18,7 @@ import { type SegmentType, type Point, type Mirror, type Layers } from './_types
 import { Button, SvgButton } from './SvgButton';
 import * as icons from './icons';
 
-import { empty_layers, load_tool, save_tool, tool_addVertex, tool_all_layers, tool_canCast, tool_cast, tool_clear, tool_constructor, tool_export, tool_layer, tool_merge, tool_redo, tool_removePointAt, tool_removeSegmentAt, tool_replace, tool_reset, tool_select_color, tool_selectLayer, tool_set_linecap, tool_set_linejoin, tool_set_mirror, tool_set_thickness, tool_style, tool_toggle, tool_translate, tool_translateCopy, tool_translateLayer, tool_translateMulti, tool_undo, tool_vertexAt, type ToolI } from './tool';
+import { empty_layers, jsonDump, load_tool, save_tool, tool_addVertex, tool_all_layers, tool_canCast, tool_cast, tool_clear, tool_constructor, tool_export, tool_import, tool_layer, tool_merge, tool_path, tool_redo, tool_removePointAt, tool_removeSegmentAt, tool_replace, tool_reset, tool_select_color, tool_selectLayer, tool_set_linecap, tool_set_linejoin, tool_set_mirror, tool_set_thickness, tool_style, tool_toggle, tool_translate, tool_translateCopy, tool_translateLayer, tool_translateMulti, tool_undo, tool_vertexAt, type ToolI } from './tool';
 import { mirror_from_style } from './generator';
 import { colors } from './colors';
 import { color_themes, dark_themes, light_themes, the_apollo_theme, the_default_theme } from './themes';
@@ -120,6 +119,16 @@ const create_new_history = (layers?: Layers) => {
   history_push(h, layers ?? empty_layers());
   return h;
 };
+
+const is_json = (text: string) => {
+  try {
+    JSON.parse(text);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 
 const pick_default_theme = () => {
   const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -590,6 +599,44 @@ const App = () => {
       onKeyDown={(ev) => {
         if(dialog === null) {
           keymap_onkey(keymap, ev);
+        }
+      }}
+      onCut={(e) => {
+        console.log("cut");
+        e.preventDefault();
+        if (e.clipboardData === null) {
+          console.error("missing clipboard");
+          return;
+        }
+        e.clipboardData.setData("text/source", jsonDump(tool_layer(tool)));
+        e.clipboardData.setData("text/plain", tool_path(tool, size));
+        const t = structuredClone(tool);
+        t.layers[t.index] = [];
+        setTool(t);
+      }}
+      onCopy={(e) => {
+        console.log("copied");
+        e.preventDefault();
+        if (e.clipboardData === null) {
+          console.error("missing clipboard");
+          return;
+        }
+        e.clipboardData.setData("text/source", jsonDump(tool_layer(tool)));
+        e.clipboardData.setData("text/plain", tool_path(tool, size));
+      }}
+      onPaste={(e) => {
+        console.log("pasted");
+        e.preventDefault();
+        const data = e.clipboardData?.getData("text/source");
+        if (data && is_json(data)) {
+          const parsed = JSON.parse(data.trim());
+          const t = structuredClone(tool);
+          const h = structuredClone(history);
+          tool_import(t, parsed, (lay) => {
+            history_push(h, lay);
+          }, () => {});
+          setTool(t);
+          setHistory(h);
         }
       }}
     >
