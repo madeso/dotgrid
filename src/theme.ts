@@ -80,7 +80,7 @@ const isColor = (hex: string) => {
   return /^#([0-9A-F]{3}){1,2}$/i.test(hex);
 };
 
-const isJson = (text: string) => {
+export const isJson = (text: string) => {
   try {
     JSON.parse(text);
     return true;
@@ -143,7 +143,7 @@ export const save_color_theme = (theme: Colors) => {
   }
 }
 
-const read_file = (file: Blob, callback: (content: string | ArrayBuffer | null) => void) => {
+export const read_file = (file: Blob, callback: (content: string | ArrayBuffer | null) => void) => {
   const reader = new FileReader();
   reader.onload = (event) => {
     const result = event.target?.result ?? null;
@@ -170,20 +170,24 @@ const parse_color = (any: unknown): Colors | undefined => {
     return undefined;
   }
 
+export const read_theme = (file: Blob, on_theme: (theme: Colors) =>void) => {
+  read_file(file, (data) => {
+    const theme = parse_color(data);
+    if (theme === undefined || !is_valid_json_object(theme)) {
+      console.warn("Theme", "Invalid format");
+      return;
+    }
+    on_theme(theme);
+  });
+}
+
 export const theme_browse = ( on_theme: (theme: Colors) =>void ) => {
   console.log("Theme", "Open theme..");
     const input = document.createElement("input");
     input.type = "file";
     input.onchange = () => {
       if (input.files === null) return;
-      read_file(input.files[0], (data) => {
-        const theme = parse_color(data);
-        if (theme === undefined || !is_valid_json_object(theme)) {
-          console.warn("Theme", "Invalid format");
-          return;
-        }
-        on_theme(theme);
-      });
+      read_theme(input.files[0], on_theme);
     };
     input.click();
 };

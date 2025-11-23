@@ -287,6 +287,11 @@ h3 {
   touch-action: none;
 }
 
+#app.drag-over {
+  outline: 2px dashed var(--f-med);
+  background-color: var(--b-low);
+}
+
 /* center the canvas */
 #app {
   position: fixed;

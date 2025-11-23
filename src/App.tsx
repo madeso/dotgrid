@@ -11,7 +11,7 @@ TODO
 */
 
 import { Canvas } from './Canvas';
-import { load_color_theme, save_color_theme, theme_browse, type Colors } from './theme';
+import { isJson, load_color_theme, read_file, read_theme, save_color_theme, theme_browse, type Colors } from './theme';
 import { cursor_alt, cursor_down, cursor_init, cursor_move, cursor_up, type Offset, type TranslateKeys } from './cursor';
 import { type SegmentType, type Point, type Mirror, type Layers } from './_types';
 import { Button, SvgButton } from './SvgButton';
@@ -235,15 +235,19 @@ const App = () => {
     setHistory(create_new_history());
   };
 
+  const read_grid_file = (content: string) => {
+    const t = structuredClone(tool);
+    // todo(Gustav): validate parsed file...
+    tool_replace(t, JSON.parse(content), () => {}, () => {}, () => {});
+    setTool(t);
+    setHistory(create_new_history(t.layers));
+  }
+
   const file_open = () => {
     source_open("grid", (file, content) => {
       console.log("Opening", file);
-      const t = structuredClone(tool);
-
-      // todo(Gustav): validate parsed file...
-      tool_replace(t, JSON.parse(content), () => {}, () => {}, () => {});
-      setTool(t);
-      setHistory(create_new_history(t.layers));
+      
+      read_grid_file(content);
     });
   };
 
@@ -608,6 +612,37 @@ const App = () => {
     <div
       id="app"
       tabIndex={0}
+      onDragOver={(e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        if (e.dataTransfer === null) return;
+        e.dataTransfer.dropEffect = "copy";
+      }}
+      onDrop={(e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        if (e.dataTransfer === null) return;
+        if (e.dataTransfer.files.length <= 0) return;
+
+        const file = e.dataTransfer.files[0];
+        if (file.name.indexOf(".svg") > -1) {
+          read_theme(file, setSelectedTheme);
+        }
+        else if(file.name.indexOf('.grid') > -1) {
+          read_file(file, data => {
+            if(typeof data==='string' && isJson(data))
+            {
+              read_grid_file(data);
+            }
+            else {
+              console.error("Invalid data loaded");
+            }
+          });
+        }
+        else {
+          console.error('Unhandled extension', file.name);
+        }
+      }}
       onKeyDown={(ev) => {
         if(dialog === null) {
           keymap_onkey(keymap, ev);
