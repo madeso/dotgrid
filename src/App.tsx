@@ -6,14 +6,13 @@ TODO
  - drag/drop support for
       - themes
       - app file
- - right click
  - remove unused code
  - enter hex code in layer color dialog, shortcut
 */
 
 import { Canvas } from './Canvas';
 import { load_color_theme, save_color_theme, theme_browse, type Colors } from './theme';
-import { cursor_down, cursor_init, cursor_move, cursor_up, type Offset, type TranslateKeys } from './cursor';
+import { cursor_alt, cursor_down, cursor_init, cursor_move, cursor_up, type Offset, type TranslateKeys } from './cursor';
 import { type SegmentType, type Point, type Mirror, type Layers } from './_types';
 import { Button, SvgButton } from './SvgButton';
 import * as icons from './icons';
@@ -490,6 +489,19 @@ const App = () => {
       const c = structuredClone(cursor);
       cursor_move(c, ev, size, offset, scale);
       setCursor(c);
+    },
+    onContextMenu: (ev) => {
+      const offset = offset_from_canvas(canvasElement.current);
+      cursor_alt(cursor, ev, size, offset, (p) => {
+        const t = structuredClone(tool);
+        const h = structuredClone(history);
+        tool_removeSegmentAt(t, p, (lay) => {
+          history_push(h, lay);
+        });
+        tool_clear(t, () => {});
+        setTool(t);
+        setHistory(h);
+      }, scale);
     },
     onPointerDown: (ev) => {
       ev.preventDefault();
