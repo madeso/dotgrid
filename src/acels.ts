@@ -104,6 +104,35 @@ export const keymap_onkey = (keymap: Keymap, e: KeyEventLike) => {
   return;
 };
 
+const get_sorted = (keymap: Keymap) => {
+  const h = new Map<TCat, Array<Callback>>();
+  for (const [,item] of keymap.all) {
+    if (item === undefined) continue;
+    let found = h.get(item.category);
+    if(found === undefined)
+    {
+      found = [];
+      h.set(item.category, found);
+    }
+    found.push(item);
+  }
+  return h;
+}
+
+export const keymap_to_markdown = (keymap: Keymap) => {
+  const cats = get_sorted(keymap);
+  let text = "";
+  for (const [cat, items] of cats) {
+    text += `\n### ${cat}\n\n`;
+    for (const item of items) {
+      text += item.accelerator
+        ? `- \`${item.accelerator}\`: ${item.name}\n`
+        : "";
+    }
+  }
+  return text.trim();
+}
+
 export class Acels {
   el: HTMLUListElement;
   pipe: Pipe | null;

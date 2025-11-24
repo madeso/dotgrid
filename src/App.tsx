@@ -21,7 +21,7 @@ import { evaluate_theme } from './color-benchmark';
 import { history_can_next, history_can_prev, history_constructor, history_next, history_prev, history_push, type HistoryI } from './history';
 import { source_open, source_write } from './source';
 import { manager_toPNG, manager_toString } from './manager';
-import { keymap_onkey, keymap_register } from './acels';
+import { keymap_onkey, keymap_register, keymap_to_markdown, type Keymap } from './acels';
 
 const offset_from_canvas = (canvas: SVGSVGElement | null): Offset => {
   if (!canvas) {
@@ -175,6 +175,26 @@ function toggle_enum<T>(current: T, all: T[]): T {
 
 const step_thickness = (current: number, change: number) => {
   return Math.min(Math.max(current + change, 1), 100);
+}
+
+const AboutDialog = (props: {
+  keymap: Keymap
+}) => {
+  const [isDebug, setDebug] = useState(false);
+  return <Dialog direction='down'>
+    {isDebug===false && <><p>
+      Dotgrid is a simple vector drawing app <a href="https://hundredrabbits.itch.io/dotgrid">orignially by 100 rabbits</a>.
+    </p>
+    <p>
+      This is <a href="https://github.com/madeso/dotgrid">a fork</a> with some different features.
+    </p>
+    <Button onClick={() => {
+      setDebug(true);
+    }}>Debug</Button></>}
+    {isDebug && <>
+      <textarea readOnly={true} value={keymap_to_markdown(props.keymap)} />
+    </>}
+  </Dialog>;
 }
 
 const App = () => {
@@ -800,14 +820,7 @@ const App = () => {
           </Relative>
           <Relative>
             <DialogButton icon={icons.about} dialog='about' />
-            {dialog === 'about' && <Dialog direction='down'>
-              <p>
-                Dotgrid is a simple vector drawing app <a href="https://hundredrabbits.itch.io/dotgrid">orignially by 100 rabbits</a>.
-              </p>
-              <p>
-                This is <a href="https://github.com/madeso/dotgrid">a fork</a> with some different features.
-              </p>
-            </Dialog>}
+            {dialog === 'about' && <AboutDialog keymap={keymap} />}
           </Relative>
         </div>
         <div className='border'>
