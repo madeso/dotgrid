@@ -45,7 +45,7 @@ const ColorDialog = (props: {
       Object.values(colors).map((list, list_index) => <div key={list_index} className='color-map'>
         {list.map((color, color_index) => <div key={`${list_index}-${color_index}`} className='color-button'
           onClick={() => {
-            props.select_color(color);
+            setCustomColor(color);
           }}
           style={{background: color}} />)}
       </div>)
@@ -65,6 +65,11 @@ const ColorDialog = (props: {
         }
       }
     }} />
+    <Button isEnabled={isColor(customColor)} onClick={() => {
+      if(isColor(customColor)) {
+          props.select_color(customColor);
+        }
+    }}>OK</Button>
   </Dialog>;
 }
 
