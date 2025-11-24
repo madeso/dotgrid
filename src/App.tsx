@@ -3,9 +3,6 @@ import './App.css'
 
 /*
 TODO
- - drag/drop support for
-      - themes
-      - app file
  - remove unused code
  - enter hex code in layer color dialog, shortcut
 */
