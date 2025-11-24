@@ -50,21 +50,30 @@ const ColorDialog = (props: {
           style={{background: color}} />)}
       </div>)
     }
-    <div style={{
-      width: 30,
-      height: 30,
-      backgroundColor: isColor(customColor) ? customColor : "#FFF"
-    }}/>
-    <input type='text' value={customColor} onChange={(ev) => {
-      setCustomColor(ev.target.value);
-    }} onKeyUp={(ev) => {
-      if(ev.key === 'Enter') {
-        console.log("press enter");
-        if(isColor(customColor)) {
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div
+      className='color-preview'
+      style={{
+        backgroundColor: isColor(customColor) ? customColor : "#FFF",
+      }}
+      />
+      <input
+      className='color-preview'
+      type='text'
+      value={customColor}
+      onChange={(ev) => {
+        setCustomColor(ev.target.value);
+      }}
+      placeholder="#RRGGBB"
+      onKeyUp={(ev) => {
+        if (ev.key === 'Enter') {
+        if (isColor(customColor)) {
           props.select_color(customColor);
         }
-      }
-    }} />
+        }
+      }}
+      />
+    </div>
     <Button isEnabled={isColor(customColor)} onClick={() => {
       if(isColor(customColor)) {
           props.select_color(customColor);
