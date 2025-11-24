@@ -76,7 +76,7 @@ const is_valid_json_object = (json: unknown) => {
   return c !== null;
 };
 
-const isColor = (hex: string) => {
+export const isColor = (hex: string) => {
   return /^#([0-9A-F]{3}){1,2}$/i.test(hex);
 };
 

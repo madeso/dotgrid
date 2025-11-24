@@ -4,11 +4,10 @@ import './App.css'
 /*
 TODO
  - remove unused code
- - enter hex code in layer color dialog, shortcut
 */
 
 import { Canvas } from './Canvas';
-import { isJson, load_color_theme, read_file, read_theme, save_color_theme, theme_browse, type Colors } from './theme';
+import { isColor, isJson, load_color_theme, read_file, read_theme, save_color_theme, theme_browse, type Colors } from './theme';
 import { cursor_alt, cursor_down, cursor_init, cursor_move, cursor_up, type Offset, type TranslateKeys } from './cursor';
 import { type SegmentType, type Point, type Mirror, type Layers } from './_types';
 import { Button, SvgButton } from './SvgButton';
@@ -38,7 +37,10 @@ const offset_from_canvas = (canvas: SVGSVGElement | null): Offset => {
 
 const ColorDialog = (props: {
   select_color: (c: string) => void;
-}) => <Dialog direction='up'>
+  current_color: string,
+}) => {
+  const [customColor, setCustomColor] = useState<string>(props.current_color);
+  return <Dialog direction='up'>
     {
       Object.values(colors).map((list, list_index) => <div key={list_index} className='color-map'>
         {list.map((color, color_index) => <div key={`${list_index}-${color_index}`} className='color-button'
@@ -48,7 +50,23 @@ const ColorDialog = (props: {
           style={{background: color}} />)}
       </div>)
     }
+    <div style={{
+      width: 30,
+      height: 30,
+      backgroundColor: isColor(customColor) ? customColor : "#FFF"
+    }}/>
+    <input type='text' value={customColor} onChange={(ev) => {
+      setCustomColor(ev.target.value);
+    }} onKeyUp={(ev) => {
+      if(ev.key === 'Enter') {
+        console.log("press enter");
+        if(isColor(customColor)) {
+          props.select_color(customColor);
+        }
+      }
+    }} />
   </Dialog>;
+}
 
 const Theme = (props: {theme: Colors, name: string, onClick: ()=>void, onEnter: ()=>void, onLeave: ()=>void}) => {
   const t = props.theme;
@@ -908,7 +926,7 @@ const App = () => {
           }} />
 
           <Relative>
-            {dialog === 'color' && <ColorDialog select_color={(new_color) => {
+            {dialog === 'color' && <ColorDialog current_color={tool.styles[tool.index].color} select_color={(new_color) => {
               const t = structuredClone(tool);
               tool_select_color(t, new_color);
               setTool(t);
