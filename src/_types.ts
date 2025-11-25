@@ -8,8 +8,7 @@ export interface Size {
   height: number;
 }
 
-export type Mirror = "zero" | "one" | "two" | "three";
-export type MirrorStyle = "none" | "horizontal" | "vertical" | "diagonal";
+export type Mirror = "none" | "horizontal" | "vertical" | "diagonal";
 
 export type SegmentType =
   | "arc_c_full"
@@ -40,7 +39,7 @@ export interface SingleStyle {
   strokeLinejoin: CanvasLineJoin;
   color: string;
   fill?: string;
-  mirror_style: number;
+  mirror_style: Mirror;
   transform: string;
   strokeLineDash?: Array<number>;
 }

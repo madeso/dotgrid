@@ -563,7 +563,7 @@ const App = () => {
       category: "Style", name: "Mirror", accelerator: "E", action: () => {
         const t = structuredClone(tool);
         const lay = tool_style(t);
-        lay.mirror_style = (lay.mirror_style + 1) % 4
+        lay.mirror_style = toggle_enum(lay.mirror_style, ["none", "horizontal", "vertical", "diagonal"]);
         setTool(t);
       }
     },
@@ -1049,10 +1049,10 @@ const App = () => {
             </Relative>
           </div>
           <div className='border'>
-            <MirrorButton icon={icons.toggle_mirror.zero} name='toggle_mirror' mirror='zero' />
-            <MirrorButton icon={icons.toggle_mirror.one} name='toggle_mirror' mirror='one' />
-            <MirrorButton icon={icons.toggle_mirror.two} name='toggle_mirror' mirror='two' />
-            <MirrorButton icon={icons.toggle_mirror.three} name='toggle_mirror' mirror='three' />
+            <MirrorButton icon={icons.mirror_none} name='toggle_mirror' mirror='none' />
+            <MirrorButton icon={icons.mirror_horizontal} name='toggle_mirror' mirror='horizontal' />
+            <MirrorButton icon={icons.mirror_vertical} name='toggle_mirror' mirror='vertical' />
+            <MirrorButton icon={icons.mirror_diagonal} name='toggle_mirror' mirror='diagonal' />
           </div>
         </div>
       )}

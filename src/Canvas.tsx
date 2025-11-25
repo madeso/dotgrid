@@ -14,7 +14,7 @@ const MirrorEl = (props: { show: boolean, mirror_style: Mirror, size: Size, scal
     if (props.show === false) {
         return <></>;
     }
-    if (props.mirror_style === "zero") {
+    if (props.mirror_style === "none") {
         return <></>;
     }
 
@@ -27,8 +27,8 @@ const MirrorEl = (props: { show: boolean, mirror_style: Mirror, size: Size, scal
     let second: ReactElement | null = null;
 
     if (
-        props.mirror_style === "one" ||
-        props.mirror_style === "three"
+        props.mirror_style === "horizontal" ||
+        props.mirror_style === "diagonal"
     ) {
         first = <Rule id='first-mirror'
             from={{ x: middle.x, y: 15 * props.scale }}
@@ -38,8 +38,8 @@ const MirrorEl = (props: { show: boolean, mirror_style: Mirror, size: Size, scal
     }
 
     if (
-        props.mirror_style === "two" ||
-        props.mirror_style === "three"
+        props.mirror_style === "vertical" ||
+        props.mirror_style === "diagonal"
     ) {
         second = <Rule id='second-mirror'
             from={{ x: 15 * props.scale, y: middle.y }}
@@ -255,7 +255,7 @@ const Preview = (props: { theme: Colors, size: Size, tool_vertices: Point[], cas
     } as SingleStyle;
     const path = generate([
         { vertices: tool_vertices, type: cast_preview },
-    ], "zero", { x: 0, y: 0 }, props.scale, size);
+    ], "none", { x: 0, y: 0 }, props.scale, size);
 
     return <Path id="preview" path={path} style={style} scale={props.scale} />
 };

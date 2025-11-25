@@ -54,7 +54,7 @@ const _bezier = (a?: Point, b?: Point) => {
 const render = (
   prev: Point | null,
   segment: Segment,
-  mirror: Mirror = "zero"
+  mirror: Mirror = "none"
 ) => {
   const type = segment.type;
   const vertices = segment.vertices;
@@ -84,16 +84,18 @@ const render = (
     if (type === "line") {
       html += _line(vertex);
     } else if (type === "arc_c") {
-      const clock = mirror == "one" || mirror == "two" ? "0,0" : "0,1";
+      const clock =
+        mirror == "horizontal" || mirror == "vertical" ? "0,0" : "0,1";
       html += _arc(vertex, next, clock);
     } else if (type === "arc_r") {
-      const clock = mirror == "one" || mirror == "two" ? "0,1" : "0,0";
+      const clock =
+        mirror == "horizontal" || mirror == "vertical" ? "0,1" : "0,0";
       html += _arc(vertex, next, clock);
     } else if (type === "arc_c_full") {
-      const clock = mirror !== "zero" ? "1,0" : "1,1";
+      const clock = mirror !== "none" ? "1,0" : "1,1";
       html += _arc(vertex, next, clock);
     } else if (type === "arc_r_full") {
-      const clock = mirror !== "zero" ? "1,1" : "1,0";
+      const clock = mirror !== "none" ? "1,1" : "1,0";
       html += _arc(vertex, next, clock);
     } else if (type === "bezier") {
       html += _bezier(next, afterNext);
@@ -121,10 +123,10 @@ const operate = (
   for (const k1 in l) {
     const seg = l[k1];
     for (const k2 in seg.vertices) {
-      if (mirror === "one" || mirror === "three") {
+      if (mirror === "horizontal" || mirror === "diagonal") {
         seg.vertices[k2].x = size.width - seg.vertices[k2].x;
       }
-      if (mirror === "two" || mirror === "three") {
+      if (mirror === "vertical" || mirror === "diagonal") {
         seg.vertices[k2].y = size.height - seg.vertices[k2].y;
       }
       // Offset
@@ -162,41 +164,20 @@ export const generate = (
   scale: number,
   size: Size
 ) => {
-  let s = convert(operate(size, layer, offset, scale, "zero"));
+  let s = convert(operate(size, layer, offset, scale, "none"));
 
-  if (mirror !== "zero") {
+  if (mirror !== "none") {
     s += convert(operate(size, layer, offset, scale, mirror), mirror);
   }
 
   return s;
 };
 
+// todo(Gustav): remove theese
 export const mirror_from_style = (style: SingleStyle): Mirror => {
-  switch (style.mirror_style) {
-    case 1:
-      return "one";
-    case 2:
-      return "two";
-    case 3:
-      return "three";
-    default:
-      return "zero";
-  }
+  return style.mirror_style;
 };
 
 export const set_mirror = (style: SingleStyle, mirror: Mirror) => {
-  switch (mirror) {
-    case "one":
-      style.mirror_style = 1;
-      break;
-    case "two":
-      style.mirror_style = 2;
-      break;
-    case "three":
-      style.mirror_style = 3;
-      break;
-    default:
-      style.mirror_style = 0;
-      break;
-  }
+  style.mirror_style = mirror;
 };

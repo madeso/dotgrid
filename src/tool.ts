@@ -114,7 +114,7 @@ export const tool_constructor = (): ToolI => {
         strokeLinejoin: "round",
         color: "#f00",
         fill: "none",
-        mirror_style: 0,
+        mirror_style: "none",
         transform: "rotate(45)",
       },
       {
@@ -123,7 +123,7 @@ export const tool_constructor = (): ToolI => {
         strokeLinejoin: "round",
         color: "#0f0",
         fill: "none",
-        mirror_style: 0,
+        mirror_style: "none",
         transform: "rotate(45)",
       },
       {
@@ -132,7 +132,7 @@ export const tool_constructor = (): ToolI => {
         strokeLinejoin: "round",
         color: "#00f",
         fill: "none",
-        mirror_style: 0,
+        mirror_style: "none",
         transform: "rotate(45)",
       },
     ],
@@ -156,9 +156,9 @@ export const tool_select_color = (tool: ToolI, hex: string) => {
 };
 
 export const tool_reset = (tool: ToolI, update: UpdateCallback) => {
-  tool.styles[0].mirror_style = 0;
-  tool.styles[1].mirror_style = 0;
-  tool.styles[2].mirror_style = 0;
+  tool.styles[0].mirror_style = "none";
+  tool.styles[1].mirror_style = "none";
+  tool.styles[2].mirror_style = "none";
   tool.styles[0].fill = "none";
   tool.styles[1].fill = "none";
   tool.styles[2].fill = "none";
@@ -442,8 +442,7 @@ export const tool_toggle = (
       100
     );
   } else if (type === "mirror") {
-    tool_style(tool).mirror_style =
-      tool_style(tool).mirror_style > 2 ? 0 : tool_style(tool).mirror_style + 1;
+    console.log("mirror not implemented anymore");
   } else {
     console.warn("Unknown", type);
   }
@@ -700,7 +699,7 @@ export const tool_style = (tool: ToolI) => {
       strokeLinejoin: "round",
       color: "#f00",
       fill: "none",
-      mirror_style: 0,
+      mirror_style: "none",
       transform: "rotate(45)",
     };
   }
