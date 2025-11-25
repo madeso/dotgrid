@@ -1,5 +1,4 @@
 import React, { createRef, useEffect, useState } from 'react'
-import './App.css'
 
 import { Canvas } from './Canvas';
 import { isColor, isJson, load_color_theme, read_file, read_theme, save_color_theme, theme_browse, type Colors } from './theme';
