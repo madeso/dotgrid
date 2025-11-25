@@ -1,4 +1,3 @@
-import { Client } from "./client";
 import type {
   Mirror,
   Point,
@@ -201,29 +200,3 @@ export const set_mirror = (style: SingleStyle, mirror: Mirror) => {
       break;
   }
 }
-
-export const generate_wrap = (
-  client: Client,
-  layer: SingleLayer,
-  style: SingleStyle,
-  offset = { x: 0, y: 0 },
-  scale = 1,
-  mirror_arg?: number
-) => {
-  const size = client.tool.tool.settings.size;
-  const mirror =
-    mirror_arg ?? (style && style.mirror_style ? style.mirror_style : 0);
-  let mirror_name: Mirror = "zero";
-  switch (mirror) {
-    case 1:
-      mirror_name = "one";
-      break;
-    case 2:
-      mirror_name = "two";
-      break;
-    case 3:
-      mirror_name = "three";
-      break;
-  }
-  return generate(layer, mirror_name, offset, scale, size);
-};

@@ -48,6 +48,24 @@ export const source_open = (ext: string, callback?: Callback) => {
   input.click();
 };
 
+export const source_load = (ext: string) => {
+  console.log("Source", "Load files..");
+  const input = document.createElement("input");
+  input.type = "file";
+  input.setAttribute("multiple", "multiple");
+  input.onchange = () => {
+    if (input.files === null) return;
+    for (const file of input.files) {
+      if (file.name.indexOf("." + ext) < 0) {
+        console.warn("Source", `Skipped ${file.name}`);
+        continue;
+      }
+      source_read(file, () => {});
+    }
+  };
+  input.click();
+}
+
 // I/O
 
 const source_read = (file: File, callback?: Callback) => {
@@ -83,105 +101,3 @@ export const source_write = (
     new MouseEvent("click", { bubbles: true, cancelable: true, view: window })
   );
 };
-
-export class Source {
-  constructor() {}
-
-  install() {}
-  start() {}
-  new() {}
-
-  test = () => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.onchange = (e) => {
-      console.log(e.target);
-    };
-    input.click();
-  };
-
-  open(ext: string, callback?: Callback) {
-    console.log("Source", "Open file..");
-    const input = document.createElement("input");
-    input.type = "file";
-    input.onchange = () => {
-      if (input.files === null) return;
-      const file = input.files[0];
-      if (file.name.indexOf("." + ext) < 0) {
-        console.warn("Source", `Skipped ${file.name}`);
-        return;
-      }
-      this.read(file, callback);
-    };
-    input.click();
-  }
-
-  load(ext: string) {
-    console.log("Source", "Load files..");
-    const input = document.createElement("input");
-    input.type = "file";
-    input.setAttribute("multiple", "multiple");
-    input.onchange = () => {
-      if (input.files === null) return;
-      for (const file of input.files) {
-        if (file.name.indexOf("." + ext) < 0) {
-          console.warn("Source", `Skipped ${file.name}`);
-          continue;
-        }
-        this.read(file, () => {});
-      }
-    };
-    input.click();
-  }
-
-  save(name: string, content: Content, type = "text/plain", settings?: string) {
-    this.saveAs(name, content, type, settings);
-  }
-
-  saveAs(
-    name: string,
-    ext: string,
-    content: Content,
-    type = "text/plain",
-    settings?: string
-  ) {
-    console.log("Source", "Save new file..");
-    this.write(name, ext, content, type, settings);
-  }
-
-  // I/O
-
-  read(file: File, callback?: Callback) {
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const res = event.target?.result ?? null;
-      if (typeof res !== "string") return;
-      if (callback) {
-        callback(file, res);
-      }
-    };
-    reader.readAsText(file, "UTF-8");
-  }
-
-  write(
-    name: string,
-    ext: string,
-    content: Content,
-    type: string,
-    settings = "charset=utf-8"
-  ) {
-    const link = document.createElement("a");
-    link.setAttribute("download", `${name}-${timestamp()}.${ext}`);
-    if (type === "image/png" || type === "image/jpeg") {
-      link.setAttribute("href", content);
-    } else {
-      link.setAttribute(
-        "href",
-        "data:" + type + ";" + settings + "," + encodeURIComponent(content)
-      );
-    }
-    link.dispatchEvent(
-      new MouseEvent("click", { bubbles: true, cancelable: true, view: window })
-    );
-  }
-}

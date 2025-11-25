@@ -10,13 +10,10 @@ import type {
   RenderingLayer,
   Mirror,
 } from "./_types";
-import { Client } from "./client";
 
-import { generate, generate_wrap, mirror_from_style, set_mirror } from "./generator";
-import type { Interface } from "./interface";
-import type { Renderer } from "./renderer";
+
+import { generate, mirror_from_style, set_mirror } from "./generator";
 import type { Colors } from "./theme";
-import type { History } from "./history";
 
 function clamp(v: number, min: number, max: number) {
   return v < min ? min : v > max ? max : v;
@@ -33,7 +30,6 @@ interface ParsedTool {
 }
 
 type ToolType = "linecap" | "linejoin" | "fill" | "thickness" | "mirror";
-type SourceType = "grid" | "open" | "save" | "export" | "render";
 
 export const jsonDump = (target: unknown) => {
   return JSON.stringify(structuredClone(target), null, 2);
@@ -44,26 +40,6 @@ export const jsonDump = (target: unknown) => {
 
 type UpdateCallback = () => void;
 type PushCallback = (lay: Layers) => void;
-
-const legacy_update = (renderer: Renderer, inter: Interface) => {
-  renderer.update();
-  inter.update(true);
-}
-
-const legacy_prev = (history: History<Layers>) => {
-  return history.prev()
-}
-const legacy_next = (history: History<Layers>) => {
-  return history.next()
-}
-const legacy_push = (history: History<Layers>, item: Layers) => {
-  history.push(item);
-}
-
-const legacy_fitSize = (client: Client) => {
-  client.fitSize();
-}
-
 
 
 export interface ToolI {
@@ -288,17 +264,6 @@ export const tool_find_points = (tool: ToolI, pos: Point, layer_index?: number):
   }
 
   return found_points;
-};
-
-const tool_removeLastSegment = (tool: ToolI, update: UpdateCallback) => {
-  if (tool.vertices.length > 0) {
-    tool_clear(tool, update);
-    return;
-  }
-
-  tool_layer(tool).pop();
-  tool_clear(tool, update);
-  update();
 };
 
 export const tool_removeSegmentAt = (tool: ToolI, point: Point, push: PushCallback, layer?: number) => {
@@ -687,203 +652,3 @@ export const tool_selectPrevLayer = (tool: ToolI, update: UpdateCallback) => {
   tool_selectLayer(tool, tool.index, update);
 };
 
-export class Tool {
-  client: Client;
-  tool: ToolI;
-
-  constructor(client: Client) {
-    this.client = client;
-    this.tool = tool_constructor();
-  }
-
-  start() {
-    tool_start(this.tool, this.client.theme.active);
-  }
-
-  reset() {
-    tool_reset(this.tool, () => legacy_update(this.client.renderer, this.client.interface));
-  }
-
-  erase() {
-    tool_erase(this.tool, () => legacy_update(this.client.renderer, this.client.interface));
-  }
-
-  clear() {
-    tool_clear(this.tool, () => legacy_update(this.client.renderer, this.client.interface));
-  }
-
-  undo() {
-    tool_undo(this.tool, () => legacy_update(this.client.renderer, this.client.interface), () => legacy_prev(this.client.history));
-  }
-
-  redo() {
-    tool_redo(this.tool, () => legacy_next(this.client.history), () => legacy_update(this.client.renderer, this.client.interface));
-  }
-
-  length() {
-    return tool_length(this.tool);
-  }
-
-  // I/O
-
-  export() {
-    return tool_export(this.tool);
-  }
-
-  import(layer: SingleLayer) {
-    tool_import(this.tool, layer, lay => legacy_push(this.client.history, lay), () => legacy_update(this.client.renderer, this.client.interface));
-  }
-
-  replace(dot: ParsedTool) {
-    tool_replace(this.tool, dot, () => legacy_update(this.client.renderer, this.client.interface), lay => legacy_push(this.client.history, lay), () => legacy_fitSize(this.client));
-  }
-
-  // EDIT
-
-  removeSegment() {
-    tool_removeLastSegment(this.tool, () => legacy_update(this.client.renderer, this.client.interface));
-  }
-
-  removeSegmentsAt(pos: Point) {
-    tool_removePointAt(this.tool, pos, () => legacy_update(this.client.renderer, this.client.interface), ()=>{});
-  }
-
-  selectSegmentAt(pos: Point, source = this.layer()) {
-    return tool_selectSegmentAt(this.tool, pos, source);
-  }
-
-  addVertex(pos: Point) {
-    tool_addVertex(this.tool, pos, () => legacy_update(this.client.renderer, this.client.interface));
-  }
-
-  vertexAt(pos: Point) {
-    for (const segmentId in this.layer()) {
-      const segment = this.layer()[segmentId];
-      for (const vertexId in segment.vertices) {
-        const vertex = segment.vertices[vertexId];
-        if (vertex.x === Math.abs(pos.x) && vertex.y === Math.abs(pos.y)) {
-          return vertex;
-        }
-      }
-    }
-    return null;
-  }
-
-  addSegment(type: SegmentType, vertices: Vertices, index = this.tool.index) {
-    tool_addSegment(this.tool, type, vertices, index);
-  }
-
-  cast(type: SegmentType) {
-    tool_cast(this.tool, type, () => legacy_update(this.client.renderer, this.client.interface), (lay) => legacy_push(this.client.history, lay));
-  }
-
-  toggle(type: ToolType, mod = 1) {
-    tool_toggle(this.tool, type, () => legacy_update(this.client.renderer, this.client.interface), mod);
-  }
-
-  // menu callback
-  misc() {
-    this.client.picker.start();
-  }
-
-  // menu callback
-  source(type: SourceType) {
-    if (type === "grid") {
-      this.client.renderer.toggle();
-    }
-    if (type === "open") {
-      this.client.source.open("grid", this.client.whenOpen);
-    }
-    if (type === "save") {
-      this.client.source.write(
-        "dotgrid",
-        "grid",
-        this.client.tool.export(),
-        "text/plain"
-      );
-    }
-    if (type === "export") {
-      this.client.source.write(
-        "dotgrid",
-        "svg",
-        this.client.manager.toString(),
-        "image/svg+xml"
-      );
-    }
-    if (type === "render") {
-      this.client.manager.toPNG(this.client.tool.tool.settings.size, (dataUrl) => {
-        this.client.source.write("dotgrid", "png", dataUrl, "image/png");
-      });
-    }
-  }
-
-  canAppend(
-    content: { type: SegmentType; vertices: Vertices },
-    index = this.tool.index
-  ): number | false {
-    
-    return tool_canAppend(this.tool, content, index);
-  }
-
-  canCast(type?: SegmentType | null) {
-    return tool_canCast(this.tool, type);
-  }
-
-  paths(): [string, string, string] {
-    return tool_paths(this.tool, 1, this.tool.settings.size);
-  }
-
-  path() {
-    return generate_wrap(
-      this.client,
-      this.client.tool.layer(),
-      this.client.tool.style(),
-      { x: 0, y: 0 },
-      1
-    );
-  }
-
-  translate(a: Point, b: Point) {
-    tool_translate(this.tool, a, b, (lay) => legacy_push(this.client.history, lay), () => legacy_update(this.client.renderer, this.client.interface));
-  }
-
-  translateMulti(a: Point, b: Point) {
-    tool_translateMulti(this.tool, a, b, (lay) => legacy_push(this.client.history, lay), () => legacy_update(this.client.renderer, this.client.interface));
-  }
-
-  translateLayer(a: Point, b: Point) {
-    tool_translateLayer(this.tool, a, b, (lay) => legacy_push(this.client.history, lay), () => legacy_update(this.client.renderer, this.client.interface));
-  }
-
-  translateCopy(a: Point, b: Point) {
-    tool_translateCopy(this.tool, a, b, (lay) => legacy_push(this.client.history, lay), () => legacy_update(this.client.renderer, this.client.interface));
-  }
-
-  merge() {
-    tool_merge(this.tool, (lay) => legacy_push(this.client.history, lay), () => legacy_update(this.client.renderer, this.client.interface));
-  }
-
-  // Style
-
-  style() {
-    return tool_style(this.tool);
-  }
-
-  // Layers
-
-  layer(index = this.tool.index) {
-    return tool_layer(this.tool, index);
-  }
-
-  selectLayer(id: number) {
-    tool_selectLayer(this.tool, id, () => legacy_update(this.client.renderer, this.client.interface));
-  }
-
-  selectNextLayer() {
-    tool_selectNextLayer(this.tool, () => legacy_update(this.client.renderer, this.client.interface));
-  }
-
-  selectPrevLayer() {
-    tool_selectPrevLayer(this.tool, () => legacy_update(this.client.renderer, this.client.interface));
-  }
-}

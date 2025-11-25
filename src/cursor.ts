@@ -1,8 +1,4 @@
 import type { Point, SegmentType, Size } from "./_types";
-import { Client } from "./client";
-import type { Picker } from "./picker";
-import type { Renderer } from "./renderer";
-import type { Tool } from "./tool";
 
 function isEqual(a: Point | undefined, b: Point | undefined) {
   return a?.x === b?.x && a?.y === b?.y;
@@ -47,47 +43,6 @@ interface CursorI {
   operation: null | Operation;
 };
 
-
-export const legacy_translate = (tool: Tool, from: Point, to: Point, meta: TranslateKeys) => {
-  if (meta.layer === true) {
-    tool.translateLayer( from, to );
-  } else if (meta.copy) {
-    tool.translateCopy( from, to );
-  } else if (meta.multi) {
-    tool.translateMulti( from, to );
-  } else {
-    tool.translate(from, to);
-  }
-}
-
-const legacy_add_vetex = (vertex: Point, tool: Tool, picker: Picker) => {
-  tool.addVertex(vertex);
-  picker.stop();
-}
-const legacy_remove_segment = (point: Point, tool: Tool) => {
-  tool.removeSegmentsAt(point);
-  setTimeout(() => {
-    tool.clear();
-  }, 150);
-}
-
-const legacy_vertex_at = (tool: Tool, p: Point) => {
-  return tool.vertexAt(p);
-}
-
-const legacy_offset = (renderer: Renderer) => {
-  return {
-    left: renderer.el.offsetLeft,
-    top: renderer.el.offsetTop
-  };
-}
-
-const legacy_size = (tool: Tool) => {
-  return {
-    width: tool.tool.settings.size.width,
-    height: tool.tool.settings.size.height
-  };
-}
 
 export const cursor_init = ():CursorI => {
   return {
@@ -198,48 +153,4 @@ const cursor_snapPos = (size: Size, pos: Point) => {
     x: clamp(step(pos.x, 15), 15, size.width - 15),
     y: clamp(step(pos.y, 15), 15, size.height - 15),
   };
-}
-
-export class Cursor {
-  cursor: CursorI;
-  client: Client;
-
-  constructor(client: Client) {
-    this.client = client;
-    this.cursor = cursor_init();
-  }
-
-  translate(
-    from: Point | null = null,
-    to: Point | null = null,
-    multi = false,
-    copy = false,
-    layer = false
-  ) {
-    cursor_translate(this.cursor, from, to, multi, copy, layer);
-  }
-
-  down(e: MouseState) {
-    cursor_down(this.cursor, vertex => {
-        return legacy_vertex_at(this.client.tool, vertex)
-    }, e, legacy_size(this.client.tool), legacy_offset(this.client.renderer), 1);
-  }
-
-  move(e: MouseState) {
-    cursor_move(this.cursor, e, legacy_size(this.client.tool), legacy_offset(this.client.renderer), 1);
-  }
-
-  up(e: MouseState) {
-    cursor_up(this.cursor, e, legacy_size(this.client.tool), legacy_offset(this.client.renderer), (from, to, meta) => {
-      legacy_translate(this.client.tool, from, to, meta);
-    }, point => {
-      legacy_add_vetex(point, this.client.tool, this.client.picker);
-    }, 1);
-  }
-
-  alt(e: MouseState) {
-    cursor_alt(this.cursor, e, legacy_size(this.client.tool), legacy_offset(this.client.renderer), (p) => {
-      legacy_remove_segment(p, this.client.tool);
-    }, 1);
-  }
 }
