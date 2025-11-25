@@ -1,7 +1,7 @@
 // was renderer
 
 import type { ReactElement } from "react";
-import type { Mirror, Point, RenderingLayer, SegmentType, SingleLayer, SingleStyle, Size } from "./_types";
+import { fill_color_from_style, type Mirror, type Point, type RenderingLayer, type SegmentType, type SingleLayer, type SingleStyle, type Size } from "./_types";
 import { generate } from "./generator";
 import type { Colors } from "./theme";
 
@@ -316,7 +316,7 @@ const Handle = (props: { pos: Point, radius: number | null | undefined, scale: n
 const Path = (props: { id?: string, path: string, style: SingleStyle, scale: number }) => {
     let body: ReactElement | null = null;
 
-    if (props.style.fill && props.style.fill !== "none") {
+    if (props.style.fill) {
         body =
             <path
                 d={props.path}
@@ -364,7 +364,7 @@ const SvgLayer = (props: {
         strokeLinecap={props.style.strokeLinecap}
         strokeLinejoin={props.style.strokeLinejoin}
         stroke={props.style.color}
-        fill={props.style.fill ?? "none"}
+        fill={fill_color_from_style(props.style)}
         d={props.path}
     />;
 }

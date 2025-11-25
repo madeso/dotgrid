@@ -272,7 +272,7 @@ const App = () => {
   const file_new = () => {
     // todo(Gustav): change size?
     const t = structuredClone(tool);
-    tool_reset(t, () => { });
+    tool_reset(t);
     setTool(t);
     setHistory(create_new_history());
   };
@@ -280,7 +280,7 @@ const App = () => {
   const read_grid_file = (content: string) => {
     const t = structuredClone(tool);
     // todo(Gustav): validate parsed file...
-    tool_replace(t, JSON.parse(content), () => { }, () => { }, () => { });
+    tool_replace(t, JSON.parse(content), () => { }, () => { });
     setTool(t);
     setHistory(create_new_history(t.layers));
   }
@@ -314,7 +314,7 @@ const App = () => {
   const edit_undo = () => {
     const t = structuredClone(tool);
     const h = structuredClone(history);
-    tool_undo(t, () => { }, () => history_prev(h));
+    tool_undo(t, () => history_prev(h));
     setTool(t);
     setHistory(h);
   };
@@ -322,14 +322,14 @@ const App = () => {
   const edit_redo = () => {
     const t = structuredClone(tool);
     const h = structuredClone(history);
-    tool_redo(t, () => history_next(h), () => { });
+    tool_redo(t, () => history_next(h));
     setTool(t);
     setHistory(h);
   };
 
   const select_layer = (layer_index: number) => {
     const t = structuredClone(tool);
-    tool_selectLayer(t, layer_index, () => { });
+    tool_selectLayer(t, layer_index);
     setTool(t);
   }
 
@@ -338,7 +338,7 @@ const App = () => {
     const h = structuredClone(history);
     tool_merge(t, (lay) => {
       history_push(h, lay);
-    }, () => { });
+    });
     setTool(t);
     setHistory(h);
   }
@@ -346,7 +346,7 @@ const App = () => {
   const cast_this = (segment: SegmentType) => {
     const t = structuredClone(tool);
     const h = structuredClone(history);
-    tool_cast(t, segment, () => { }, (lay) => {
+    tool_cast(t, segment, (lay) => {
       history_push(h, lay);
     });
     setTool(t);
@@ -477,7 +477,7 @@ const App = () => {
     {
       category: "Stroke", name: "Clear Selection", accelerator: "Escape", action: () => {
         const t = structuredClone(tool);
-        tool_clear(t, () => { });
+        tool_clear(t);
         setTool(t);
       }
     },
@@ -499,7 +499,7 @@ const App = () => {
     {
       category: "Control", name: "Add Point", accelerator: "Enter", action: () => {
         const t = structuredClone(tool);
-        tool_addVertex(t, cursor.pos, () => { });
+        tool_addVertex(t, cursor.pos);
         setTool(t);
       }
     },
@@ -535,7 +535,7 @@ const App = () => {
       category: "Control", name: "Remove Point", accelerator: "X", action: () => {
         const t = structuredClone(tool);
         const h = structuredClone(history);
-        tool_removePointAt(t, cursor.pos, () => { }, (lay) => {
+        tool_removePointAt(t, cursor.pos, (lay) => {
           history_push(h, lay);
         });
         setTool(t);
@@ -624,7 +624,7 @@ const App = () => {
         tool_removeSegmentAt(t, p, (lay) => {
           history_push(h, lay);
         });
-        tool_clear(t, () => { });
+        tool_clear(t);
         setTool(t);
         setHistory(h);
       }, scale);
@@ -653,19 +653,19 @@ const App = () => {
       };
 
       const add_vertex = (p: Point) => {
-        tool_addVertex(t, p, () => { })
+        tool_addVertex(t, p);
         tool_changed = true;
       };
 
       const translate = (from: Point, to: Point, meta: TranslateKeys) => {
         if (meta.layer === true) {
-          tool_translateLayer(t, from, to, push, () => { });
+          tool_translateLayer(t, from, to, push);
         } else if (meta.copy) {
-          tool_translateCopy(t, from, to, push, () => { });
+          tool_translateCopy(t, from, to, push);
         } else if (meta.multi) {
-          tool_translateMulti(t, from, to, push, () => { });
+          tool_translateMulti(t, from, to, push);
         } else {
-          tool_translate(t, from, to, push, () => { });
+          tool_translate(t, from, to, push);
         }
         tool_changed = true;
       };
@@ -802,7 +802,7 @@ const App = () => {
           const h = structuredClone(history);
           tool_import(t, parsed, (lay) => {
             history_push(h, lay);
-          }, () => { });
+          });
           setTool(t);
           setHistory(h);
         }
@@ -1000,7 +1000,7 @@ const App = () => {
             <SvgButton theme={theme} icon={icons.cast_close} name='cast close' isEnabled={tool_canCast(tool, 'close')} onClick={() => {
               const t = structuredClone(tool);
               const h = structuredClone(history);
-              tool_cast(t, 'close', () => { }, (lay) => {
+              tool_cast(t, 'close', (lay) => {
                 history_push(h, lay);
               });
               setTool(t);
@@ -1018,7 +1018,7 @@ const App = () => {
             <LineJoinButton icon={icons.linejoin_bevel} name='bevel join' linejoin='bevel' />
           </div>
           <div className='border'>
-            <SvgButton icon={(tool_style(tool).fill ?? 'none') !== 'none' ? icons.fill_color : icons.fill_transparent} name='toggle_fill' theme={theme} onClick={() => {
+            <SvgButton icon={tool_style(tool).fill ? icons.fill_color : icons.fill_transparent} name='toggle_fill' theme={theme} onClick={() => {
               const t = structuredClone(tool);
               tool_toggle_fill(t);
               setTool(t);

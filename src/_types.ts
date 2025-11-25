@@ -38,8 +38,10 @@ export interface SingleStyle {
   strokeLinecap: CanvasLineCap;
   strokeLinejoin: CanvasLineJoin;
   color: string;
-  fill?: string;
+  fill: boolean; // if true=use color as fill, if false=use none, see fill_color_from_style
   mirror_style: Mirror;
-  transform: string;
   strokeLineDash?: Array<number>;
 }
+
+export const fill_color_from_style = (style: SingleStyle) =>
+  style.fill ? style.color : "none";

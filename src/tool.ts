@@ -31,7 +31,6 @@ export const jsonDump = (target: unknown) => {
   return JSON.stringify(structuredClone(target), null, 2);
 };
 
-type UpdateCallback = () => void;
 type PushCallback = (lay: Layers) => void;
 
 export interface ToolI {
@@ -40,16 +39,6 @@ export interface ToolI {
   layers: Layers;
   vertices: Array<Point>;
   styles: Array<SingleStyle>;
-  reqs: {
-    line: number;
-    arc_c: number;
-    arc_r: number;
-    arc_c_full: number;
-    arc_r_full: number;
-    bezier: number;
-    close: number;
-  };
-  i: { linecap: number; linejoin: number; thickness: number };
 }
 
 const LOCAL_STORAGE_KEY = "dotgrid-file";
@@ -69,7 +58,6 @@ export const load_tool = (): ToolI | null => {
   tool_replace(
     tool,
     JSON.parse(source),
-    () => {},
     () => {},
     () => {}
   );
@@ -111,87 +99,62 @@ export const tool_constructor = (): ToolI => {
         strokeLinecap: "round",
         strokeLinejoin: "round",
         color: "#f00",
-        fill: "none",
+        fill: false,
         mirror_style: "none",
-        transform: "rotate(45)",
       },
       {
         thickness: 15,
         strokeLinecap: "round",
         strokeLinejoin: "round",
         color: "#0f0",
-        fill: "none",
+        fill: false,
         mirror_style: "none",
-        transform: "rotate(45)",
       },
       {
         thickness: 15,
         strokeLinecap: "round",
         strokeLinejoin: "round",
         color: "#00f",
-        fill: "none",
+        fill: false,
         mirror_style: "none",
-        transform: "rotate(45)",
       },
     ],
     vertices: [],
-    reqs: {
-      line: 2,
-      arc_c: 2,
-      arc_r: 2,
-      arc_c_full: 2,
-      arc_r_full: 2,
-      bezier: 3,
-      close: 0,
-    },
-    i: { linecap: 0, linejoin: 0, thickness: 5 },
   };
 };
 
+// todo(Gustav): remove this
 export const tool_select_color = (tool: ToolI, hex: string) => {
   tool_style(tool).color = hex;
-  tool_style(tool).fill = tool_style(tool).fill !== "none" ? hex : "none";
 };
 
-export const tool_reset = (tool: ToolI, update: UpdateCallback) => {
+export const tool_reset = (tool: ToolI) => {
   tool.styles[0].mirror_style = "none";
   tool.styles[1].mirror_style = "none";
   tool.styles[2].mirror_style = "none";
-  tool.styles[0].fill = "none";
-  tool.styles[1].fill = "none";
-  tool.styles[2].fill = "none";
-  tool_erase(tool, update);
+  tool.styles[0].fill = false;
+  tool.styles[1].fill = false;
+  tool.styles[2].fill = false;
+  tool_erase(tool);
   tool.vertices = [];
   tool.index = 0;
 };
 
-const tool_erase = (tool: ToolI, update: UpdateCallback) => {
+const tool_erase = (tool: ToolI) => {
   tool.layers = [[], [], []];
   tool.vertices = [];
-  update();
 };
 
-export const tool_clear = (tool: ToolI, update: UpdateCallback) => {
+export const tool_clear = (tool: ToolI) => {
   tool.vertices = [];
-  update();
 };
 
-export const tool_undo = (
-  tool: ToolI,
-  update: UpdateCallback,
-  prev: () => Layers
-) => {
+export const tool_undo = (tool: ToolI, prev: () => Layers) => {
   tool.layers = prev();
-  update();
 };
 
-export const tool_redo = (
-  tool: ToolI,
-  next: () => Layers,
-  update: UpdateCallback
-) => {
+export const tool_redo = (tool: ToolI, next: () => Layers) => {
   tool.layers = next();
-  update();
 };
 
 // I/O
@@ -208,19 +171,16 @@ export const tool_export = (tool: ToolI) => {
 export const tool_import = (
   tool: ToolI,
   layer: SingleLayer,
-  push: PushCallback,
-  update: UpdateCallback
+  push: PushCallback
 ) => {
   tool.layers[tool.index] = tool.layers[tool.index].concat(layer);
   push(tool.layers);
-  tool_clear(tool, update);
-  update();
+  tool_clear(tool);
 };
 
 export const tool_replace = (
   tool: ToolI,
   dot: ParsedTool,
-  update: UpdateCallback,
   push: PushCallback,
   fitSize: () => void
 ) => {
@@ -240,9 +200,8 @@ export const tool_replace = (
   tool.styles = dot.styles;
   tool.settings = dot.settings;
 
-  tool_clear(tool, update);
+  tool_clear(tool);
   fitSize();
-  update();
   push(tool.layers);
 };
 
@@ -284,7 +243,7 @@ export const tool_removeSegmentAt = (
   push: PushCallback,
   layer?: number
 ) => {
-  tool_clear(tool, () => {});
+  tool_clear(tool);
 
   const found = tool_find_points(tool, point, layer);
   if (found.length <= 0) return;
@@ -295,7 +254,6 @@ export const tool_removeSegmentAt = (
 export const tool_removePointAt = (
   tool: ToolI,
   pos: Point,
-  update: UpdateCallback,
   push: PushCallback
 ) => {
   for (let segmentId = 0; segmentId < tool_layer(tool).length; segmentId += 1) {
@@ -313,8 +271,7 @@ export const tool_removePointAt = (
       tool.layers[tool.index].splice(segmentId, 1);
     }
   }
-  tool_clear(tool, update);
-  update();
+  tool_clear(tool);
   push(tool.layers);
 };
 
@@ -335,14 +292,9 @@ const tool_selectSegmentAt = (
   return null;
 };
 
-export const tool_addVertex = (
-  tool: ToolI,
-  pos: Point,
-  update: UpdateCallback
-) => {
+export const tool_addVertex = (tool: ToolI, pos: Point) => {
   pos = { x: Math.abs(pos.x), y: Math.abs(pos.y) };
   tool.vertices.push(pos);
-  update();
 };
 
 export const tool_vertexAt = (tool: ToolI, pos: Point) => {
@@ -381,7 +333,6 @@ const tool_addSegment = (
 export const tool_cast = (
   tool: ToolI,
   type: SegmentType,
-  update: UpdateCallback,
   push: PushCallback
 ) => {
   if (!tool_layer(tool)) {
@@ -396,8 +347,7 @@ export const tool_cast = (
 
   push(tool.layers);
 
-  tool_clear(tool, update);
-  update();
+  tool_clear(tool);
 
   console.log(`Casted ${type} -> ${tool_layer(tool).length} elements`);
 };
@@ -417,8 +367,8 @@ export const tool_set_thickness = (tool: ToolI, thickness: number) => {
 };
 
 export const tool_toggle_fill = (tool: ToolI) => {
-  tool_style(tool).fill =
-    tool_style(tool).fill === "none" ? tool_style(tool).color : "none";
+  // todo(Gustav): remove this
+  tool_style(tool).fill = !tool_style(tool).fill;
 };
 
 const tool_canAppend = (
@@ -473,7 +423,18 @@ export const tool_canCast = (tool: ToolI, type?: SegmentType | null) => {
       return false;
     }
   }
-  return tool.vertices.length >= tool.reqs[type];
+
+  const reqs = {
+    line: 2,
+    arc_c: 2,
+    arc_r: 2,
+    arc_c_full: 2,
+    arc_r_full: 2,
+    bezier: 3,
+    close: 0,
+  };
+
+  return tool.vertices.length >= reqs[type];
 };
 
 export const tool_paths = (
@@ -508,8 +469,7 @@ export const tool_translate = (
   tool: ToolI,
   a: Point,
   b: Point,
-  push: PushCallback,
-  update: UpdateCallback
+  push: PushCallback
 ) => {
   for (const segmentId in tool_layer(tool)) {
     const segment = tool_layer(tool)[segmentId];
@@ -521,16 +481,14 @@ export const tool_translate = (
     }
   }
   push(tool.layers);
-  tool_clear(tool, update);
-  update();
+  tool_clear(tool);
 };
 
 export const tool_translateMulti = (
   tool: ToolI,
   a: Point,
   b: Point,
-  push: PushCallback,
-  update: UpdateCallback
+  push: PushCallback
 ) => {
   const offset = { x: a.x - b.x, y: a.y - b.y };
   const segment = tool_selectSegmentAt(tool, a);
@@ -548,16 +506,14 @@ export const tool_translateMulti = (
   }
 
   push(tool.layers);
-  tool_clear(tool, update);
-  update();
+  tool_clear(tool);
 };
 
 export const tool_translateLayer = (
   tool: ToolI,
   a: Point,
   b: Point,
-  push: PushCallback,
-  update: UpdateCallback
+  push: PushCallback
 ) => {
   const offset = { x: a.x - b.x, y: a.y - b.y };
   for (const segmentId in tool_layer(tool)) {
@@ -571,16 +527,14 @@ export const tool_translateLayer = (
     }
   }
   push(tool.layers);
-  tool_clear(tool, update);
-  update();
+  tool_clear(tool);
 };
 
 export const tool_translateCopy = (
   tool: ToolI,
   a: Point,
   b: Point,
-  push: PushCallback,
-  update: UpdateCallback
+  push: PushCallback
 ) => {
   const offset = { x: a.x - b.x, y: a.y - b.y };
   const segment = tool_selectSegmentAt(
@@ -603,25 +557,19 @@ export const tool_translateCopy = (
   tool_layer(tool).push(segment);
 
   push(tool.layers);
-  tool_clear(tool, update);
-  update();
+  tool_clear(tool);
 };
 
-export const tool_merge = (
-  tool: ToolI,
-  push: PushCallback,
-  update: UpdateCallback
-) => {
+export const tool_merge = (tool: ToolI, push: PushCallback) => {
   const merged = new Array<Segment>()
     .concat(tool.layers[0])
     .concat(tool.layers[1])
     .concat(tool.layers[2]);
-  tool_erase(tool, update);
+  tool_erase(tool);
   tool.layers[tool.index] = merged;
 
   push(tool.layers);
-  tool_clear(tool, update);
-  update();
+  tool_clear(tool);
 };
 
 // Style
@@ -633,9 +581,8 @@ export const tool_style = (tool: ToolI) => {
       strokeLinecap: "round",
       strokeLinejoin: "round",
       color: "#f00",
-      fill: "none",
+      fill: false,
       mirror_style: "none",
-      transform: "rotate(45)",
     };
   }
   return tool.styles[tool.index];
@@ -650,13 +597,8 @@ export const tool_layer = (tool: ToolI, index = tool.index) => {
   return tool.layers[index];
 };
 
-export const tool_selectLayer = (
-  tool: ToolI,
-  id: number,
-  update: UpdateCallback
-) => {
+export const tool_selectLayer = (tool: ToolI, id: number) => {
   tool.index = clamp(id, 0, 2);
-  tool_clear(tool, update);
-  update();
+  tool_clear(tool);
   console.log(`layer:${tool.index}`);
 };

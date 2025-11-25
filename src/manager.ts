@@ -59,7 +59,7 @@ const manager_update = (svg: SvgExport, setting_size: Size, tool: ToolI) => {
     layer.style.strokeLinecap = style.strokeLinecap;
     layer.style.strokeLinejoin = style.strokeLinejoin;
     layer.style.stroke = style.color;
-    layer.style.fill = style.fill ?? "none";
+    layer.style.fill = style.fill ? style.color : "none";
 
     layer.setAttribute("d", path);
   }
