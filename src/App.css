@@ -1,9 +1,12 @@
-body, #root, #app{
+body,
+#root,
+#app {
   margin: 0;
   padding: 0;
 }
 
-#root, #app{
+#root,
+#app {
   height: 100%;
   width: 100%;
 }
@@ -12,7 +15,8 @@ body, #root, #app{
   text-align: center;
 }
 
-#app, body {
+#app,
+body {
   background-color: var(--background);
   color: var(--f-low);
 }
@@ -22,7 +26,8 @@ body, #root, #app{
   padding: 1.5em;
 }
 
-#menubar, #toolbar {
+#menubar,
+#toolbar {
   -webkit-app-region: no-drag;
   transition: all 150ms;
   width: 100%;
@@ -32,8 +37,12 @@ body, #root, #app{
   line-height: 0;
 }
 
-#menubar { top: 6px; }
-#toolbar { bottom: 6px; }
+#menubar {
+  top: 6px;
+}
+#toolbar {
+  bottom: 6px;
+}
 
 svg.icon {
   width: 30px;
@@ -113,8 +122,12 @@ div.dialog {
   white-space: nowrap;
   z-index: 10;
 }
-div.dialog.up { bottom: 38px; }
-div.dialog.down { top: 38px; }
+div.dialog.up {
+  bottom: 38px;
+}
+div.dialog.down {
+  top: 38px;
+}
 
 div.point {
   left: 20px;
@@ -145,12 +158,12 @@ div.theme-eval {
 }
 
 .theme-eval table {
-  	font-family: 'Open Sans', sans-serif;
-	line-height: 1;
+  font-family: "Open Sans", sans-serif;
+  line-height: 1;
 }
 
 table {
-	display: table;
+  display: table;
   border-spacing: 3px;
   border-collapse: separate;
   box-sizing: border-box;
@@ -204,18 +217,18 @@ ul.layers li {
 }
 
 button {
-    color: var(--f-med);
-    background-color: var(--b-med);
+  color: var(--f-med);
+  background-color: var(--b-med);
 }
 
 button.not-enabled {
-    color: var(--f-low);
-    background-color: var(--b-low);
+  color: var(--f-low);
+  background-color: var(--b-low);
 }
 
 button.is-selected.is-enabled {
-    color: var(--f-inv);
-    background-color: var(--b-inv);
+  color: var(--f-inv);
+  background-color: var(--b-inv);
 }
 
 h3 {
@@ -239,14 +252,13 @@ h3 {
   gap: 8px;
 }
 
-.properties .row:last-child  {
+.properties .row:last-child {
   display: flex;
   gap: 8px;
   margin-top: 12px;
 }
 
-.properties .row input
-{
+.properties .row input {
   flex: 1;
   padding: 4px;
   border-radius: 4px;
@@ -256,16 +268,13 @@ h3 {
   background-color: var(--b-med);
 }
 
-.properties .row label
-{
+.properties .row label {
   min-width: 50;
 }
 
-.properties .row button
-{
+.properties .row button {
   flex: 1;
 }
-
 
 .keybinds {
   display: flex;

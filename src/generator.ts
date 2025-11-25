@@ -179,10 +179,10 @@ export const mirror_from_style = (style: SingleStyle): Mirror => {
       return "two";
     case 3:
       return "three";
-      default:
+    default:
       return "zero";
   }
-}
+};
 
 export const set_mirror = (style: SingleStyle, mirror: Mirror) => {
   switch (mirror) {
@@ -199,4 +199,4 @@ export const set_mirror = (style: SingleStyle, mirror: Mirror) => {
       style.mirror_style = 0;
       break;
   }
-}
+};

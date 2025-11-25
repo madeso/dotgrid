@@ -11,7 +11,7 @@ function step(v: number, s: number) {
 }
 
 export interface Operation {
-  cast?: SegmentType
+  cast?: SegmentType;
 }
 
 export interface TranslateKeys {
@@ -36,21 +36,22 @@ interface MouseState {
 interface CursorI {
   pos: Point;
   lastPos: Point;
-  translation: null | TranslateKeys & {
-    from?: Point;
-    to?: Point;
-  };
+  translation:
+    | null
+    | (TranslateKeys & {
+        from?: Point;
+        to?: Point;
+      });
   operation: null | Operation;
-};
+}
 
-
-export const cursor_init = ():CursorI => {
+export const cursor_init = (): CursorI => {
   return {
     pos: { x: 0, y: 0 },
     lastPos: { x: 0, y: 0 },
     translation: null,
     operation: null,
-  }
+  };
 };
 
 const cursor_translate = (
@@ -78,10 +79,16 @@ const cursor_translate = (
     console.assert(!from && !to);
     cursor.translation = null;
   }
-}
+};
 
-
-export const cursor_down = (cursor: CursorI, vertex_at: (p: Point) => Point | null, e: MouseState, size: Size, offset: Offset, scale: number) => {
+export const cursor_down = (
+  cursor: CursorI,
+  vertex_at: (p: Point) => Point | null,
+  e: MouseState,
+  size: Size,
+  offset: Offset,
+  scale: number
+) => {
   cursor.pos = cursor_atEvent(e, size, offset, scale);
   if (vertex_at(cursor.pos)) {
     cursor_translate(
@@ -94,26 +101,43 @@ export const cursor_down = (cursor: CursorI, vertex_at: (p: Point) => Point | nu
     );
   }
   e.preventDefault();
-}
+};
 
-export const cursor_move = (cursor: CursorI, e: MouseState, size: Size, offset: Offset, scale: number) => {
+export const cursor_move = (
+  cursor: CursorI,
+  e: MouseState,
+  size: Size,
+  offset: Offset,
+  scale: number
+) => {
   cursor.pos = cursor_atEvent(e, size, offset, scale);
   if (cursor.translation) {
     cursor_translate(cursor, null, cursor.pos);
   }
   cursor.lastPos = cursor.pos;
   e.preventDefault();
-}
+};
 
-
-export const cursor_up = (cursor: CursorI, e: MouseState, size: Size, offset: Offset, translation_callback: (from: Point, to: Point, meta: TranslateKeys)=>void, add_vertex: (p: Point) => void, scale: number) => {
+export const cursor_up = (
+  cursor: CursorI,
+  e: MouseState,
+  size: Size,
+  offset: Offset,
+  translation_callback: (from: Point, to: Point, meta: TranslateKeys) => void,
+  add_vertex: (p: Point) => void,
+  scale: number
+) => {
   cursor.pos = cursor_atEvent(e, size, offset, scale);
   if (
     cursor.translation &&
     !isEqual(cursor.translation.from, cursor.translation.to)
   ) {
-    if(cursor.translation.from && cursor.translation.to) {
-      translation_callback(cursor.translation.from, cursor.translation.to, cursor.translation);
+    if (cursor.translation.from && cursor.translation.to) {
+      translation_callback(
+        cursor.translation.from,
+        cursor.translation.to,
+        cursor.translation
+      );
     }
   } else {
     // clicked inside the grid and for example not on the toolbar...
@@ -122,19 +146,32 @@ export const cursor_up = (cursor: CursorI, e: MouseState, size: Size, offset: Of
   }
   cursor_translate(cursor);
   e.preventDefault();
-}
+};
 
-
-
-export const cursor_alt = (cursor: CursorI, e: MouseState, size: Size, offset: Offset, remove_segment: (p: Point) => void, scale: number) => {
+export const cursor_alt = (
+  cursor: CursorI,
+  e: MouseState,
+  size: Size,
+  offset: Offset,
+  remove_segment: (p: Point) => void,
+  scale: number
+) => {
   cursor.pos = cursor_atEvent(e, size, offset, scale);
   remove_segment(cursor.pos);
   e.preventDefault();
-}
+};
 
-const cursor_atEvent = (e: MouseState, size: Size, offset: Offset, scale: number) => {
-  return cursor_snapPos(size, cursor_relativePos(offset, scale, { x: e.clientX, y: e.clientY }));
-}
+const cursor_atEvent = (
+  e: MouseState,
+  size: Size,
+  offset: Offset,
+  scale: number
+) => {
+  return cursor_snapPos(
+    size,
+    cursor_relativePos(offset, scale, { x: e.clientX, y: e.clientY })
+  );
+};
 
 export interface Offset {
   left: number;
@@ -143,14 +180,14 @@ export interface Offset {
 
 const cursor_relativePos = (offset: Offset, scale: number, pos: Point) => {
   return {
-    x: (pos.x - offset.left)/scale,
-    y: (pos.y - offset.top)/scale,
+    x: (pos.x - offset.left) / scale,
+    y: (pos.y - offset.top) / scale,
   };
-}
+};
 
 const cursor_snapPos = (size: Size, pos: Point) => {
   return {
     x: clamp(step(pos.x, 15), 15, size.width - 15),
     y: clamp(step(pos.y, 15), 15, size.height - 15),
   };
-}
+};

@@ -11,7 +11,6 @@ import type {
   Mirror,
 } from "./_types";
 
-
 import { generate, mirror_from_style, set_mirror } from "./generator";
 
 function clamp(v: number, min: number, max: number) {
@@ -34,12 +33,8 @@ export const jsonDump = (target: unknown) => {
   return JSON.stringify(structuredClone(target), null, 2);
 };
 
-
-
-
 type UpdateCallback = () => void;
 type PushCallback = (lay: Layers) => void;
-
 
 export interface ToolI {
   index: number;
@@ -59,45 +54,53 @@ export interface ToolI {
   i: { linecap: number; linejoin: number; thickness: number };
 }
 
-const LOCAL_STORAGE_KEY = 'dotgrid-file';
+const LOCAL_STORAGE_KEY = "dotgrid-file";
 
 export const load_tool = (): ToolI | null => {
   const source = (() => {
     try {
       return localStorage.getItem(LOCAL_STORAGE_KEY);
-    }
-    catch(x) {
+    } catch (x) {
       console.warn("Failure to get from local storage", x);
       return null;
     }
   })();
-  if(source === null) return null;
+  if (source === null) return null;
 
   const tool = tool_constructor();
-  tool_replace(tool, JSON.parse(source), () => {}, () => {}, () => {});
+  tool_replace(
+    tool,
+    JSON.parse(source),
+    () => {},
+    () => {},
+    () => {}
+  );
 
   return tool;
-}
+};
 
 export const save_tool = (tool: ToolI) => {
   try {
     localStorage.setItem(LOCAL_STORAGE_KEY, tool_export(tool));
-  }
-  catch(x) {
+  } catch (x) {
     console.warn("Failure to save to local storage", x);
   }
-}
+};
 
-export const tool_all_layers = (tool: ToolI, scale: number, size: Size): RenderingLayer[] => {
+export const tool_all_layers = (
+  tool: ToolI,
+  scale: number,
+  size: Size
+): RenderingLayer[] => {
   return tool_paths(tool, scale, size).map((path, index) => {
     return {
       path: path,
-      style: tool.styles[index]
+      style: tool.styles[index],
     };
   });
-}
+};
 
-export const empty_layers = (): Layers =>  [[], [], []];
+export const empty_layers = (): Layers => [[], [], []];
 
 export const tool_constructor = (): ToolI => {
   return {
@@ -150,7 +153,7 @@ export const tool_constructor = (): ToolI => {
 export const tool_select_color = (tool: ToolI, hex: string) => {
   tool_style(tool).color = hex;
   tool_style(tool).fill = tool_style(tool).fill !== "none" ? hex : "none";
-}
+};
 
 export const tool_reset = (tool: ToolI, update: UpdateCallback) => {
   tool.styles[0].mirror_style = 0;
@@ -175,12 +178,20 @@ export const tool_clear = (tool: ToolI, update: UpdateCallback) => {
   update();
 };
 
-export const tool_undo = (tool: ToolI, update: UpdateCallback, prev: () => Layers) => {
+export const tool_undo = (
+  tool: ToolI,
+  update: UpdateCallback,
+  prev: () => Layers
+) => {
   tool.layers = prev();
   update();
 };
 
-export const tool_redo = (tool: ToolI, next: () => Layers, update: UpdateCallback) => {
+export const tool_redo = (
+  tool: ToolI,
+  next: () => Layers,
+  update: UpdateCallback
+) => {
   tool.layers = next();
   update();
 };
@@ -196,14 +207,25 @@ export const tool_export = (tool: ToolI) => {
   return jsonDump(target);
 };
 
-export const tool_import = (tool: ToolI, layer: SingleLayer, push: PushCallback, update: UpdateCallback) => {
+export const tool_import = (
+  tool: ToolI,
+  layer: SingleLayer,
+  push: PushCallback,
+  update: UpdateCallback
+) => {
   tool.layers[tool.index] = tool.layers[tool.index].concat(layer);
   push(tool.layers);
   tool_clear(tool, update);
   update();
 };
 
-export const tool_replace = (tool: ToolI, dot: ParsedTool, update: UpdateCallback, push: PushCallback, fitSize: () => void) => {
+export const tool_replace = (
+  tool: ToolI,
+  dot: ParsedTool,
+  update: UpdateCallback,
+  push: PushCallback,
+  fitSize: () => void
+) => {
   if (!dot.layers || dot.layers.length !== 3) {
     console.warn("Incompatible version");
     return;
@@ -228,13 +250,16 @@ export const tool_replace = (tool: ToolI, dot: ParsedTool, update: UpdateCallbac
 
 // EDIT
 
-interface FoundPoint
-{
+interface FoundPoint {
   segment: number;
   point: number;
 }
 
-const tool_find_points = (tool: ToolI, pos: Point, layer_index?: number): FoundPoint[] => {
+const tool_find_points = (
+  tool: ToolI,
+  pos: Point,
+  layer_index?: number
+): FoundPoint[] => {
   const found_points = new Array<FoundPoint>();
 
   const layer = tool_layer(tool, layer_index);
@@ -247,7 +272,7 @@ const tool_find_points = (tool: ToolI, pos: Point, layer_index?: number): FoundP
         Math.abs(pos.x) === Math.abs(vertex.x) &&
         Math.abs(pos.y) === Math.abs(vertex.y)
       ) {
-        found_points.push({segment: segmentId, point: vertexId});
+        found_points.push({ segment: segmentId, point: vertexId });
       }
     }
   }
@@ -255,16 +280,26 @@ const tool_find_points = (tool: ToolI, pos: Point, layer_index?: number): FoundP
   return found_points;
 };
 
-export const tool_removeSegmentAt = (tool: ToolI, point: Point, push: PushCallback, layer?: number) => {
-  tool_clear(tool, ()=>{});
+export const tool_removeSegmentAt = (
+  tool: ToolI,
+  point: Point,
+  push: PushCallback,
+  layer?: number
+) => {
+  tool_clear(tool, () => {});
 
   const found = tool_find_points(tool, point, layer);
-  if(found.length <= 0) return;
+  if (found.length <= 0) return;
   tool_layer(tool, layer).splice(found[0].segment, 1);
   push(tool.layers);
 };
 
-export const tool_removePointAt = (tool: ToolI, pos: Point, update: UpdateCallback, push: PushCallback) => {
+export const tool_removePointAt = (
+  tool: ToolI,
+  pos: Point,
+  update: UpdateCallback,
+  push: PushCallback
+) => {
   for (let segmentId = 0; segmentId < tool_layer(tool).length; segmentId += 1) {
     const segment = tool_layer(tool)[segmentId];
     for (let vertexId = 0; vertexId < segment.vertices.length; vertexId += 1) {
@@ -302,7 +337,11 @@ const tool_selectSegmentAt = (
   return null;
 };
 
-export const tool_addVertex = (tool: ToolI, pos: Point, update: UpdateCallback) => {
+export const tool_addVertex = (
+  tool: ToolI,
+  pos: Point,
+  update: UpdateCallback
+) => {
   pos = { x: Math.abs(pos.x), y: Math.abs(pos.y) };
   tool.vertices.push(pos);
   update();
@@ -327,7 +366,8 @@ const tool_addSegment = (
   vertices: Vertices,
   index = tool.index
 ) => {
-  const appendTarget = tool_canAppend(tool,
+  const appendTarget = tool_canAppend(
+    tool,
     { type: type, vertices: vertices },
     index
   );
@@ -340,7 +380,12 @@ const tool_addSegment = (
   }
 };
 
-export const tool_cast = (tool: ToolI, type: SegmentType, update: UpdateCallback, push: PushCallback) => {
+export const tool_cast = (
+  tool: ToolI,
+  type: SegmentType,
+  update: UpdateCallback,
+  push: PushCallback
+) => {
   if (!tool_layer(tool)) {
     tool.layers[tool.index] = [];
   }
@@ -361,19 +406,24 @@ export const tool_cast = (tool: ToolI, type: SegmentType, update: UpdateCallback
 
 export const tool_set_mirror = (tool: ToolI, mirror: Mirror) => {
   set_mirror(tool_style(tool), mirror);
-}
+};
 
 export const tool_set_linecap = (tool: ToolI, lc: CanvasLineCap) => {
   tool_style(tool).strokeLinecap = lc;
-}
+};
 export const tool_set_linejoin = (tool: ToolI, lj: CanvasLineJoin) => {
   tool_style(tool).strokeLinejoin = lj;
-}
+};
 export const tool_set_thickness = (tool: ToolI, thickness: number) => {
   tool_style(tool).thickness = clamp(thickness, 1, 100);
-}
+};
 
-export const tool_toggle = (tool: ToolI, type: ToolType, update: UpdateCallback, mod = 1) => {
+export const tool_toggle = (
+  tool: ToolI,
+  type: ToolType,
+  update: UpdateCallback,
+  mod = 1
+) => {
   if (type === "linecap") {
     const a: Array<CanvasLineCap> = ["butt", "square", "round"];
     tool.i.linecap += mod;
@@ -386,7 +436,11 @@ export const tool_toggle = (tool: ToolI, type: ToolType, update: UpdateCallback,
     tool_style(tool).fill =
       tool_style(tool).fill === "none" ? tool_style(tool).color : "none";
   } else if (type === "thickness") {
-    tool_style(tool).thickness = clamp(tool_style(tool).thickness + mod, 1, 100);
+    tool_style(tool).thickness = clamp(
+      tool_style(tool).thickness + mod,
+      1,
+      100
+    );
   } else if (type === "mirror") {
     tool_style(tool).mirror_style =
       tool_style(tool).mirror_style > 2 ? 0 : tool_style(tool).mirror_style + 1;
@@ -488,13 +542,18 @@ export const tool_canCast = (tool: ToolI, type?: SegmentType | null) => {
   return tool.vertices.length >= tool.reqs[type];
 };
 
-export const tool_paths = (tool: ToolI, scale: number, size: Size): [string, string, string] => {
+export const tool_paths = (
+  tool: ToolI,
+  scale: number,
+  size: Size
+): [string, string, string] => {
   const gen = (index: number) => {
     return generate(
       tool.layers[index],
       mirror_from_style(tool.styles[index]),
       { x: 0, y: 0 },
-      scale, size
+      scale,
+      size
     );
   };
 
@@ -506,11 +565,18 @@ export const tool_path = (tool: ToolI, size: Size) => {
     tool_layer(tool),
     mirror_from_style(tool_style(tool)),
     { x: 0, y: 0 },
-    1, size
+    1,
+    size
   );
 };
 
-export const tool_translate = (tool: ToolI, a: Point, b: Point, push: PushCallback, update: UpdateCallback) => {
+export const tool_translate = (
+  tool: ToolI,
+  a: Point,
+  b: Point,
+  push: PushCallback,
+  update: UpdateCallback
+) => {
   for (const segmentId in tool_layer(tool)) {
     const segment = tool_layer(tool)[segmentId];
     for (const vertexId in segment.vertices) {
@@ -525,7 +591,13 @@ export const tool_translate = (tool: ToolI, a: Point, b: Point, push: PushCallba
   update();
 };
 
-export const tool_translateMulti = (tool: ToolI, a: Point, b: Point, push: PushCallback, update: UpdateCallback) => {
+export const tool_translateMulti = (
+  tool: ToolI,
+  a: Point,
+  b: Point,
+  push: PushCallback,
+  update: UpdateCallback
+) => {
   const offset = { x: a.x - b.x, y: a.y - b.y };
   const segment = tool_selectSegmentAt(tool, a);
 
@@ -546,7 +618,13 @@ export const tool_translateMulti = (tool: ToolI, a: Point, b: Point, push: PushC
   update();
 };
 
-export const tool_translateLayer = (tool: ToolI, a: Point, b: Point, push: PushCallback, update: UpdateCallback) => {
+export const tool_translateLayer = (
+  tool: ToolI,
+  a: Point,
+  b: Point,
+  push: PushCallback,
+  update: UpdateCallback
+) => {
   const offset = { x: a.x - b.x, y: a.y - b.y };
   for (const segmentId in tool_layer(tool)) {
     const segment = tool_layer(tool)[segmentId];
@@ -563,9 +641,19 @@ export const tool_translateLayer = (tool: ToolI, a: Point, b: Point, push: PushC
   update();
 };
 
-export const tool_translateCopy = (tool: ToolI, a: Point, b: Point, push: PushCallback, update: UpdateCallback) => {
+export const tool_translateCopy = (
+  tool: ToolI,
+  a: Point,
+  b: Point,
+  push: PushCallback,
+  update: UpdateCallback
+) => {
   const offset = { x: a.x - b.x, y: a.y - b.y };
-  const segment = tool_selectSegmentAt(tool, a, structuredClone(tool_layer(tool)));
+  const segment = tool_selectSegmentAt(
+    tool,
+    a,
+    structuredClone(tool_layer(tool))
+  );
 
   if (!segment) {
     return;
@@ -585,7 +673,11 @@ export const tool_translateCopy = (tool: ToolI, a: Point, b: Point, push: PushCa
   update();
 };
 
-export const tool_merge = (tool: ToolI, push: PushCallback, update: UpdateCallback) => {
+export const tool_merge = (
+  tool: ToolI,
+  push: PushCallback,
+  update: UpdateCallback
+) => {
   const merged = new Array<Segment>()
     .concat(tool.layers[0])
     .concat(tool.layers[1])
@@ -624,7 +716,11 @@ export const tool_layer = (tool: ToolI, index = tool.index) => {
   return tool.layers[index];
 };
 
-export const tool_selectLayer = (tool: ToolI, id: number, update: UpdateCallback) => {
+export const tool_selectLayer = (
+  tool: ToolI,
+  id: number,
+  update: UpdateCallback
+) => {
   tool.index = clamp(id, 0, 2);
   tool_clear(tool, update);
   update();

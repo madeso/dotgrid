@@ -1,16 +1,16 @@
 import type { Colors } from "./theme";
 
 const capitalize = (str: string) => {
-  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 };
 
-const select_color = (theme: Colors, is_selected: boolean, is_enabled: boolean): {fg: string, bg: string} => {
-    if(!is_enabled) return {
+const select_color = (theme: Colors, is_selected: boolean, is_enabled: boolean): { fg: string, bg: string } => {
+    if (!is_enabled) return {
         fg: theme.f_low,
         bg: theme.b_low
     };
 
-    if(is_selected) return {
+    if (is_selected) return {
         fg: theme.f_inv,
         bg: theme.b_inv
     };
@@ -42,24 +42,24 @@ export const SvgButton = (props: {
     isEnabled?: boolean;
     is_selected?: boolean;
     onClick: () => void;
-    onEnter?: ()=>void;
-    onLeave?: ()=>void;
+    onEnter?: () => void;
+    onLeave?: () => void;
     theme: Colors;
 }) => {
     const is_selected = props.is_selected ?? false;
     const is_enabled = props.isEnabled ?? true;
-    const {fg,bg} = select_color(props.theme, is_selected, is_enabled);
+    const { fg, bg } = select_color(props.theme, is_selected, is_enabled);
 
     // title: capitalize(name),
     return <svg
         className={`icon ${is_enabled ? "enabled" : "disabled"} ${is_selected ? "selected" : "not-selected"}`}
         viewBox="0 0 300 300"
         onMouseOver={() => {
-            if(!props.onEnter) return;
+            if (!props.onEnter) return;
             props.onEnter();
         }}
         onMouseOut={() => {
-            if(!props.onLeave) return
+            if (!props.onLeave) return
             props.onLeave();
         }}
         onMouseUp={(ev) => {
@@ -67,16 +67,16 @@ export const SvgButton = (props: {
             ev.preventDefault();
             props.onClick();
         }}
-        >
-            <rect fill={bg} width={300} height={300} rx={15} ry={15}>
-                <title>{capitalize(props.name)}</title>
-            </rect>
-            <path className="icon_path" d={props.icon}
-                stroke={fg}
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={12}
-            />
+    >
+        <rect fill={bg} width={300} height={300} rx={15} ry={15}>
+            <title>{capitalize(props.name)}</title>
+        </rect>
+        <path className="icon_path" d={props.icon}
+            stroke={fg}
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={12}
+        />
     </svg>;
 }

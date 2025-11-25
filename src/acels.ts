@@ -4,7 +4,6 @@ const capitalize = (s: string) => {
 
 type TCat = string;
 
-
 export interface Keymap {
   all: Map<string, Callback>;
   order: string[];
@@ -15,23 +14,20 @@ interface Callback {
   category: string;
   name: string;
   accelerator: string;
-  action: ()=>void;
+  action: () => void;
 }
 
 export const keymap_register = (data: Callback[]) => {
   const keymap: Keymap = {
     all: new Map(),
     order: [],
-    binds: []
+    binds: [],
   };
 
-  for(const d of data) {
+  for (const d of data) {
     const old = keymap.all.get(d.accelerator);
     if (old !== undefined) {
-      console.warn(
-        "Acels",
-        `Trying to overwrite ${old.name}, with ${d.name}.`
-      );
+      console.warn("Acels", `Trying to overwrite ${old.name}, with ${d.name}.`);
     }
     if (keymap.order.indexOf(d.category) < 0) {
       keymap.order.push(d.category);
@@ -41,7 +37,7 @@ export const keymap_register = (data: Callback[]) => {
   }
 
   return keymap;
-}
+};
 
 interface KeyEventLike {
   ctrlKey: boolean;
@@ -51,7 +47,7 @@ interface KeyEventLike {
 
   key: string;
 
-  preventDefault: ()=>void;
+  preventDefault: () => void;
 }
 
 const accelerator_from_event = (event: KeyEventLike): string => {
@@ -85,18 +81,17 @@ export const keymap_onkey = (keymap: Keymap, e: KeyEventLike) => {
 
 const get_sorted = (keymap: Keymap) => {
   const h = new Map<TCat, Array<Callback>>();
-  for (const [,item] of keymap.all) {
+  for (const [, item] of keymap.all) {
     if (item === undefined) continue;
     let found = h.get(item.category);
-    if(found === undefined)
-    {
+    if (found === undefined) {
       found = [];
       h.set(item.category, found);
     }
     found.push(item);
   }
   return h;
-}
+};
 
 export const keymap_to_markdown = (keymap: Keymap) => {
   const cats = get_sorted(keymap);
@@ -110,4 +105,4 @@ export const keymap_to_markdown = (keymap: Keymap) => {
     }
   }
   return text.trim();
-}
+};

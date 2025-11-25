@@ -11,7 +11,7 @@ const clamp = (v: number, min: number, max: number) => {
 };
 
 const MirrorEl = (props: { show: boolean, mirror_style: Mirror, size: Size, scale: number, theme: Colors }) => {
-    if(props.show === false) {
+    if (props.show === false) {
         return <></>;
     }
     if (props.mirror_style === "zero") {
@@ -52,7 +52,7 @@ const MirrorEl = (props: { show: boolean, mirror_style: Mirror, size: Size, scal
     </>;
 };
 
-const Grid = (props: {size: Size, theme: Colors, scale: number, showExtras: boolean}) => {
+const Grid = (props: { size: Size, theme: Colors, scale: number, showExtras: boolean }) => {
     const size = props.size;
     const theme = props.theme;
     const this_scale = props.scale;
@@ -95,7 +95,7 @@ const Grid = (props: {size: Size, theme: Colors, scale: number, showExtras: bool
 };
 
 // pos={this_client.cursor.translation?.to}
-const Rulers = (props: {scale: number, size: Size, pos: Point | null | undefined, theme: Colors}) => {
+const Rulers = (props: { scale: number, size: Size, pos: Point | null | undefined, theme: Colors }) => {
     const this_scale = props.scale;
     const pos = props.pos;
     const size = props.size;
@@ -108,33 +108,33 @@ const Rulers = (props: {scale: number, size: Size, pos: Point | null | undefined
     const right = size.width * this_scale;
 
     return <>
-            <Rule
-                from={{ x: pos.x * this_scale, y: 0 }}
-                to={{ x: pos.x * this_scale, y: bottom }}
-                theme={props.theme}
-            />
-            <Rule
-                from={{ x: 0, y: pos.y * this_scale }}
-                to={{ x: right, y: pos.y * this_scale }}
-                theme={props.theme}
-            />
-        </>;
+        <Rule
+            from={{ x: pos.x * this_scale, y: 0 }}
+            to={{ x: pos.x * this_scale, y: bottom }}
+            theme={props.theme}
+        />
+        <Rule
+            from={{ x: 0, y: pos.y * this_scale }}
+            to={{ x: right, y: pos.y * this_scale }}
+            theme={props.theme}
+        />
+    </>;
 };
 
 // vertices = this_client.tool.vertices
-const Vertices = (props: {vertices: Point[], radius: number, scale: number, theme: Colors}) => {
+const Vertices = (props: { vertices: Point[], radius: number, scale: number, theme: Colors }) => {
     return props.vertices.map((vertex, index) => {
         return <Vertex
-                key={index}
-                pos={vertex}
-                radius={props.radius}
-                scale={props.scale}
-                theme={props.theme}
-            />;
+            key={index}
+            pos={vertex}
+            radius={props.radius}
+            scale={props.scale}
+            theme={props.theme}
+        />;
     });
 };
 
-const Handles = (props: {layer: SingleLayer, showExtras: boolean, scale: number, theme: Colors}) => {
+const Handles = (props: { layer: SingleLayer, showExtras: boolean, scale: number, theme: Colors }) => {
     if (!props.showExtras) {
         return <></>;
     }
@@ -142,7 +142,7 @@ const Handles = (props: {layer: SingleLayer, showExtras: boolean, scale: number,
     return props.layer.map((segment, segmentId) => {
         return <g key={segmentId}>{segment.vertices.map((vertex, vertexId) => {
             return <Handle key={vertexId}
-            pos={vertex} radius={null} scale={props.scale} theme={props.theme}/>
+                pos={vertex} radius={null} scale={props.scale} theme={props.theme} />
         })}</g>;
     });
 };
@@ -168,7 +168,7 @@ const Translation = (props: {
     if (!props.from) {
         return <></>;
     }
-    
+
     return (
         <line
             x1={props.from.x * this_scale}
@@ -192,16 +192,18 @@ const Translation = (props: {
 // pos = this_client.cursor.pos,
 // radius = this_client.tool.style().thickness - 1
 const Cursor = (
-    props: {pos: Point,
-    radius: number,
-    scale: number,
-    theme: Colors}
+    props: {
+        pos: Point,
+        radius: number,
+        scale: number,
+        theme: Colors
+    }
 ) => {
     const pos = props.pos;
     const radius = props.radius;
     const this_scale = props.scale;
     const theme = props.theme;
-    
+
     return (
         <>
             <circle
@@ -231,7 +233,7 @@ if (!this_client.tool.canCast(operation)) {
     return <></>;
 }
 */
-const Preview = (props: {theme: Colors, size: Size, tool_vertices: Point[], cast_preview: SegmentType | null, scale: number}) => {
+const Preview = (props: { theme: Colors, size: Size, tool_vertices: Point[], cast_preview: SegmentType | null, scale: number }) => {
     const theme = props.theme;
     const size = props.size;
     const cast_preview = props.cast_preview;
@@ -243,7 +245,7 @@ const Preview = (props: {theme: Colors, size: Size, tool_vertices: Point[], cast
     if (!cast_preview) {
         return <></>;
     }
-    
+
     const style: SingleStyle = {
         color: theme.f_med,
         thickness: 2,
@@ -255,11 +257,11 @@ const Preview = (props: {theme: Colors, size: Size, tool_vertices: Point[], cast
         { vertices: tool_vertices, type: cast_preview },
     ], "zero", { x: 0, y: 0 }, props.scale, size);
 
-    return <Path id="preview" path={path} style={style} scale={props.scale}/>
+    return <Path id="preview" path={path} style={style} scale={props.scale} />
 };
 
 
-const Vertex = (props: {pos: Point, radius: number|null|undefined, scale: number, theme: Colors}) => {
+const Vertex = (props: { pos: Point, radius: number | null | undefined, scale: number, theme: Colors }) => {
     const pos = props.pos;
     const this_scale = props.scale;
     const radius = props.radius ?? 5;
@@ -288,7 +290,7 @@ const Rule = (props: { id?: string, from: Point, to: Point, theme: Colors }) => 
     />;
 };
 
-const Handle = (props: {pos: Point, radius:number | null | undefined, scale: number, theme: Colors}) => {
+const Handle = (props: { pos: Point, radius: number | null | undefined, scale: number, theme: Colors }) => {
     const pos = props.pos;
     const radius = props.radius ?? 6;
     const this_scale = props.scale;
@@ -311,7 +313,7 @@ const Handle = (props: {pos: Point, radius:number | null | undefined, scale: num
     );
 }
 
-const Path = (props: {id?: string, path: string, style: SingleStyle, scale: number}) => {
+const Path = (props: { id?: string, path: string, style: SingleStyle, scale: number }) => {
     let body: ReactElement | null = null;
 
     if (props.style.fill && props.style.fill !== "none") {
@@ -343,7 +345,7 @@ const Path = (props: {id?: string, path: string, style: SingleStyle, scale: numb
     return <>{body}{dash}</>;
 };
 
-const ClearRect = (props: {size: Size, scale: number, theme: Colors}) => {
+const ClearRect = (props: { size: Size, scale: number, theme: Colors }) => {
     return (
         <rect
             width={props.size.width * props.scale}
@@ -357,14 +359,14 @@ const SvgLayer = (props: {
     style: SingleStyle,
     path: string
 }) => {
-    return <path 
+    return <path
         strokeWidth={props.style.thickness.toString()}
         strokeLinecap={props.style.strokeLinecap}
         strokeLinejoin={props.style.strokeLinejoin}
         stroke={props.style.color}
         fill={props.style.fill ?? "none"}
         d={props.path}
-        />;
+    />;
 }
 
 const SvgLayers = (props: {
@@ -407,13 +409,13 @@ export const Canvas = (props: {
         width={props.size.width * props.scale}
         height={props.size.height * props.scale}
         {...props.props}>
-            <ClearRect size={props.size} scale={props.scale} theme={props.theme}/>
-        <MirrorEl show={props.show_guides} mirror_style={props.mirror} scale={props.scale} size={props.size} theme={props.theme}/>
-        <Grid scale={props.scale} size={props.size} theme={props.theme} showExtras={props.show_grid}/>
-        <Rulers pos={props.translation_to} scale={props.scale} size={props.size} theme={props.theme}/>
+        <ClearRect size={props.size} scale={props.scale} theme={props.theme} />
+        <MirrorEl show={props.show_guides} mirror_style={props.mirror} scale={props.scale} size={props.size} theme={props.theme} />
+        <Grid scale={props.scale} size={props.size} theme={props.theme} showExtras={props.show_grid} />
+        <Rulers pos={props.translation_to} scale={props.scale} size={props.size} theme={props.theme} />
         <SvgLayers layers={props.layers} />
         <Vertices radius={props.vertex_radius} scale={props.scale} theme={props.theme} vertices={props.tool_vertices} />
-        <Handles layer={props.active_layer} scale={props.scale} showExtras={props.show_handles} theme={props.theme}/>
+        <Handles layer={props.active_layer} scale={props.scale} showExtras={props.show_handles} theme={props.theme} />
         <Translation from={props.translation_from} to={props.translation_to} scale={props.scale} theme={props.theme} copy={props.copy} multi={props.multi} />
         <Cursor pos={props.cursor_pos} radius={props.cursor_radius} scale={props.scale} theme={props.theme} />
         <Preview cast_preview={props.cast_preview} scale={props.scale} size={props.size} theme={props.theme} tool_vertices={props.tool_vertices} />

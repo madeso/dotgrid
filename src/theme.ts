@@ -110,66 +110,66 @@ export interface Colors {
   b_inv: string;
 }
 
-
-const LOCAL_STORAGE_KEY = 'theme';
+const LOCAL_STORAGE_KEY = "theme";
 
 export const load_color_theme = (): Colors | null => {
   const source = (() => {
     try {
       return localStorage.getItem(LOCAL_STORAGE_KEY);
-    }
-    catch(x) {
+    } catch (x) {
       console.warn("Failure to get from local storage", x);
       return null;
     }
   })();
-  if(source === null) return null;
+  if (source === null) return null;
   const object = JSON.parse(source);
   const parsed = color_from_unknown_object(object);
-  if(parsed === null) {
+  if (parsed === null) {
     console.warn("Failed to parse local storage json", source, parsed);
     return null;
   }
 
   return parsed;
-}
+};
 export const save_color_theme = (theme: Colors) => {
   try {
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(theme));
-  }
-  catch(x) {
+  } catch (x) {
     console.warn("Failure to save to local storage", x);
   }
-}
+};
 
-export const read_file = (file: Blob, callback: (content: string | ArrayBuffer | null) => void) => {
+export const read_file = (
+  file: Blob,
+  callback: (content: string | ArrayBuffer | null) => void
+) => {
   const reader = new FileReader();
   reader.onload = (event) => {
     const result = event.target?.result ?? null;
     callback(result);
   };
   reader.readAsText(file, "UTF-8");
-}
+};
 
 const parse_color = (any: unknown): Colors | undefined => {
-    const parsed = color_from_unknown_object(any);
-    if (parsed !== null) {
-      return parsed;
-    }
-
-    if (typeof any === "string") {
-      if (isJson(any)) {
-        return JSON.parse(any);
-      }
-      if (isHtml(any)) {
-        return extract(any);
-      }
-    }
-
-    return undefined;
+  const parsed = color_from_unknown_object(any);
+  if (parsed !== null) {
+    return parsed;
   }
 
-export const read_theme = (file: Blob, on_theme: (theme: Colors) =>void) => {
+  if (typeof any === "string") {
+    if (isJson(any)) {
+      return JSON.parse(any);
+    }
+    if (isHtml(any)) {
+      return extract(any);
+    }
+  }
+
+  return undefined;
+};
+
+export const read_theme = (file: Blob, on_theme: (theme: Colors) => void) => {
   read_file(file, (data) => {
     const theme = parse_color(data);
     if (theme === undefined || !is_valid_json_object(theme)) {
@@ -178,15 +178,15 @@ export const read_theme = (file: Blob, on_theme: (theme: Colors) =>void) => {
     }
     on_theme(theme);
   });
-}
+};
 
-export const theme_browse = ( on_theme: (theme: Colors) =>void ) => {
+export const theme_browse = (on_theme: (theme: Colors) => void) => {
   console.log("Theme", "Open theme..");
-    const input = document.createElement("input");
-    input.type = "file";
-    input.onchange = () => {
-      if (input.files === null) return;
-      read_theme(input.files[0], on_theme);
-    };
-    input.click();
+  const input = document.createElement("input");
+  input.type = "file";
+  input.onchange = () => {
+    if (input.files === null) return;
+    read_theme(input.files[0], on_theme);
+  };
+  input.click();
 };

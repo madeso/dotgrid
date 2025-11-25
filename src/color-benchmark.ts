@@ -78,9 +78,9 @@ interface Whatev {
 }
 
 export interface Distribution {
-    high: number;
-    med: number;
-    low: number;
+  high: number;
+  med: number;
+  low: number;
 }
 
 const get_matches = (active_theme: Colors) => {
