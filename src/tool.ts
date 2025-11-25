@@ -27,8 +27,6 @@ interface ParsedTool {
   styles: Array<SingleStyle>;
 }
 
-type ToolType = "linecap" | "linejoin" | "fill" | "thickness" | "mirror";
-
 export const jsonDump = (target: unknown) => {
   return JSON.stringify(structuredClone(target), null, 2);
 };
@@ -418,73 +416,10 @@ export const tool_set_thickness = (tool: ToolI, thickness: number) => {
   tool_style(tool).thickness = clamp(thickness, 1, 100);
 };
 
-export const tool_toggle = (
-  tool: ToolI,
-  type: ToolType,
-  update: UpdateCallback,
-  mod = 1
-) => {
-  if (type === "linecap") {
-    const a: Array<CanvasLineCap> = ["butt", "square", "round"];
-    tool.i.linecap += mod;
-    tool_style(tool).strokeLinecap = a[tool.i.linecap % a.length];
-  } else if (type === "linejoin") {
-    const a: Array<CanvasLineJoin> = ["miter", "round", "bevel"];
-    tool.i.linejoin += mod;
-    tool_style(tool).strokeLinejoin = a[tool.i.linejoin % a.length];
-  } else if (type === "fill") {
-    tool_style(tool).fill =
-      tool_style(tool).fill === "none" ? tool_style(tool).color : "none";
-  } else if (type === "thickness") {
-    tool_style(tool).thickness = clamp(
-      tool_style(tool).thickness + mod,
-      1,
-      100
-    );
-  } else if (type === "mirror") {
-    console.log("mirror not implemented anymore");
-  } else {
-    console.warn("Unknown", type);
-  }
-  update();
-  update();
+export const tool_toggle_fill = (tool: ToolI) => {
+  tool_style(tool).fill =
+    tool_style(tool).fill === "none" ? tool_style(tool).color : "none";
 };
-
-// menu callback
-// export const tool_misc = (tool: ToolI) => {
-//   tool.client.picker.start();
-// };
-
-// menu callback
-// export const tool_source = (tool: ToolI, type: SourceType) => {
-//   if (type === "grid") {
-//     tool.client.renderer.toggle();
-//   }
-//   if (type === "open") {
-//     tool.client.source.open("grid", tool.client.whenOpen);
-//   }
-//   if (type === "save") {
-//     tool.client.source.write(
-//       "dotgrid",
-//       "grid",
-//       tool.client.tool.export(),
-//       "text/plain"
-//     );
-//   }
-//   if (type === "export") {
-//     tool.client.source.write(
-//       "dotgrid",
-//       "svg",
-//       tool.client.manager.toString(),
-//       "image/svg+xml"
-//     );
-//   }
-//   if (type === "render") {
-//     tool.client.manager.toPNG(tool.client.tool.settings.size, (dataUrl) => {
-//       tool.client.source.write("dotgrid", "png", dataUrl, "image/png");
-//     });
-//   }
-// };
 
 const tool_canAppend = (
   tool: ToolI,
