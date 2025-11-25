@@ -8,7 +8,6 @@ import { Button, SvgButton } from './SvgButton';
 import * as icons from './icons';
 
 import { empty_layers, jsonDump, load_tool, save_tool, tool_addVertex, tool_all_layers, tool_canCast, tool_cast, tool_clear, tool_constructor, tool_export, tool_import, tool_layer, tool_merge, tool_path, tool_redo, tool_removePointAt, tool_removeSegmentAt, tool_replace, tool_reset, tool_select_color, tool_selectLayer, tool_set_linecap, tool_set_linejoin, tool_set_mirror, tool_set_thickness, tool_style, tool_toggle, tool_translate, tool_translateCopy, tool_translateLayer, tool_translateMulti, tool_undo, tool_vertexAt, type ToolI } from './tool';
-import { mirror_from_style } from './generator';
 import { colors } from './colors';
 import { color_themes, dark_themes, light_themes, the_apollo_theme, the_default_theme } from './themes';
 import { evaluate_theme } from './color-benchmark';
@@ -253,7 +252,7 @@ const App = () => {
 
   const theme = hoverTheme ?? selectedTheme;
 
-  const current_mirror = mirror_from_style(tool_style(tool));
+  const current_mirror = tool_style(tool).mirror_style;
 
   const set_dialog = (new_dialog: Dialog) => {
     if (dialog === null) {

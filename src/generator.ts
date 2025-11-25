@@ -1,11 +1,4 @@
-import type {
-  Mirror,
-  Point,
-  Segment,
-  SingleLayer,
-  SingleStyle,
-  Size,
-} from "./_types";
+import type { Mirror, Point, Segment, SingleLayer, Size } from "./_types";
 
 function rotatePoint(point: Point, origin: Point, angle: number) {
   angle = (angle * Math.PI) / 180.0;
@@ -171,13 +164,4 @@ export const generate = (
   }
 
   return s;
-};
-
-// todo(Gustav): remove theese
-export const mirror_from_style = (style: SingleStyle): Mirror => {
-  return style.mirror_style;
-};
-
-export const set_mirror = (style: SingleStyle, mirror: Mirror) => {
-  style.mirror_style = mirror;
 };

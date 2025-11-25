@@ -11,7 +11,7 @@ import type {
   Mirror,
 } from "./_types";
 
-import { generate, mirror_from_style, set_mirror } from "./generator";
+import { generate } from "./generator";
 
 function clamp(v: number, min: number, max: number) {
   return v < min ? min : v > max ? max : v;
@@ -405,7 +405,7 @@ export const tool_cast = (
 };
 
 export const tool_set_mirror = (tool: ToolI, mirror: Mirror) => {
-  set_mirror(tool_style(tool), mirror);
+  tool_style(tool).mirror_style = mirror;
 };
 
 export const tool_set_linecap = (tool: ToolI, lc: CanvasLineCap) => {
@@ -549,7 +549,7 @@ export const tool_paths = (
   const gen = (index: number) => {
     return generate(
       tool.layers[index],
-      mirror_from_style(tool.styles[index]),
+      tool.styles[index].mirror_style,
       { x: 0, y: 0 },
       scale,
       size
@@ -562,7 +562,7 @@ export const tool_paths = (
 export const tool_path = (tool: ToolI, size: Size) => {
   return generate(
     tool_layer(tool),
-    mirror_from_style(tool_style(tool)),
+    tool_style(tool).mirror_style,
     { x: 0, y: 0 },
     1,
     size
