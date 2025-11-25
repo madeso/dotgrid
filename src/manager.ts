@@ -2,7 +2,7 @@
 /* global btoa */
 /* global Image */
 
-import type { Size } from "./_types";
+import { fill_color_from_style, type Size } from "./_types";
 import { tool_paths, type ToolI } from "./tool";
 
 interface SvgExport {
@@ -59,7 +59,7 @@ const manager_update = (svg: SvgExport, setting_size: Size, tool: ToolI) => {
     layer.style.strokeLinecap = style.strokeLinecap;
     layer.style.strokeLinejoin = style.strokeLinejoin;
     layer.style.stroke = style.color;
-    layer.style.fill = style.fill ? style.color : "none";
+    layer.style.fill = fill_color_from_style(style);
 
     layer.setAttribute("d", path);
   }

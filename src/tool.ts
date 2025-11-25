@@ -34,7 +34,7 @@ export const jsonDump = (target: unknown) => {
 type PushCallback = (lay: Layers) => void;
 
 export interface ToolI {
-  index: number;
+  layer_index: number;
   settings: { size: { width: number; height: number } };
   layers: Layers;
   vertices: Array<Point>;
@@ -78,10 +78,10 @@ export const tool_all_layers = (
   scale: number,
   size: Size
 ): RenderingLayer[] => {
-  return tool_paths(tool, scale, size).map((path, index) => {
+  return tool_paths(tool, scale, size).map((path, path_index) => {
     return {
       path: path,
-      style: tool.styles[index],
+      style: tool.styles[path_index],
     };
   });
 };
@@ -90,7 +90,7 @@ export const empty_layers = (): Layers => [[], [], []];
 
 export const tool_constructor = (): ToolI => {
   return {
-    index: 0,
+    layer_index: 0,
     settings: { size: { width: 300, height: 300 } },
     layers: empty_layers(),
     styles: [
@@ -137,7 +137,7 @@ export const tool_reset = (tool: ToolI) => {
   tool.styles[2].fill = false;
   tool_erase(tool);
   tool.vertices = [];
-  tool.index = 0;
+  tool.layer_index = 0;
 };
 
 const tool_erase = (tool: ToolI) => {
@@ -173,7 +173,7 @@ export const tool_import = (
   layer: SingleLayer,
   push: PushCallback
 ) => {
-  tool.layers[tool.index] = tool.layers[tool.index].concat(layer);
+  tool.layers[tool.layer_index] = tool.layers[tool.layer_index].concat(layer);
   push(tool.layers);
   tool_clear(tool);
 };
@@ -268,7 +268,7 @@ export const tool_removePointAt = (
       }
     }
     if (segment.vertices.length < 2) {
-      tool.layers[tool.index].splice(segmentId, 1);
+      tool.layers[tool.layer_index].splice(segmentId, 1);
     }
   }
   tool_clear(tool);
@@ -314,14 +314,14 @@ const tool_addSegment = (
   tool: ToolI,
   type: SegmentType,
   vertices: Vertices,
-  index = tool.index
+  layer_index = tool.layer_index
 ) => {
   const appendTarget = tool_canAppend(
     tool,
     { type: type, vertices: vertices },
-    index
+    layer_index
   );
-  const layer = tool_layer(tool, index);
+  const layer = tool_layer(tool, layer_index);
   if (appendTarget) {
     const segment = layer[appendTarget];
     segment.vertices = segment.vertices.concat(vertices);
@@ -336,7 +336,7 @@ export const tool_cast = (
   push: PushCallback
 ) => {
   if (!tool_layer(tool)) {
-    tool.layers[tool.index] = [];
+    tool.layers[tool.layer_index] = [];
   }
   if (!tool_canCast(tool, type)) {
     console.warn(`Cannot cast ${type}: ${tool.vertices.length}`);
@@ -374,10 +374,10 @@ export const tool_toggle_fill = (tool: ToolI) => {
 const tool_canAppend = (
   tool: ToolI,
   content: { type: SegmentType; vertices: Vertices },
-  index = tool.index
+  layer_index = tool.layer_index
 ): number | false => {
-  for (let id = 0; id < tool_layer(tool, index).length; id += 1) {
-    const stroke = tool_layer(tool, index)[id];
+  for (let id = 0; id < tool_layer(tool, layer_index).length; id += 1) {
+    const stroke = tool_layer(tool, layer_index)[id];
     if (stroke.type !== content.type) {
       continue;
     }
@@ -442,10 +442,10 @@ export const tool_paths = (
   scale: number,
   size: Size
 ): [string, string, string] => {
-  const gen = (index: number) => {
+  const gen = (layer_index: number) => {
     return generate(
-      tool.layers[index],
-      tool.styles[index].mirror,
+      tool.layers[layer_index],
+      tool.styles[layer_index].mirror,
       { x: 0, y: 0 },
       scale,
       size
@@ -566,7 +566,7 @@ export const tool_merge = (tool: ToolI, push: PushCallback) => {
     .concat(tool.layers[1])
     .concat(tool.layers[2]);
   tool_erase(tool);
-  tool.layers[tool.index] = merged;
+  tool.layers[tool.layer_index] = merged;
 
   push(tool.layers);
   tool_clear(tool);
@@ -575,8 +575,8 @@ export const tool_merge = (tool: ToolI, push: PushCallback) => {
 // Style
 
 export const tool_style = (tool: ToolI) => {
-  if (!tool.styles[tool.index]) {
-    tool.styles[tool.index] = {
+  if (!tool.styles[tool.layer_index]) {
+    tool.styles[tool.layer_index] = {
       thickness: 15,
       strokeLinecap: "round",
       strokeLinejoin: "round",
@@ -585,20 +585,20 @@ export const tool_style = (tool: ToolI) => {
       mirror: "none",
     };
   }
-  return tool.styles[tool.index];
+  return tool.styles[tool.layer_index];
 };
 
 // Layers
 
-export const tool_layer = (tool: ToolI, index = tool.index) => {
-  if (!tool.layers[index]) {
-    tool.layers[index] = [];
+export const tool_layer = (tool: ToolI, layer_index = tool.layer_index) => {
+  if (!tool.layers[layer_index]) {
+    tool.layers[layer_index] = [];
   }
-  return tool.layers[index];
+  return tool.layers[layer_index];
 };
 
 export const tool_selectLayer = (tool: ToolI, id: number) => {
-  tool.index = clamp(id, 0, 2);
+  tool.layer_index = clamp(id, 0, 2);
   tool_clear(tool);
-  console.log(`layer:${tool.index}`);
+  console.log(`layer:${tool.layer_index}`);
 };

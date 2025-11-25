@@ -159,10 +159,10 @@ const pick_default_theme = () => {
 function toggle_enum<T>(current: T, all: T[]): T {
   if (all.length <= 0) return current;
 
-  const index = all.indexOf(current);
-  if (index == -1) return all[0];
+  const enum_index = all.indexOf(current);
+  if (enum_index == -1) return all[0];
 
-  const next_index = (index + 1) % all.length;
+  const next_index = (enum_index + 1) % all.length;
   return all[next_index];
 }
 
@@ -779,7 +779,7 @@ const App = () => {
         e.clipboardData.setData("text/source", jsonDump(tool_layer(tool)));
         e.clipboardData.setData("text/plain", tool_path(tool, size));
         const t = structuredClone(tool);
-        t.layers[t.index] = [];
+        t.layers[t.layer_index] = [];
         setTool(t);
       }}
       onCopy={(e) => {
@@ -883,8 +883,8 @@ const App = () => {
                 }}>Import theme</Button>
                 <div className='keybinds'>
                   {
-                    keymap.binds.map((b, index) => <div key={index}>
-                      <b>{b.name}:</b> {b.accelerator}
+                    keymap.binds.map((bind, bind_index) => <div key={bind_index}>
+                      <b>{bind.name}:</b> {bind.accelerator}
                     </div>)
                   }
                 </div>
@@ -952,7 +952,7 @@ const App = () => {
 
               {dialog === 'layers' && <Dialog direction="down"><ul className='layers'>
                 {
-                  tool.layers.map((layer, layer_index) => <li key={layer_index}><Button is_selected={layer_index === tool.index} onClick={() => {
+                  tool.layers.map((layer, layer_index) => <li key={layer_index}><Button is_selected={layer_index === tool.layer_index} onClick={() => {
                     select_layer(layer_index);
                     setDialog(null);
                   }}>
@@ -1025,7 +1025,7 @@ const App = () => {
             }} />
 
             <Relative>
-              {dialog === 'color' && <ColorDialog current_color={tool.styles[tool.index].color} select_color={(new_color) => {
+              {dialog === 'color' && <ColorDialog current_color={tool.styles[tool.layer_index].color} select_color={(new_color) => {
                 const t = structuredClone(tool);
                 tool_select_color(t, new_color);
                 setTool(t);

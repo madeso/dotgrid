@@ -123,9 +123,9 @@ const Rulers = (props: { scale: number, size: Size, pos: Point | null | undefine
 
 // vertices = this_client.tool.vertices
 const Vertices = (props: { vertices: Point[], radius: number, scale: number, theme: Colors }) => {
-    return props.vertices.map((vertex, index) => {
+    return props.vertices.map((vertex, vertex_index) => {
         return <Vertex
-            key={index}
+            key={vertex_index}
             pos={vertex}
             radius={props.radius}
             scale={props.scale}
@@ -372,22 +372,11 @@ const SvgLayer = (props: {
 const SvgLayers = (props: {
     layers: RenderingLayer[]
 }) => {
-    return props.layers.map((layer, index) => {
-        return <SvgLayer key={index} path={layer.path} style={layer.style} />
+    return props.layers.map((layer, layer_index) => {
+        return <SvgLayer key={layer_index} path={layer.path} style={layer.style} />
     });
 }
 
-// translation_from: this_client.cursor.translation.from
-// multi: this_client.cursor.translation.multi
-// copy: this_client.cursor.translation.copy
-// translation_to={this_client.cursor.translation?.to}
-// vertices = this_client.tool.vertices
-// cursor_pos = this_client.cursor.pos,
-// cursor_radius = this_client.tool.style().thickness - 1
-/*
-const cast_preview = this_client.cursor.operation?.cast ?? null;
-cosnt can_cast = this_client.tool.canCast(operation));
-*/
 export const Canvas = (props: {
     ref?: React.Ref<SVGSVGElement>,
     show_grid: boolean,
