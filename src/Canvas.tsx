@@ -367,7 +367,7 @@ const SvgLayer = (props: {
         />;
 }
 
-export const SvgLayers = (props: {
+const SvgLayers = (props: {
     layers: RenderingLayer[]
 }) => {
     return props.layers.map((layer, index) => {

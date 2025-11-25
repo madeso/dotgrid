@@ -48,24 +48,6 @@ export const source_open = (ext: string, callback?: Callback) => {
   input.click();
 };
 
-export const source_load = (ext: string) => {
-  console.log("Source", "Load files..");
-  const input = document.createElement("input");
-  input.type = "file";
-  input.setAttribute("multiple", "multiple");
-  input.onchange = () => {
-    if (input.files === null) return;
-    for (const file of input.files) {
-      if (file.name.indexOf("." + ext) < 0) {
-        console.warn("Source", `Skipped ${file.name}`);
-        continue;
-      }
-      source_read(file, () => {});
-    }
-  };
-  input.click();
-}
-
 // I/O
 
 const source_read = (file: File, callback?: Callback) => {

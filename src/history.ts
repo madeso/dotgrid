@@ -14,11 +14,6 @@ export const history_constructor = <Container>(): HistoryI<Container> => {
   };
 };
 
-export const history_clear = <Container>(history: HistoryI<Container>) => {
-  history.a = [];
-  history.index = 0;
-};
-
 export const history_push = <Container>(
   history: HistoryI<Container>,
   data: Container
@@ -35,12 +30,8 @@ export const history_push = <Container>(
   }
 };
 
-export const history_fork = <Container>(history: HistoryI<Container>) => {
+const history_fork = <Container>(history: HistoryI<Container>) => {
   history.a = history.a.slice(0, history.index + 1);
-};
-
-export const history_pop = <Container>(history: HistoryI<Container>) => {
-  return history.a.pop();
 };
 
 export const history_prev = <Container>(history: HistoryI<Container>) => {

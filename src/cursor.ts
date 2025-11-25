@@ -53,7 +53,7 @@ export const cursor_init = ():CursorI => {
   }
 };
 
-export const cursor_translate = (
+const cursor_translate = (
   cursor: CursorI,
   from: Point | null = null,
   to: Point | null = null,

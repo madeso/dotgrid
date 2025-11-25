@@ -13,7 +13,6 @@ import type {
 
 
 import { generate, mirror_from_style, set_mirror } from "./generator";
-import type { Colors } from "./theme";
 
 function clamp(v: number, min: number, max: number) {
   return v < min ? min : v > max ? max : v;
@@ -153,12 +152,6 @@ export const tool_select_color = (tool: ToolI, hex: string) => {
   tool_style(tool).fill = tool_style(tool).fill !== "none" ? hex : "none";
 }
 
-export const tool_start = (tool: ToolI, theme: Colors) => {
-  tool.styles[0].color = theme.f_high;
-  tool.styles[1].color = theme.f_med;
-  tool.styles[2].color = theme.f_low;
-};
-
 export const tool_reset = (tool: ToolI, update: UpdateCallback) => {
   tool.styles[0].mirror_style = 0;
   tool.styles[1].mirror_style = 0;
@@ -171,7 +164,7 @@ export const tool_reset = (tool: ToolI, update: UpdateCallback) => {
   tool.index = 0;
 };
 
-export const tool_erase = (tool: ToolI, update: UpdateCallback) => {
+const tool_erase = (tool: ToolI, update: UpdateCallback) => {
   tool.layers = [[], [], []];
   tool.vertices = [];
   update();
@@ -190,10 +183,6 @@ export const tool_undo = (tool: ToolI, update: UpdateCallback, prev: () => Layer
 export const tool_redo = (tool: ToolI, next: () => Layers, update: UpdateCallback) => {
   tool.layers = next();
   update();
-};
-
-export const tool_length = (tool: ToolI) => {
-  return tool.layers[0].length + tool.layers[1].length + tool.layers[2].length;
 };
 
 // I/O
@@ -245,7 +234,7 @@ interface FoundPoint
   point: number;
 }
 
-export const tool_find_points = (tool: ToolI, pos: Point, layer_index?: number): FoundPoint[] => {
+const tool_find_points = (tool: ToolI, pos: Point, layer_index?: number): FoundPoint[] => {
   const found_points = new Array<FoundPoint>();
 
   const layer = tool_layer(tool, layer_index);
@@ -296,7 +285,7 @@ export const tool_removePointAt = (tool: ToolI, pos: Point, update: UpdateCallba
   push(tool.layers);
 };
 
-export const tool_selectSegmentAt = (
+const tool_selectSegmentAt = (
   tool: ToolI,
   pos: Point,
   source = tool_layer(tool)
@@ -332,7 +321,7 @@ export const tool_vertexAt = (tool: ToolI, pos: Point) => {
   return null;
 };
 
-export const tool_addSegment = (
+const tool_addSegment = (
   tool: ToolI,
   type: SegmentType,
   vertices: Vertices,
@@ -444,7 +433,7 @@ export const tool_toggle = (tool: ToolI, type: ToolType, update: UpdateCallback,
 //   }
 // };
 
-export const tool_canAppend = (
+const tool_canAppend = (
   tool: ToolI,
   content: { type: SegmentType; vertices: Vertices },
   index = tool.index
@@ -641,14 +630,3 @@ export const tool_selectLayer = (tool: ToolI, id: number, update: UpdateCallback
   update();
   console.log(`layer:${tool.index}`);
 };
-
-export const tool_selectNextLayer = (tool: ToolI, update: UpdateCallback) => {
-  tool.index = tool.index >= 2 ? 0 : tool.index++;
-  tool_selectLayer(tool, tool.index, update);
-};
-
-export const tool_selectPrevLayer = (tool: ToolI, update: UpdateCallback) => {
-  tool.index = tool.index >= 0 ? 2 : tool.index--;
-  tool_selectLayer(tool, tool.index, update);
-};
-
