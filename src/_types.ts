@@ -39,7 +39,7 @@ export interface SingleStyle {
   strokeLinejoin: CanvasLineJoin;
   color: string;
   fill: boolean; // if true=use color as fill, if false=use none, see fill_color_from_style
-  mirror_style: Mirror;
+  mirror: Mirror;
   strokeLineDash?: Array<number>;
 }
 

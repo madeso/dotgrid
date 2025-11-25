@@ -252,7 +252,7 @@ const App = () => {
 
   const theme = hoverTheme ?? selectedTheme;
 
-  const current_mirror = tool_style(tool).mirror_style;
+  const current_mirror = tool_style(tool).mirror;
 
   const set_dialog = (new_dialog: Dialog) => {
     if (dialog === null) {
@@ -562,7 +562,7 @@ const App = () => {
       category: "Style", name: "Mirror", accelerator: "E", action: () => {
         const t = structuredClone(tool);
         const lay = tool_style(t);
-        lay.mirror_style = toggle_enum(lay.mirror_style, ["none", "horizontal", "vertical", "diagonal"]);
+        lay.mirror = toggle_enum(lay.mirror, ["none", "horizontal", "vertical", "diagonal"]);
         setTool(t);
       }
     },

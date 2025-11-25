@@ -10,11 +10,11 @@ const clamp = (v: number, min: number, max: number) => {
     return v < min ? min : v > max ? max : v;
 };
 
-const MirrorEl = (props: { show: boolean, mirror_style: Mirror, size: Size, scale: number, theme: Colors }) => {
+const MirrorEl = (props: { show: boolean, mirror: Mirror, size: Size, scale: number, theme: Colors }) => {
     if (props.show === false) {
         return <></>;
     }
-    if (props.mirror_style === "none") {
+    if (props.mirror === "none") {
         return <></>;
     }
 
@@ -27,8 +27,8 @@ const MirrorEl = (props: { show: boolean, mirror_style: Mirror, size: Size, scal
     let second: ReactElement | null = null;
 
     if (
-        props.mirror_style === "horizontal" ||
-        props.mirror_style === "diagonal"
+        props.mirror === "horizontal" ||
+        props.mirror === "diagonal"
     ) {
         first = <Rule id='first-mirror'
             from={{ x: middle.x, y: 15 * props.scale }}
@@ -38,8 +38,8 @@ const MirrorEl = (props: { show: boolean, mirror_style: Mirror, size: Size, scal
     }
 
     if (
-        props.mirror_style === "vertical" ||
-        props.mirror_style === "diagonal"
+        props.mirror === "vertical" ||
+        props.mirror === "diagonal"
     ) {
         second = <Rule id='second-mirror'
             from={{ x: 15 * props.scale, y: middle.y }}
@@ -410,7 +410,7 @@ export const Canvas = (props: {
         height={props.size.height * props.scale}
         {...props.props}>
         <ClearRect size={props.size} scale={props.scale} theme={props.theme} />
-        <MirrorEl show={props.show_guides} mirror_style={props.mirror} scale={props.scale} size={props.size} theme={props.theme} />
+        <MirrorEl show={props.show_guides} mirror={props.mirror} scale={props.scale} size={props.size} theme={props.theme} />
         <Grid scale={props.scale} size={props.size} theme={props.theme} showExtras={props.show_grid} />
         <Rulers pos={props.translation_to} scale={props.scale} size={props.size} theme={props.theme} />
         <SvgLayers layers={props.layers} />

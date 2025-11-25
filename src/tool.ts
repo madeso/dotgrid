@@ -100,7 +100,7 @@ export const tool_constructor = (): ToolI => {
         strokeLinejoin: "round",
         color: "#f00",
         fill: false,
-        mirror_style: "none",
+        mirror: "none",
       },
       {
         thickness: 15,
@@ -108,7 +108,7 @@ export const tool_constructor = (): ToolI => {
         strokeLinejoin: "round",
         color: "#0f0",
         fill: false,
-        mirror_style: "none",
+        mirror: "none",
       },
       {
         thickness: 15,
@@ -116,7 +116,7 @@ export const tool_constructor = (): ToolI => {
         strokeLinejoin: "round",
         color: "#00f",
         fill: false,
-        mirror_style: "none",
+        mirror: "none",
       },
     ],
     vertices: [],
@@ -129,9 +129,9 @@ export const tool_select_color = (tool: ToolI, hex: string) => {
 };
 
 export const tool_reset = (tool: ToolI) => {
-  tool.styles[0].mirror_style = "none";
-  tool.styles[1].mirror_style = "none";
-  tool.styles[2].mirror_style = "none";
+  tool.styles[0].mirror = "none";
+  tool.styles[1].mirror = "none";
+  tool.styles[2].mirror = "none";
   tool.styles[0].fill = false;
   tool.styles[1].fill = false;
   tool.styles[2].fill = false;
@@ -353,7 +353,7 @@ export const tool_cast = (
 };
 
 export const tool_set_mirror = (tool: ToolI, mirror: Mirror) => {
-  tool_style(tool).mirror_style = mirror;
+  tool_style(tool).mirror = mirror;
 };
 
 export const tool_set_linecap = (tool: ToolI, lc: CanvasLineCap) => {
@@ -445,7 +445,7 @@ export const tool_paths = (
   const gen = (index: number) => {
     return generate(
       tool.layers[index],
-      tool.styles[index].mirror_style,
+      tool.styles[index].mirror,
       { x: 0, y: 0 },
       scale,
       size
@@ -458,7 +458,7 @@ export const tool_paths = (
 export const tool_path = (tool: ToolI, size: Size) => {
   return generate(
     tool_layer(tool),
-    tool_style(tool).mirror_style,
+    tool_style(tool).mirror,
     { x: 0, y: 0 },
     1,
     size
@@ -582,7 +582,7 @@ export const tool_style = (tool: ToolI) => {
       strokeLinejoin: "round",
       color: "#f00",
       fill: false,
-      mirror_style: "none",
+      mirror: "none",
     };
   }
   return tool.styles[tool.index];
