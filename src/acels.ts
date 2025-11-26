@@ -5,19 +5,19 @@ const capitalize = (s: string) => {
 type TCat = string;
 
 export interface Keymap {
-  all: Map<string, Callback>;
+  all: Map<string, Bind>;
   order: string[];
-  binds: Callback[];
+  binds: Bind[];
 }
 
-interface Callback {
+interface Bind {
   category: string;
   name: string;
   accelerator: string;
   action: () => void;
 }
 
-export const create_keymap = (data: Callback[]) => {
+export const create_keymap = (data: Bind[]) => {
   const keymap: Keymap = {
     all: new Map(),
     order: [],
@@ -80,7 +80,7 @@ export const keymap_on_key = (keymap: Keymap, e: KeyEventLike) => {
 };
 
 const get_sorted_keymap = (keymap: Keymap) => {
-  const h = new Map<TCat, Array<Callback>>();
+  const h = new Map<TCat, Array<Bind>>();
   for (const [, item] of keymap.all) {
     if (item === undefined) continue;
     let found = h.get(item.category);
