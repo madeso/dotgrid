@@ -2,7 +2,7 @@
 
 import type { ReactElement } from "react";
 import { fill_color_from_style, type Mirror, type Point, type RenderingLayer, type SegmentType, type SingleLayer, type SingleStyle, type Size } from "./_types";
-import { generate } from "./generator";
+import { svgpath_from_layer } from "./generator";
 import type { Colors } from "./theme";
 
 
@@ -253,7 +253,7 @@ const Preview = (props: { theme: Colors, size: Size, tool_vertices: Point[], cas
         strokeLinejoin: "round",
         strokeLineDash: [5, 15],
     } as SingleStyle;
-    const path = generate([
+    const path = svgpath_from_layer([
         { vertices: tool_vertices, type: cast_preview },
     ], "none", { x: 0, y: 0 }, props.scale, size);
 

@@ -17,7 +17,7 @@ interface Callback {
   action: () => void;
 }
 
-export const keymap_register = (data: Callback[]) => {
+export const create_keymap = (data: Callback[]) => {
   const keymap: Keymap = {
     all: new Map(),
     order: [],
@@ -68,7 +68,7 @@ const accelerator_from_event = (event: KeyEventLike): string => {
   return accelerator;
 };
 
-export const keymap_onkey = (keymap: Keymap, e: KeyEventLike) => {
+export const keymap_on_key = (keymap: Keymap, e: KeyEventLike) => {
   const target = keymap.all.get(accelerator_from_event(e));
   if (!target) {
     return;
@@ -79,7 +79,7 @@ export const keymap_onkey = (keymap: Keymap, e: KeyEventLike) => {
   return;
 };
 
-const get_sorted = (keymap: Keymap) => {
+const get_sorted_keymap = (keymap: Keymap) => {
   const h = new Map<TCat, Array<Callback>>();
   for (const [, item] of keymap.all) {
     if (item === undefined) continue;
@@ -94,7 +94,7 @@ const get_sorted = (keymap: Keymap) => {
 };
 
 export const keymap_to_markdown = (keymap: Keymap) => {
-  const cats = get_sorted(keymap);
+  const cats = get_sorted_keymap(keymap);
   let text = "";
   for (const [cat, items] of cats) {
     text += `\n### ${cat}\n\n`;

@@ -1,6 +1,6 @@
 import type { Mirror, Point, Segment, SingleLayer, Size } from "./_types";
 
-function rotatePoint(point: Point, origin: Point, angle: number) {
+function rotate_point(point: Point, origin: Point, angle: number) {
   angle = (angle * Math.PI) / 180.0;
   return {
     x: parseInt(
@@ -20,11 +20,11 @@ function rotatePoint(point: Point, origin: Point, angle: number) {
   };
 }
 
-const _line = (a: Point) => {
+const svgpath_line = (a: Point) => {
   return `L${a.x},${a.y} `;
 };
 
-const _arc = (a?: Point, b?: Point, c?: string) => {
+const svgpath_arc = (a?: Point, b?: Point, c?: string) => {
   if (!a || !b || !c) {
     return "";
   }
@@ -32,135 +32,147 @@ const _arc = (a?: Point, b?: Point, c?: string) => {
   const offset = { x: b.x - a.x, y: b.y - a.y };
 
   if (offset.x === 0 || offset.y === 0) {
-    return _line(b);
+    return svgpath_line(b);
   }
   return `A${Math.abs(b.x - a.x)},${Math.abs(b.y - a.y)} 0 ${c} ${b.x},${b.y} `;
 };
 
-const _bezier = (a?: Point, b?: Point) => {
+const svgpath_bezier = (a?: Point, b?: Point) => {
   if (!a || !b) {
     return "";
   }
   return `Q${a.x},${a.y} ${b.x},${b.y} `;
 };
 
-const render = (
+const svgpath_from_segment = (
   prev: Point | null,
   segment: Segment,
   mirror: Mirror = "none"
 ) => {
   const type = segment.type;
   const vertices = segment.vertices;
-  let html = "";
-  let skip = 0;
+  let svgpath = "";
+  let vertices_to_skip = 0;
 
-  for (let id = 0; id < vertices.length; id += 1) {
-    if (skip > 0) {
-      skip -= 1;
+  for (let vertex_iter = 0; vertex_iter < vertices.length; vertex_iter += 1) {
+    if (vertices_to_skip > 0) {
+      vertices_to_skip -= 1;
       continue;
     }
 
-    const vertex = vertices[id];
-    const next = vertices[id + 1];
-    const afterNext = vertices[id + 2];
+    const vertex = vertices[vertex_iter];
+    const next = vertices[vertex_iter + 1];
+    const afterNext = vertices[vertex_iter + 2];
 
-    if (id === 0 && !prev) {
-      html += `M${vertex.x},${vertex.y} `;
+    if (vertex_iter === 0 && !prev) {
+      svgpath += `M${vertex.x},${vertex.y} `;
     } else if (
-      id === 0 &&
+      vertex_iter === 0 &&
       prev &&
       (prev.x !== vertex.x || prev.y !== vertex.y)
     ) {
-      html += `M${vertex.x},${vertex.y} `;
+      svgpath += `M${vertex.x},${vertex.y} `;
     }
 
     if (type === "line") {
-      html += _line(vertex);
+      svgpath += svgpath_line(vertex);
     } else if (type === "arc_c") {
       const clock =
         mirror == "horizontal" || mirror == "vertical" ? "0,0" : "0,1";
-      html += _arc(vertex, next, clock);
+      svgpath += svgpath_arc(vertex, next, clock);
     } else if (type === "arc_r") {
       const clock =
         mirror == "horizontal" || mirror == "vertical" ? "0,1" : "0,0";
-      html += _arc(vertex, next, clock);
+      svgpath += svgpath_arc(vertex, next, clock);
     } else if (type === "arc_c_full") {
       const clock = mirror !== "none" ? "1,0" : "1,1";
-      html += _arc(vertex, next, clock);
+      svgpath += svgpath_arc(vertex, next, clock);
     } else if (type === "arc_r_full") {
       const clock = mirror !== "none" ? "1,1" : "1,0";
-      html += _arc(vertex, next, clock);
+      svgpath += svgpath_arc(vertex, next, clock);
     } else if (type === "bezier") {
-      html += _bezier(next, afterNext);
-      skip = 1;
+      svgpath += svgpath_bezier(next, afterNext);
+      vertices_to_skip = 1;
     }
   }
 
   if (segment.type === "close") {
-    html += "Z ";
+    svgpath += "Z ";
   }
 
-  return html;
+  return svgpath;
 };
 
-const operate = (
+const mirror_layer = (
   size: Size,
-  layer: SingleLayer,
+  src_layer: SingleLayer,
   offset: Point,
   scale: number,
   mirror: Mirror,
   angle = 0
 ): SingleLayer => {
-  const l = structuredClone(layer);
+  const layer = structuredClone(src_layer);
 
-  for (const k1 in l) {
-    const seg = l[k1];
-    for (const k2 in seg.vertices) {
+  for (const segment of layer) {
+    for (const vertex of segment.vertices) {
       if (mirror === "horizontal" || mirror === "diagonal") {
-        seg.vertices[k2].x = size.width - seg.vertices[k2].x;
+        vertex.x = size.width - vertex.x;
       }
       if (mirror === "vertical" || mirror === "diagonal") {
-        seg.vertices[k2].y = size.height - seg.vertices[k2].y;
+        vertex.y = size.height - vertex.y;
       }
       // Offset
-      seg.vertices[k2].x += offset.x;
-      seg.vertices[k2].y += offset.y;
+      vertex.x += offset.x;
+      vertex.y += offset.y;
       // Rotate
       const center = {
         x: size.width / 2 + offset.x + 7.5,
         y: size.height / 2 + offset.y + 30,
       };
-      seg.vertices[k2] = rotatePoint(seg.vertices[k2], center, angle);
+      const rotated = rotate_point(vertex, center, angle);
+      vertex.x = rotated.x;
+      vertex.y = rotated.y;
       // Scale
-      seg.vertices[k2].x *= scale;
-      seg.vertices[k2].y *= scale;
+      vertex.x *= scale;
+      vertex.y *= scale;
     }
   }
-  return l;
+
+  return layer;
 };
 
-const convert = (layer: SingleLayer, mirror?: Mirror) => {
-  let s = "";
+const svgpath_from_layer_single_mirror = (
+  layer: SingleLayer,
+  mirror?: Mirror
+) => {
+  let svgpath = "";
   let prev = null;
-  for (let id = 0; id < layer.length; id += 1) {
-    const seg = layer[id];
-    s += `${render(prev, seg, mirror)}`;
-    prev = seg.vertices ? seg.vertices[seg.vertices.length - 1] : null;
+  for (let segment_iter = 0; segment_iter < layer.length; segment_iter += 1) {
+    const segment = layer[segment_iter];
+    svgpath += svgpath_from_segment(prev, segment, mirror);
+    prev = segment.vertices
+      ? segment.vertices[segment.vertices.length - 1]
+      : null;
   }
-  return s;
+  return svgpath;
 };
 
-export const generate = (
+export const svgpath_from_layer = (
   layer: SingleLayer,
   mirror: Mirror,
   offset: Point,
   scale: number,
   size: Size
 ) => {
-  let s = convert(operate(size, layer, offset, scale, "none"));
+  let s = svgpath_from_layer_single_mirror(
+    mirror_layer(size, layer, offset, scale, "none")
+  );
 
   if (mirror !== "none") {
-    s += convert(operate(size, layer, offset, scale, mirror), mirror);
+    s += svgpath_from_layer_single_mirror(
+      mirror_layer(size, layer, offset, scale, mirror),
+      mirror
+    );
   }
 
   return s;

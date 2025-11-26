@@ -1,7 +1,6 @@
 import type {
   Point,
   Layers,
-  SingleLayer,
   Segment,
   SegmentType,
   Vertices,
@@ -11,31 +10,26 @@ import type {
   Mirror,
 } from "./_types";
 
-import { generate } from "./generator";
+import { svgpath_from_layer } from "./generator";
 
 function clamp(v: number, min: number, max: number) {
   return v < min ? min : v > max ? max : v;
 }
 
-interface ParsedTool {
-  layers?: Layers;
-  settings: {
-    size: { width: number; height: number };
-    width?: number;
-    height?: number;
-  };
-  styles: Array<SingleStyle>;
-}
-
-export const jsonDump = (target: unknown) => {
-  return JSON.stringify(structuredClone(target), null, 2);
+export type PrettyOrCompact = "pretty" | "compact";
+export const json_from_unknown = (target: unknown, style: PrettyOrCompact) => {
+  return JSON.stringify(
+    structuredClone(target),
+    null,
+    style === "pretty" ? 2 : 0
+  );
 };
 
 type PushCallback = (lay: Layers) => void;
 
-export interface ToolI {
+export interface Tool {
   layer_index: number;
-  settings: { size: { width: number; height: number } };
+  settings: { size: Size };
   layers: Layers;
   vertices: Array<Point>;
   styles: Array<SingleStyle>;
@@ -43,7 +37,7 @@ export interface ToolI {
 
 const LOCAL_STORAGE_KEY = "dotgrid-file";
 
-export const load_tool = (): ToolI | null => {
+export const load_tool = (): Tool | null => {
   const source = (() => {
     try {
       return localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -55,30 +49,25 @@ export const load_tool = (): ToolI | null => {
   if (source === null) return null;
 
   const tool = tool_constructor();
-  tool_replace(
-    tool,
-    JSON.parse(source),
-    () => {},
-    () => {}
-  );
+  tool_from_json(tool, source);
 
   return tool;
 };
 
-export const save_tool = (tool: ToolI) => {
+export const save_tool = (tool: Tool) => {
   try {
-    localStorage.setItem(LOCAL_STORAGE_KEY, tool_export(tool));
+    localStorage.setItem(LOCAL_STORAGE_KEY, json_from_tool(tool, "compact"));
   } catch (x) {
     console.warn("Failure to save to local storage", x);
   }
 };
 
-export const tool_all_layers = (
-  tool: ToolI,
+export const rendering_layers_from_tool = (
+  tool: Tool,
   scale: number,
   size: Size
 ): RenderingLayer[] => {
-  return tool_paths(tool, scale, size).map((path, path_index) => {
+  return svgpath_from_tool(tool, scale, size).map((path, path_index) => {
     return {
       path: path,
       style: tool.styles[path_index],
@@ -88,7 +77,7 @@ export const tool_all_layers = (
 
 export const empty_layers = (): Layers => [[], [], []];
 
-export const tool_constructor = (): ToolI => {
+export const tool_constructor = (): Tool => {
   return {
     layer_index: 0,
     settings: { size: { width: 300, height: 300 } },
@@ -124,11 +113,11 @@ export const tool_constructor = (): ToolI => {
 };
 
 // todo(Gustav): remove this
-export const tool_select_color = (tool: ToolI, hex: string) => {
-  tool_style(tool).color = hex;
+export const tool_select_color = (tool: Tool, hex: string) => {
+  tool_get_style(tool).color = hex;
 };
 
-export const tool_reset = (tool: ToolI) => {
+export const tool_reset = (tool: Tool) => {
   tool.styles[0].mirror = "none";
   tool.styles[1].mirror = "none";
   tool.styles[2].mirror = "none";
@@ -140,50 +129,62 @@ export const tool_reset = (tool: ToolI) => {
   tool.layer_index = 0;
 };
 
-const tool_erase = (tool: ToolI) => {
+const tool_erase = (tool: Tool) => {
   tool.layers = [[], [], []];
   tool.vertices = [];
 };
 
-export const tool_clear = (tool: ToolI) => {
+export const tool_clear = (tool: Tool) => {
   tool.vertices = [];
 };
 
-export const tool_undo = (tool: ToolI, prev: () => Layers) => {
+export const tool_undo = (tool: Tool, prev: () => Layers) => {
   tool.layers = prev();
 };
 
-export const tool_redo = (tool: ToolI, next: () => Layers) => {
+export const tool_redo = (tool: Tool, next: () => Layers) => {
   tool.layers = next();
 };
 
 // I/O
 
-export const tool_export = (tool: ToolI) => {
-  const target = {
-    settings: tool.settings,
-    layers: tool.layers,
-    styles: tool.styles,
-  };
-  return jsonDump(target);
+export const tool_export_layer = (tool: Tool) => {
+  return json_from_unknown(tool_get_layer(tool), "pretty");
 };
 
-export const tool_import = (
-  tool: ToolI,
-  layer: SingleLayer,
+export const tool_import_layer = (
+  tool: Tool,
+  data: string,
   push: PushCallback
 ) => {
+  const layer = JSON.parse(data.trim());
   tool.layers[tool.layer_index] = tool.layers[tool.layer_index].concat(layer);
   push(tool.layers);
   tool_clear(tool);
 };
 
-export const tool_replace = (
-  tool: ToolI,
-  dot: ParsedTool,
-  push: PushCallback,
-  fitSize: () => void
-) => {
+interface ParsedTool {
+  layers?: Layers;
+  settings: {
+    size: { width: number; height: number };
+    width?: number;
+    height?: number;
+  };
+  styles: Array<SingleStyle>;
+}
+
+export const json_from_tool = (tool: Tool, pretty: PrettyOrCompact) => {
+  const target = {
+    settings: tool.settings,
+    layers: tool.layers,
+    styles: tool.styles,
+  };
+  return json_from_unknown(target, pretty);
+};
+
+export const tool_from_json = (tool: Tool, content: string) => {
+  // todo(Gustav): validate parsed file...
+  const dot: ParsedTool = JSON.parse(content);
   if (!dot.layers || dot.layers.length !== 3) {
     console.warn("Incompatible version");
     return;
@@ -201,8 +202,6 @@ export const tool_replace = (
   tool.settings = dot.settings;
 
   tool_clear(tool);
-  fitSize();
-  push(tool.layers);
 };
 
 // EDIT
@@ -213,23 +212,27 @@ interface FoundPoint {
 }
 
 const tool_find_points = (
-  tool: ToolI,
+  tool: Tool,
   pos: Point,
   layer_index?: number
 ): FoundPoint[] => {
   const found_points = new Array<FoundPoint>();
 
-  const layer = tool_layer(tool, layer_index);
+  const layer = tool_get_layer(tool, layer_index);
 
   for (let segmentId = 0; segmentId < layer.length; segmentId += 1) {
     const segment = layer[segmentId];
-    for (let vertexId = 0; vertexId < segment.vertices.length; vertexId += 1) {
-      const vertex = segment.vertices[vertexId];
+    for (
+      let vertex_iter = 0;
+      vertex_iter < segment.vertices.length;
+      vertex_iter += 1
+    ) {
+      const vertex = segment.vertices[vertex_iter];
       if (
         Math.abs(pos.x) === Math.abs(vertex.x) &&
         Math.abs(pos.y) === Math.abs(vertex.y)
       ) {
-        found_points.push({ segment: segmentId, point: vertexId });
+        found_points.push({ segment: segmentId, point: vertex_iter });
       }
     }
   }
@@ -237,8 +240,8 @@ const tool_find_points = (
   return found_points;
 };
 
-export const tool_removeSegmentAt = (
-  tool: ToolI,
+export const tool_remove_segment_at = (
+  tool: Tool,
   point: Point,
   push: PushCallback,
   layer?: number
@@ -247,17 +250,21 @@ export const tool_removeSegmentAt = (
 
   const found = tool_find_points(tool, point, layer);
   if (found.length <= 0) return;
-  tool_layer(tool, layer).splice(found[0].segment, 1);
+  tool_get_layer(tool, layer).splice(found[0].segment, 1);
   push(tool.layers);
 };
 
-export const tool_removePointAt = (
-  tool: ToolI,
+export const tool_remove_point_at = (
+  tool: Tool,
   pos: Point,
   push: PushCallback
 ) => {
-  for (let segmentId = 0; segmentId < tool_layer(tool).length; segmentId += 1) {
-    const segment = tool_layer(tool)[segmentId];
+  for (
+    let segmentId = 0;
+    segmentId < tool_get_layer(tool).length;
+    segmentId += 1
+  ) {
+    const segment = tool_get_layer(tool)[segmentId];
     for (let vertexId = 0; vertexId < segment.vertices.length; vertexId += 1) {
       const vertex = segment.vertices[vertexId];
       if (
@@ -275,10 +282,10 @@ export const tool_removePointAt = (
   push(tool.layers);
 };
 
-const tool_selectSegmentAt = (
-  tool: ToolI,
+const tool_select_segment_at = (
+  tool: Tool,
   pos: Point,
-  source = tool_layer(tool)
+  source = tool_get_layer(tool)
 ) => {
   for (const segmentId in source) {
     const segment = source[segmentId];
@@ -292,14 +299,14 @@ const tool_selectSegmentAt = (
   return null;
 };
 
-export const tool_addVertex = (tool: ToolI, pos: Point) => {
+export const tool_add_vertex = (tool: Tool, pos: Point) => {
   pos = { x: Math.abs(pos.x), y: Math.abs(pos.y) };
   tool.vertices.push(pos);
 };
 
-export const tool_vertexAt = (tool: ToolI, pos: Point) => {
-  for (const segmentId in tool_layer(tool)) {
-    const segment = tool_layer(tool)[segmentId];
+export const tool_vertex_at = (tool: Tool, pos: Point) => {
+  for (const segmentId in tool_get_layer(tool)) {
+    const segment = tool_get_layer(tool)[segmentId];
     for (const vertexId in segment.vertices) {
       const vertex = segment.vertices[vertexId];
       if (vertex.x === Math.abs(pos.x) && vertex.y === Math.abs(pos.y)) {
@@ -310,18 +317,18 @@ export const tool_vertexAt = (tool: ToolI, pos: Point) => {
   return null;
 };
 
-const tool_addSegment = (
-  tool: ToolI,
+const tool_add_segment = (
+  tool: Tool,
   type: SegmentType,
   vertices: Vertices,
   layer_index = tool.layer_index
 ) => {
-  const appendTarget = tool_canAppend(
+  const appendTarget = tool_can_append(
     tool,
     { type: type, vertices: vertices },
     layer_index
   );
-  const layer = tool_layer(tool, layer_index);
+  const layer = tool_get_layer(tool, layer_index);
   if (appendTarget) {
     const segment = layer[appendTarget];
     segment.vertices = segment.vertices.concat(vertices);
@@ -331,53 +338,53 @@ const tool_addSegment = (
 };
 
 export const tool_cast = (
-  tool: ToolI,
+  tool: Tool,
   type: SegmentType,
   push: PushCallback
 ) => {
-  if (!tool_layer(tool)) {
+  if (!tool_get_layer(tool)) {
     tool.layers[tool.layer_index] = [];
   }
-  if (!tool_canCast(tool, type)) {
+  if (!tool_can_cast(tool, type)) {
     console.warn(`Cannot cast ${type}: ${tool.vertices.length}`);
     return;
   }
 
-  tool_addSegment(tool, type, tool.vertices.slice());
+  tool_add_segment(tool, type, tool.vertices.slice());
 
   push(tool.layers);
 
   tool_clear(tool);
 
-  console.log(`Casted ${type} -> ${tool_layer(tool).length} elements`);
+  console.log(`Casted ${type} -> ${tool_get_layer(tool).length} elements`);
 };
 
-export const tool_set_mirror = (tool: ToolI, mirror: Mirror) => {
-  tool_style(tool).mirror = mirror;
+export const tool_set_mirror = (tool: Tool, mirror: Mirror) => {
+  tool_get_style(tool).mirror = mirror;
 };
 
-export const tool_set_linecap = (tool: ToolI, lc: CanvasLineCap) => {
-  tool_style(tool).strokeLinecap = lc;
+export const tool_set_linecap = (tool: Tool, lc: CanvasLineCap) => {
+  tool_get_style(tool).strokeLinecap = lc;
 };
-export const tool_set_linejoin = (tool: ToolI, lj: CanvasLineJoin) => {
-  tool_style(tool).strokeLinejoin = lj;
+export const tool_set_linejoin = (tool: Tool, lj: CanvasLineJoin) => {
+  tool_get_style(tool).strokeLinejoin = lj;
 };
-export const tool_set_thickness = (tool: ToolI, thickness: number) => {
-  tool_style(tool).thickness = clamp(thickness, 1, 100);
+export const tool_set_thickness = (tool: Tool, thickness: number) => {
+  tool_get_style(tool).thickness = clamp(thickness, 1, 100);
 };
 
-export const tool_toggle_fill = (tool: ToolI) => {
+export const tool_toggle_fill = (tool: Tool) => {
   // todo(Gustav): remove this
-  tool_style(tool).fill = !tool_style(tool).fill;
+  tool_get_style(tool).fill = !tool_get_style(tool).fill;
 };
 
-const tool_canAppend = (
-  tool: ToolI,
+const tool_can_append = (
+  tool: Tool,
   content: { type: SegmentType; vertices: Vertices },
   layer_index = tool.layer_index
 ): number | false => {
-  for (let id = 0; id < tool_layer(tool, layer_index).length; id += 1) {
-    const stroke = tool_layer(tool, layer_index)[id];
+  for (let id = 0; id < tool_get_layer(tool, layer_index).length; id += 1) {
+    const stroke = tool_get_layer(tool, layer_index)[id];
     if (stroke.type !== content.type) {
       continue;
     }
@@ -402,13 +409,13 @@ const tool_canAppend = (
   return false;
 };
 
-export const tool_canCast = (tool: ToolI, type?: SegmentType | null) => {
+export const tool_can_cast = (tool: Tool, type?: SegmentType | null) => {
   if (!type) {
     return false;
   }
   // Cannot cast close twice
   if (type === "close") {
-    const prev = tool_layer(tool)[tool_layer(tool).length - 1];
+    const prev = tool_get_layer(tool)[tool_get_layer(tool).length - 1];
     if (!prev || prev.type === "close" || tool.vertices.length !== 0) {
       return false;
     }
@@ -424,7 +431,7 @@ export const tool_canCast = (tool: ToolI, type?: SegmentType | null) => {
     }
   }
 
-  const reqs = {
+  const required_vertices = {
     line: 2,
     arc_c: 2,
     arc_r: 2,
@@ -434,16 +441,16 @@ export const tool_canCast = (tool: ToolI, type?: SegmentType | null) => {
     close: 0,
   };
 
-  return tool.vertices.length >= reqs[type];
+  return tool.vertices.length >= required_vertices[type];
 };
 
-export const tool_paths = (
-  tool: ToolI,
+export const svgpath_from_tool = (
+  tool: Tool,
   scale: number,
   size: Size
 ): [string, string, string] => {
-  const gen = (layer_index: number) => {
-    return generate(
+  const svgpath_from_layer_index = (layer_index: number) => {
+    return svgpath_from_layer(
       tool.layers[layer_index],
       tool.styles[layer_index].mirror,
       { x: 0, y: 0 },
@@ -452,13 +459,17 @@ export const tool_paths = (
     );
   };
 
-  return [gen(0), gen(1), gen(2)];
+  return [
+    svgpath_from_layer_index(0),
+    svgpath_from_layer_index(1),
+    svgpath_from_layer_index(2),
+  ];
 };
 
-export const tool_path = (tool: ToolI, size: Size) => {
-  return generate(
-    tool_layer(tool),
-    tool_style(tool).mirror,
+export const svgpath_from_current_layer = (tool: Tool, size: Size) => {
+  return svgpath_from_layer(
+    tool_get_layer(tool),
+    tool_get_style(tool).mirror,
     { x: 0, y: 0 },
     1,
     size
@@ -466,13 +477,13 @@ export const tool_path = (tool: ToolI, size: Size) => {
 };
 
 export const tool_translate = (
-  tool: ToolI,
+  tool: Tool,
   a: Point,
   b: Point,
   push: PushCallback
 ) => {
-  for (const segmentId in tool_layer(tool)) {
-    const segment = tool_layer(tool)[segmentId];
+  for (const segmentId in tool_get_layer(tool)) {
+    const segment = tool_get_layer(tool)[segmentId];
     for (const vertexId in segment.vertices) {
       const vertex = segment.vertices[vertexId];
       if (vertex.x === Math.abs(a.x) && vertex.y === Math.abs(a.y)) {
@@ -484,14 +495,14 @@ export const tool_translate = (
   tool_clear(tool);
 };
 
-export const tool_translateMulti = (
-  tool: ToolI,
+export const tool_translate_multi = (
+  tool: Tool,
   a: Point,
   b: Point,
   push: PushCallback
 ) => {
   const offset = { x: a.x - b.x, y: a.y - b.y };
-  const segment = tool_selectSegmentAt(tool, a);
+  const segment = tool_select_segment_at(tool, a);
 
   if (!segment) {
     return;
@@ -509,15 +520,15 @@ export const tool_translateMulti = (
   tool_clear(tool);
 };
 
-export const tool_translateLayer = (
-  tool: ToolI,
+export const tool_translate_layer = (
+  tool: Tool,
   a: Point,
   b: Point,
   push: PushCallback
 ) => {
   const offset = { x: a.x - b.x, y: a.y - b.y };
-  for (const segmentId in tool_layer(tool)) {
-    const segment = tool_layer(tool)[segmentId];
+  for (const segmentId in tool_get_layer(tool)) {
+    const segment = tool_get_layer(tool)[segmentId];
     for (const vertexId in segment.vertices) {
       const vertex = segment.vertices[vertexId];
       segment.vertices[vertexId] = {
@@ -530,17 +541,17 @@ export const tool_translateLayer = (
   tool_clear(tool);
 };
 
-export const tool_translateCopy = (
-  tool: ToolI,
+export const tool_translate_copy = (
+  tool: Tool,
   a: Point,
   b: Point,
   push: PushCallback
 ) => {
   const offset = { x: a.x - b.x, y: a.y - b.y };
-  const segment = tool_selectSegmentAt(
+  const segment = tool_select_segment_at(
     tool,
     a,
-    structuredClone(tool_layer(tool))
+    structuredClone(tool_get_layer(tool))
   );
 
   if (!segment) {
@@ -554,13 +565,13 @@ export const tool_translateCopy = (
       y: vertex.y - offset.y,
     };
   }
-  tool_layer(tool).push(segment);
+  tool_get_layer(tool).push(segment);
 
   push(tool.layers);
   tool_clear(tool);
 };
 
-export const tool_merge = (tool: ToolI, push: PushCallback) => {
+export const tool_merge_layers = (tool: Tool, push: PushCallback) => {
   const merged = new Array<Segment>()
     .concat(tool.layers[0])
     .concat(tool.layers[1])
@@ -574,7 +585,7 @@ export const tool_merge = (tool: ToolI, push: PushCallback) => {
 
 // Style
 
-export const tool_style = (tool: ToolI) => {
+export const tool_get_style = (tool: Tool) => {
   if (!tool.styles[tool.layer_index]) {
     tool.styles[tool.layer_index] = {
       thickness: 15,
@@ -590,14 +601,14 @@ export const tool_style = (tool: ToolI) => {
 
 // Layers
 
-export const tool_layer = (tool: ToolI, layer_index = tool.layer_index) => {
+export const tool_get_layer = (tool: Tool, layer_index = tool.layer_index) => {
   if (!tool.layers[layer_index]) {
     tool.layers[layer_index] = [];
   }
   return tool.layers[layer_index];
 };
 
-export const tool_selectLayer = (tool: ToolI, id: number) => {
+export const tool_set_layer_index = (tool: Tool, id: number) => {
   tool.layer_index = clamp(id, 0, 2);
   tool_clear(tool);
   console.log(`layer:${tool.layer_index}`);
