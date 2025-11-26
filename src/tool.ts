@@ -11,21 +11,13 @@ import type {
 } from "./_types";
 
 import { svgpath_from_layer } from "./generator";
+import { json_from_tool, tool_from_json } from "./io";
 
 function clamp(v: number, min: number, max: number) {
   return v < min ? min : v > max ? max : v;
 }
 
-export type PrettyOrCompact = "pretty" | "compact";
-export const json_from_unknown = (target: unknown, style: PrettyOrCompact) => {
-  return JSON.stringify(
-    structuredClone(target),
-    null,
-    style === "pretty" ? 2 : 0
-  );
-};
-
-type PushCallback = (lay: Layers) => void;
+export type PushCallback = (lay: Layers) => void;
 
 export interface Tool {
   layer_index: number;
@@ -144,64 +136,6 @@ export const tool_undo = (tool: Tool, prev: () => Layers) => {
 
 export const tool_redo = (tool: Tool, next: () => Layers) => {
   tool.layers = next();
-};
-
-// I/O
-
-export const tool_export_layer = (tool: Tool) => {
-  return json_from_unknown(tool_get_layer(tool), "pretty");
-};
-
-export const tool_import_layer = (
-  tool: Tool,
-  data: string,
-  push: PushCallback
-) => {
-  const layer = JSON.parse(data.trim());
-  tool.layers[tool.layer_index] = tool.layers[tool.layer_index].concat(layer);
-  push(tool.layers);
-  tool_clear(tool);
-};
-
-interface ParsedTool {
-  layers?: Layers;
-  settings: {
-    size: { width: number; height: number };
-    width?: number;
-    height?: number;
-  };
-  styles: Array<SingleStyle>;
-}
-
-export const json_from_tool = (tool: Tool, pretty: PrettyOrCompact) => {
-  const target = {
-    settings: tool.settings,
-    layers: tool.layers,
-    styles: tool.styles,
-  };
-  return json_from_unknown(target, pretty);
-};
-
-export const tool_from_json = (tool: Tool, content: string) => {
-  // todo(Gustav): validate parsed file...
-  const dot: ParsedTool = JSON.parse(content);
-  if (!dot.layers || dot.layers.length !== 3) {
-    console.warn("Incompatible version");
-    return;
-  }
-
-  if (dot.settings.width && dot.settings.height) {
-    dot.settings.size = {
-      width: dot.settings.width,
-      height: dot.settings.height,
-    };
-  }
-
-  tool.layers = dot.layers;
-  tool.styles = dot.styles;
-  tool.settings = dot.settings;
-
-  tool_clear(tool);
 };
 
 // EDIT

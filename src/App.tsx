@@ -7,7 +7,7 @@ import { type SegmentType, type Point, type Mirror, type Layers } from './_types
 import { Button, SvgButton } from './SvgButton';
 import * as icons from './icons';
 
-import { empty_layers, json_from_unknown, load_tool, save_tool, tool_add_vertex, rendering_layers_from_tool, tool_can_cast, tool_cast, tool_clear, tool_constructor, json_from_tool, tool_import_layer, tool_get_layer, tool_merge_layers, svgpath_from_current_layer, tool_redo, tool_remove_point_at, tool_remove_segment_at, tool_from_json, tool_reset, tool_select_color, tool_set_layer_index, tool_set_linecap, tool_set_linejoin, tool_set_mirror, tool_set_thickness, tool_get_style, tool_toggle_fill, tool_translate, tool_translate_copy, tool_translate_layer, tool_translate_multi, tool_undo, tool_vertex_at, type Tool, tool_export_layer } from './tool';
+import { empty_layers, load_tool, save_tool, tool_add_vertex, rendering_layers_from_tool, tool_can_cast, tool_cast, tool_clear, tool_constructor, tool_get_layer, tool_merge_layers, svgpath_from_current_layer, tool_redo, tool_remove_point_at, tool_remove_segment_at, tool_reset, tool_select_color, tool_set_layer_index, tool_set_linecap, tool_set_linejoin, tool_set_mirror, tool_set_thickness, tool_get_style, tool_toggle_fill, tool_translate, tool_translate_copy, tool_translate_layer, tool_translate_multi, tool_undo, tool_vertex_at, type Tool } from './tool';
 import { colors } from './colors';
 import { color_themes, dark_themes, light_themes, the_apollo_theme, the_default_theme } from './themes';
 import { evaluate_theme } from './color-benchmark';
@@ -15,6 +15,7 @@ import { history_can_redo, history_can_undo, history_constructor, history_redo, 
 import { source_open, source_write } from './source';
 import { export_to_png, export_to_svg } from './manager';
 import { keymap_on_key, create_keymap, keymap_to_markdown, type Keymap } from './acels';
+import { json_from_tool, tool_export_current_layer, tool_from_json, tool_import_layer } from './io';
 
 const offset_from_canvas = (canvas: SVGSVGElement | null): Offset => {
   if (!canvas) {
@@ -773,7 +774,7 @@ const App = () => {
           console.error("missing clipboard");
           return;
         }
-        e.clipboardData.setData("text/source", json_from_unknown(tool_get_layer(tool), "pretty"));
+        e.clipboardData.setData("text/source", tool_export_current_layer(tool));
         e.clipboardData.setData("text/plain", svgpath_from_current_layer(tool, tool.settings.size));
         const t = structuredClone(tool);
         t.layers[t.layer_index] = [];
@@ -786,7 +787,7 @@ const App = () => {
           console.error("missing clipboard");
           return;
         }
-        e.clipboardData.setData("text/source", tool_export_layer(tool));
+        e.clipboardData.setData("text/source", tool_export_current_layer(tool));
         e.clipboardData.setData("text/plain", svgpath_from_current_layer(tool, tool.settings.size));
       }}
       onPaste={(e) => {
