@@ -24,7 +24,7 @@ interface Reporter {
   logs: Log[];
 }
 
-class Filer {
+export class Filer {
   is_loading: boolean;
   object: JsonObject;
   reporter: Reporter;
