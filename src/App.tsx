@@ -14,7 +14,7 @@ import { evaluate_theme } from './color-benchmark';
 import { history_can_redo, history_can_undo, history_constructor, history_redo, history_undo, history_push, type History } from './history';
 import { source_open, source_write } from './source';
 import { export_to_png, export_to_svg } from './manager';
-import { keymap_on_key, create_keymap, keymap_to_markdown, type Keymap } from './acels';
+import { keymap_on_key, create_keymap, keymap_to_markdown, type Keymap, type Bind } from './acels';
 import { json_from_tool, tool_export_current_layer, tool_from_json, tool_import_layer } from './io';
 
 const offset_from_canvas = (canvas: SVGSVGElement | null): Offset => {
@@ -351,6 +351,16 @@ const App = () => {
     setHistory(h);
   }
 
+  const layer_names: string[] = ["Foreground", "Middleground", "Background"];
+
+  const layer_bind = (index: number): Bind => {
+    return {
+      category: "Layers", name: layer_names[index], accelerator: `CmdOrCtrl+${index+1}`, action: () => {
+        select_layer(index);
+      }
+    };
+  }
+
   const keymap = create_keymap([
     {
       category: "∷", name: "Toggle Menubar", accelerator: "Tab", action: () => {
@@ -417,21 +427,9 @@ const App = () => {
         setToolbarVisible(!toolbarVisible);
       }
     },
-    {
-      category: "Layers", name: "Foreground", accelerator: "CmdOrCtrl+1", action: () => {
-        select_layer(0);
-      }
-    },
-    {
-      category: "Layers", name: "Middleground", accelerator: "CmdOrCtrl+2", action: () => {
-        select_layer(1);
-      }
-    },
-    {
-      category: "Layers", name: "Background", accelerator: "CmdOrCtrl+3", action: () => {
-        select_layer(2);
-      }
-    },
+    layer_bind(0),
+    layer_bind(1),
+    layer_bind(2),
     {
       category: "Layers", name: "Merge Layers", accelerator: "CmdOrCtrl+M", action: () => {
         merge_layers();
@@ -953,7 +951,7 @@ const App = () => {
                     select_layer(layer_index);
                     setDialog(null);
                   }}>
-                    <LayerIcon color={tool.styles[layer_index].color} /> Layer {layer_index} | Shapes: {layer.length}
+                    <LayerIcon color={tool.styles[layer_index].color} /> {layer_names[layer_index]} | Shapes: {layer.length}
                   </Button></li>
                   )
                 }

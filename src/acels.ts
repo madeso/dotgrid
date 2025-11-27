@@ -10,7 +10,7 @@ export interface Keymap {
   binds: Bind[];
 }
 
-interface Bind {
+export interface Bind {
   category: string;
   name: string;
   accelerator: string;
