@@ -24,13 +24,15 @@ interface Reporter {
   logs: Log[];
 }
 
+type LoadState = "load" | "save"
+
 export class Filer {
-  is_loading: boolean;
+  load_state: LoadState;
   object: JsonObject;
   reporter: Reporter;
 
-  constructor(il: boolean, o: JsonObject, rep: Reporter) {
-    this.is_loading = il;
+  constructor(ls: LoadState, o: JsonObject, rep: Reporter) {
+    this.load_state = ls;
     this.object = o;
     this.reporter = rep;
   }
@@ -40,7 +42,7 @@ export class Filer {
     def: T[],
     on: (f: Filer, t: T | undefined) => void
   ) {
-    if (this.is_loading) {
+    if (this.load_state === 'load') {
       const root = this.object[key];
       if (root === undefined) {
         this.reporter.logs.push({ message: `Missing required array ${key}` });
@@ -54,7 +56,7 @@ export class Filer {
       }
       root.forEach((item) => {
         on(
-          new Filer(this.is_loading, item as JsonObject, this.reporter),
+          new Filer(this.load_state, item as JsonObject, this.reporter),
           undefined
         );
       });
@@ -62,7 +64,7 @@ export class Filer {
       // todo
       this.object[key] = def.map((_item, index) => {
         const ref: JsonObject = {};
-        on(new Filer(this.is_loading, ref, this.reporter), def[index]);
+        on(new Filer(this.load_state, ref, this.reporter), def[index]);
         return ref;
       });
     }
@@ -73,7 +75,7 @@ export class Filer {
     def: T[][],
     on: (f: Filer, t: T | undefined) => void
   ) {
-    if (this.is_loading) {
+    if (this.load_state === 'load') {
       const root = this.object[key];
       if (root === undefined) {
         this.reporter.logs.push({
@@ -96,7 +98,7 @@ export class Filer {
         }
         subArray.forEach((item) => {
           on(
-            new Filer(this.is_loading, item as JsonObject, this.reporter),
+            new Filer(this.load_state, item as JsonObject, this.reporter),
             undefined
           );
         });
@@ -105,7 +107,7 @@ export class Filer {
       this.object[key] = def.map((subArray) => {
         return subArray.map((_item, index) => {
           const ref: JsonObject = {};
-          on(new Filer(this.is_loading, ref, this.reporter), subArray[index]);
+          on(new Filer(this.load_state, ref, this.reporter), subArray[index]);
           return ref;
         });
       });
@@ -113,7 +115,7 @@ export class Filer {
   }
 
   prop_object(key: string, on: (f: Filer) => void) {
-    if (this.is_loading) {
+    if (this.load_state  === 'load') {
       const ref = this.object[key];
       if (ref === undefined) {
         this.reporter.logs.push({ message: `Missing required object ${key}` });
@@ -125,16 +127,16 @@ export class Filer {
         });
         return;
       }
-      on(new Filer(this.is_loading, ref as JsonObject, this.reporter));
+      on(new Filer(this.load_state, ref as JsonObject, this.reporter));
     } else {
       const ref: JsonObject = {};
-      on(new Filer(this.is_loading, ref, this.reporter));
+      on(new Filer(this.load_state, ref, this.reporter));
       this.object[key] = ref;
     }
   }
 
   prop_string(key: string, def: string): string {
-    if (this.is_loading) {
+    if (this.load_state  === 'load') {
       const ref = this.object[key];
       if (ref === undefined) {
         this.reporter.logs.push({ message: `Missing required string ${key}` });
@@ -154,7 +156,7 @@ export class Filer {
   }
 
   prop_number(key: string, def: number): number {
-    if (this.is_loading) {
+    if (this.load_state  === 'load') {
       const ref = this.object[key];
       if (ref === undefined) {
         this.reporter.logs.push({ message: `Missing required number ${key}` });
@@ -311,7 +313,7 @@ const sr_tool = (filer: Filer, tool: Tool) => {
 
 // todo(Gustav): remove this test function
 const test_filer = (tool: Tool) => {
-  const filer = new Filer(false, {}, { logs: [] });
+  const filer = new Filer("save", {}, { logs: [] });
 
   sr_tool(filer, tool);
 

@@ -18,9 +18,9 @@ const reporter = { logs: [] };
 
 describe("Filer", () => {
   it("should serialize arrays", () => {
-    const f = new Filer(true, example_obj, reporter);
+    const filer = new Filer("load", example_obj, reporter);
     let count = 0;
-    f.prop_array("arr", [], (f2: Filer) => {
+    filer.prop_array("arr", [], (f2: Filer) => {
       expect(typeof f2.object.x).toBe("number");
       expect(typeof f2.object.y).toBe("number");
       count++;
@@ -29,7 +29,7 @@ describe("Filer", () => {
   });
 
   it("should serialize array of arrays", () => {
-    const f = new Filer(true, example_obj, reporter);
+    const f = new Filer("load", example_obj, reporter);
     let count = 0;
     f.prop_array_of_arrays("arrOfArr", [], (f2: Filer) => {
       expect(typeof f2.object.a).toBe("number");
@@ -39,19 +39,19 @@ describe("Filer", () => {
   });
 
   it("should serialize strings", () => {
-    const f = new Filer(true, example_obj, reporter);
+    const f = new Filer("load", example_obj, reporter);
     const str = f.prop_string("str", "default");
     expect(str).toBe("hello");
   });
 
   it("should serialize numbers", () => {
-    const f = new Filer(true, example_obj, reporter);
+    const f = new Filer("load", example_obj, reporter);
     const num = f.prop_number("num", 0);
     expect(num).toBe(42);
   });
 
   it("should serialize objects", () => {
-    const f = new Filer(true, example_obj, reporter);
+    const f = new Filer("load", example_obj, reporter);
     let called = false;
     f.prop_object("obj", (f2: Filer) => {
       expect(f2.object.foo).toBe("bar");
