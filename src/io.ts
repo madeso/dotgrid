@@ -15,9 +15,7 @@ import {
   type Tool,
 } from "./tool";
 
-interface JsonObject {
-  [name: string]: unknown;
-}
+type JsonObject = Record<string, unknown>;
 interface Log {
   message: string;
 }

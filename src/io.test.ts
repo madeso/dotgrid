@@ -2,7 +2,14 @@ import { describe, it, expect } from "vitest";
 import { Filer, type Reporter } from "./io";
 import type { Point } from "./_types";
 
-// todo(Gustav): replace with a better or local objects
+interface ExampleObj {
+  [key: string]: unknown;
+  arr?: Point[];
+  arrOfArr?: { a: number }[][];
+  str?: string;
+  num?: number;
+  obj?: { foo: string };
+}
 const example_obj = {
   arr: [
     { x: 1, y: 2 },
@@ -40,6 +47,24 @@ describe("Filer", () => {
     expect(arr).toStrictEqual([
       { x: 1, y: 2 },
       { x: 3, y: 4 },
+    ]);
+  });
+
+  it("should save arrays", () => {
+    const reporter: Reporter = { logs: [] };
+    const src: Point[] = [
+      { x: 4, y: 6 },
+      { x: 5, y: 7 },
+    ];
+    const dst: ExampleObj = {};
+    sr_point_array(new Filer("save", dst, reporter), src);
+
+    expect(reporter.logs).toStrictEqual([]);
+    expect(reporter.logs.length).toBe(0);
+    expect(dst.arr?.length).toBe(2);
+    expect(dst.arr).toStrictEqual([
+      { x: 4, y: 6 },
+      { x: 5, y: 7 },
     ]);
   });
 
