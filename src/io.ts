@@ -113,7 +113,7 @@ export class Filer {
   prop_array<T>(
     key: string,
     value: T[],
-    temp: T,
+    template: T,
     on: (f: Filer, t: T | undefined) => void
   ) {
     if (this.load_state === "load") {
@@ -130,7 +130,7 @@ export class Filer {
       }
       value.splice(0, value.length);
       root.forEach((item) => {
-        const p = structuredClone(temp);
+        const p = structuredClone(template);
         on(new Filer(this.load_state, item as JsonObject, this.reporter), p);
         value.push(p);
       });
@@ -147,6 +147,7 @@ export class Filer {
   prop_array_of_arrays<T>(
     key: string,
     def: T[][],
+    template: T,
     on: (f: Filer, t: T | undefined) => void
   ) {
     if (this.load_state === "load") {
@@ -163,6 +164,7 @@ export class Filer {
         });
         return;
       }
+      def.splice(0, def.length);
       root.forEach((subArray) => {
         if (!Array.isArray(subArray)) {
           this.reporter.logs.push({
@@ -170,12 +172,13 @@ export class Filer {
           });
           return;
         }
+        const arr: T[] = [];
         subArray.forEach((item) => {
-          on(
-            new Filer(this.load_state, item as JsonObject, this.reporter),
-            undefined
-          );
+          const t = structuredClone(template);
+          on(new Filer(this.load_state, item as JsonObject, this.reporter), t);
+          arr.push(t);
         });
+        def.push(arr);
       });
     } else {
       this.object[key] = def.map((subArray) => {
@@ -321,7 +324,8 @@ const sr_style = (fil: Filer, style: SingleStyle | undefined) => {
 const sr_tool = (filer: Filer, tool: Tool) => {
   tool.layer_index = filer.rd_number("index", tool.layer_index);
   filer.prop_array("vertices", tool.vertices, { x: 0, y: 0 }, sr_point);
-  filer.prop_array_of_arrays("layers", tool.layers, sr_segment);
+  const seg: Segment = { type: "line", vertices: [] };
+  filer.prop_array_of_arrays("layers", tool.layers, seg, sr_segment);
   filer.prop_array("styles", tool.styles, default_style_first, sr_style);
   filer.prop_object("size", (fil) => {
     const size = tool.settings.size;

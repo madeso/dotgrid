@@ -2,14 +2,19 @@ import { describe, it, expect } from "vitest";
 import { Filer, type Reporter } from "./io";
 import type { Point } from "./_types";
 
+interface Aobj {
+  a: number;
+}
+
 interface ExampleObj {
   [key: string]: unknown;
   arr?: Point[];
-  arrOfArr?: { a: number }[][];
+  arrOfArr?: Aobj[][];
   str?: string;
   num?: number;
   obj?: { foo: string };
 }
+
 const example_obj = {
   arr: [
     { x: 1, y: 2 },
@@ -33,6 +38,13 @@ const sr_point_array = (filer: Filer, arr: Point[]) => {
       p.y = y;
     }
   });
+};
+
+const sr_aobj = (f2: Filer, sub: Aobj | undefined) => {
+  const a = f2.rd_number("a", sub?.a ?? 0);
+  if (sub) {
+    sub.a = a;
+  }
 };
 
 describe("Filer", () => {
@@ -68,15 +80,23 @@ describe("Filer", () => {
     ]);
   });
 
-  it("should serialize array of arrays", () => {
+  it("should load array of arrays", () => {
     const reporter = { logs: [] };
     const f = new Filer("load", example_obj, reporter);
-    let count = 0;
-    f.prop_array_of_arrays("arrOfArr", [], (f2: Filer) => {
-      expect(typeof f2.object.a).toBe("number");
-      count++;
-    });
-    expect(count).toBe(3);
+    const r: Aobj[][] = [];
+    f.prop_array_of_arrays("arrOfArr", r, { a: 0 }, sr_aobj);
+    expect(reporter.logs).toStrictEqual([]);
+    expect(r).toStrictEqual([[{ a: 1 }, { a: 2 }], [{ a: 3 }]]);
+  });
+
+  it("should save array of arrays", () => {
+    const reporter = { logs: [] };
+    const dst: ExampleObj = {};
+    const f = new Filer("save", dst, reporter);
+    const src: Aobj[][] = [[{ a: 4 }], [{ a: 5 }, { a: 6 }]];
+    f.prop_array_of_arrays("arrOfArr", src, { a: 0 }, sr_aobj);
+    expect(reporter.logs).toStrictEqual([]);
+    expect(dst.arrOfArr).toStrictEqual([[{ a: 4 }], [{ a: 5 }, { a: 6 }]]);
   });
 
   it("should serialize strings", () => {
