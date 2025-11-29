@@ -8,6 +8,7 @@ import {
 } from "./_types";
 import { json_from_unknown, type PrettyOrCompact } from "./json";
 import {
+  default_style_first,
   tool_clear,
   tool_get_layer,
   type PushCallback,
@@ -20,11 +21,85 @@ interface JsonObject {
 interface Log {
   message: string;
 }
-interface Reporter {
+export interface Reporter {
   logs: Log[];
 }
 
-type LoadState = "load" | "save"
+class EnumMapper<TName, TValue> {
+  name_from_value: Map<TValue, TName>;
+  value_from_name: Map<TName, TValue>;
+
+  constructor() {
+    this.name_from_value = new Map();
+    this.value_from_name = new Map();
+  }
+
+  map(values: { name: TName; value: TValue }[]) {
+    for (const v of values) {
+      this.name_from_value.set(v.value, v.name);
+      this.value_from_name.set(v.name, v.value);
+    }
+    return this;
+  }
+
+  from_value(value: TValue): TName | undefined {
+    return this.name_from_value.get(value);
+  }
+
+  from_name(name: TName, err: () => void): TValue | undefined {
+    const r = this.value_from_name.get(name);
+    if (r === undefined) {
+      err();
+    }
+    return r;
+  }
+}
+
+type LoadState = "load" | "save";
+
+class Prop<TObj extends NonNullable<unknown>, TKey extends keyof TObj> {
+  filer: Filer;
+  root: TObj | null | undefined;
+  key: TKey;
+
+  constructor(f: Filer, r: TObj | null | undefined, k: TKey) {
+    this.filer = f;
+    this.root = r;
+    this.key = k;
+  }
+
+  set(new_value: TObj[TKey]) {
+    if (!this.root) return;
+    this.root[this.key] = new_value;
+  }
+
+  get(): TObj[TKey] | undefined {
+    if (!this.root) return undefined;
+    return this.root[this.key];
+  }
+
+  enum(
+    prop_key: string,
+    def: TObj[TKey],
+    mapper: EnumMapper<string, TObj[TKey]>
+  ): void {
+    const val = this.get() ?? def;
+    const str = mapper.from_value(val);
+    if (str === undefined) {
+      console.error(`INTERNAL ERROR: ${val} was not included in mapper`);
+      this.set(def);
+      return;
+    }
+    const valueStr = this.filer.rd_string(prop_key, str);
+    const new_value =
+      mapper.from_name(valueStr, () => {
+        this.filer.reporter.logs.push({
+          message: `Invalid value ${valueStr} for "${prop_key}"`,
+        });
+      }) ?? def;
+    this.set(new_value);
+  }
+}
 
 export class Filer {
   load_state: LoadState;
@@ -39,10 +114,11 @@ export class Filer {
 
   prop_array<T>(
     key: string,
-    def: T[],
+    value: T[],
+    temp: T,
     on: (f: Filer, t: T | undefined) => void
   ) {
-    if (this.load_state === 'load') {
+    if (this.load_state === "load") {
       const root = this.object[key];
       if (root === undefined) {
         this.reporter.logs.push({ message: `Missing required array ${key}` });
@@ -54,17 +130,17 @@ export class Filer {
         });
         return;
       }
+      value.splice(0, value.length);
       root.forEach((item) => {
-        on(
-          new Filer(this.load_state, item as JsonObject, this.reporter),
-          undefined
-        );
+        const p = structuredClone(temp);
+        on(new Filer(this.load_state, item as JsonObject, this.reporter), p);
+        value.push(p);
       });
     } else {
       // todo
-      this.object[key] = def.map((_item, index) => {
+      this.object[key] = value.map((_item, index) => {
         const ref: JsonObject = {};
-        on(new Filer(this.load_state, ref, this.reporter), def[index]);
+        on(new Filer(this.load_state, ref, this.reporter), value[index]);
         return ref;
       });
     }
@@ -75,7 +151,7 @@ export class Filer {
     def: T[][],
     on: (f: Filer, t: T | undefined) => void
   ) {
-    if (this.load_state === 'load') {
+    if (this.load_state === "load") {
       const root = this.object[key];
       if (root === undefined) {
         this.reporter.logs.push({
@@ -115,7 +191,7 @@ export class Filer {
   }
 
   prop_object(key: string, on: (f: Filer) => void) {
-    if (this.load_state  === 'load') {
+    if (this.load_state === "load") {
       const ref = this.object[key];
       if (ref === undefined) {
         this.reporter.logs.push({ message: `Missing required object ${key}` });
@@ -135,8 +211,8 @@ export class Filer {
     }
   }
 
-  prop_string(key: string, def: string): string {
-    if (this.load_state  === 'load') {
+  rd_string(key: string, def: string): string {
+    if (this.load_state === "load") {
       const ref = this.object[key];
       if (ref === undefined) {
         this.reporter.logs.push({ message: `Missing required string ${key}` });
@@ -155,8 +231,8 @@ export class Filer {
     }
   }
 
-  prop_number(key: string, def: number): number {
-    if (this.load_state  === 'load') {
+  rd_number(key: string, def: number): number {
+    if (this.load_state === "load") {
       const ref = this.object[key];
       if (ref === undefined) {
         this.reporter.logs.push({ message: `Missing required number ${key}` });
@@ -174,67 +250,14 @@ export class Filer {
       return def;
     }
   }
-}
 
-class EnumMapper<TName, TValue> {
-  name_from_value: Map<TValue, TName>;
-  value_from_name: Map<TName, TValue>;
-
-  constructor() {
-    this.name_from_value = new Map();
-    this.value_from_name = new Map();
-  }
-
-  map(values: { name: TName; value: TValue }[]) {
-    for (const v of values) {
-      this.name_from_value.set(v.value, v.name);
-      this.value_from_name.set(v.name, v.value);
-    }
-    return this;
-  }
-
-  from_value(value: TValue): TName | undefined {
-    return this.name_from_value.get(value);
-  }
-
-  from_name(name: TName, err: () => void): TValue | undefined {
-    const r = this.value_from_name.get(name);
-    if (r === undefined) {
-      err();
-    }
-    return r;
+  prop<TObj extends NonNullable<unknown>, TKey extends keyof TObj>(
+    root: TObj | null | undefined,
+    key: TKey
+  ) {
+    return new Prop(this, root, key);
   }
 }
-
-const fil_enum = <TObj extends NonNullable<unknown>, TKey extends keyof TObj>(
-  fil: Filer,
-  prop_key: string,
-  root: TObj | null | undefined,
-  root_key: TKey,
-  def: TObj[TKey],
-  mapper: EnumMapper<string, TObj[TKey]>
-): void => {
-  type T = TObj[TKey];
-  const set = (new_value: T) => {
-    if (!root) return;
-    root[root_key] = new_value;
-  };
-  const val = root?.[root_key] ?? def;
-  const str = mapper.from_value(val);
-  if (str === undefined) {
-    console.error(`INTERNAL ERROR: ${val} was not included in mapper`);
-    set(def);
-    return;
-  }
-  const valueStr = fil.prop_string(prop_key, str);
-  const new_value =
-    mapper.from_name(valueStr, () => {
-      fil.reporter.logs.push({
-        message: `Invalid value ${valueStr} for "${prop_key}"`,
-      });
-    }) ?? def;
-  set(new_value);
-};
 
 // ------------------------------------------------------------------------------------------------
 // mappers
@@ -270,8 +293,8 @@ const m_mirror = new EnumMapper<string, Mirror>().map([
 // serialize
 
 const sr_point = (fil: Filer, vert: Point | undefined) => {
-  const x = fil.prop_number("x", vert?.x ?? 0);
-  const y = fil.prop_number("y", vert?.y ?? 0);
+  const x = fil.rd_number("x", vert?.x ?? 0);
+  const y = fil.rd_number("y", vert?.y ?? 0);
   if (vert) {
     vert.x = x;
     vert.y = y;
@@ -279,17 +302,17 @@ const sr_point = (fil: Filer, vert: Point | undefined) => {
 };
 
 const sr_segment = (fil: Filer, seg: Segment | undefined) => {
-  fil.prop_array("vertices", seg?.vertices ?? [], sr_point);
-  fil_enum(fil, "type", seg, "type", "line", m_segment);
+  fil.prop_array("vertices", seg?.vertices ?? [], { x: 0, y: 0 }, sr_point);
+  fil.prop(seg, "type").enum("type", "line", m_segment);
 };
 
 const sr_style = (fil: Filer, style: SingleStyle | undefined) => {
-  const color = fil.prop_string("color", style?.color ?? "#FF0000");
-  const thickness = fil.prop_number("thickness", style?.thickness ?? 10);
+  const color = fil.rd_string("color", style?.color ?? "#FF0000");
+  const thickness = fil.rd_number("thickness", style?.thickness ?? 10);
 
-  fil_enum(fil, "strokeLinecap", style, "strokeLinecap", "round", m_linecap);
-  fil_enum(fil, "strokeLineJoin", style, "strokeLinejoin", "round", m_linejoin);
-  fil_enum(fil, "mirror", style, "mirror", "none", m_mirror);
+  fil.prop(style, "strokeLinecap").enum("strokeLinecap", "round", m_linecap);
+  fil.prop(style, "strokeLinejoin").enum("strokeLineJoin", "round", m_linejoin);
+  fil.prop(style, "mirror").enum("mirror", "none", m_mirror);
 
   if (style) {
     style.color = color;
@@ -298,14 +321,14 @@ const sr_style = (fil: Filer, style: SingleStyle | undefined) => {
 };
 
 const sr_tool = (filer: Filer, tool: Tool) => {
-  tool.layer_index = filer.prop_number("index", tool.layer_index);
-  filer.prop_array("vertices", tool.vertices, sr_point);
+  tool.layer_index = filer.rd_number("index", tool.layer_index);
+  filer.prop_array("vertices", tool.vertices, { x: 0, y: 0 }, sr_point);
   filer.prop_array_of_arrays("layers", tool.layers, sr_segment);
-  filer.prop_array("styles", tool.styles, sr_style);
+  filer.prop_array("styles", tool.styles, default_style_first, sr_style);
   filer.prop_object("size", (fil) => {
     const size = tool.settings.size;
-    size.width = fil.prop_number("width", size.width);
-    size.height = fil.prop_number("height", size.height);
+    size.width = fil.rd_number("width", size.width);
+    size.height = fil.rd_number("height", size.height);
   });
 };
 

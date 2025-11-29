@@ -69,37 +69,37 @@ export const rendering_layers_from_tool = (
 
 export const empty_layers = (): Layers => [[], [], []];
 
+export const default_style_first: SingleStyle = {
+  thickness: 15,
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
+  color: "#f00",
+  fill: false,
+  mirror: "none",
+};
+const default_style_second: SingleStyle = {
+  thickness: 15,
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
+  color: "#0f0",
+  fill: false,
+  mirror: "none",
+};
+const default_style_third: SingleStyle = {
+  thickness: 15,
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
+  color: "#00f",
+  fill: false,
+  mirror: "none",
+};
+
 export const tool_constructor = (): Tool => {
   return {
     layer_index: 0,
     settings: { size: { width: 300, height: 300 } },
     layers: empty_layers(),
-    styles: [
-      {
-        thickness: 15,
-        strokeLinecap: "round",
-        strokeLinejoin: "round",
-        color: "#f00",
-        fill: false,
-        mirror: "none",
-      },
-      {
-        thickness: 15,
-        strokeLinecap: "round",
-        strokeLinejoin: "round",
-        color: "#0f0",
-        fill: false,
-        mirror: "none",
-      },
-      {
-        thickness: 15,
-        strokeLinecap: "round",
-        strokeLinejoin: "round",
-        color: "#00f",
-        fill: false,
-        mirror: "none",
-      },
-    ],
+    styles: [default_style_first, default_style_second, default_style_third],
     vertices: [],
   };
 };
