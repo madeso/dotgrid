@@ -132,14 +132,26 @@ describe("Filer", () => {
     expect(dst.num).toBe(10);
   });
 
-  it("should serialize objects", () => {
+  it("should load objects", () => {
     const reporter = { logs: [] };
     const f = new Filer("load", example_obj, reporter);
-    let called = false;
+    let foo = "missing";
     f.prop_object("obj", (f2: Filer) => {
-      expect(f2.object.foo).toBe("bar");
-      called = true;
+      foo = f2.rd_string("foo", foo);
     });
-    expect(called).toBe(true);
+    expect(reporter.logs).toStrictEqual([]);
+    expect(foo).toBe("bar");
+  });
+
+  it("should serialize objects", () => {
+    const reporter = { logs: [] };
+    const dst: ExampleObj = {};
+    const f = new Filer("save", dst, reporter);
+    let foo = "data";
+    f.prop_object("obj", (f2: Filer) => {
+      foo = f2.rd_string("foo", foo);
+    });
+    expect(reporter.logs).toStrictEqual([]);
+    expect(dst.obj?.foo).toBe("data");
   });
 });
