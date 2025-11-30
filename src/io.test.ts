@@ -99,11 +99,21 @@ describe("Filer", () => {
     expect(dst.arrOfArr).toStrictEqual([[{ a: 4 }], [{ a: 5 }, { a: 6 }]]);
   });
 
-  it("should serialize strings", () => {
+  it("should load strings", () => {
     const reporter = { logs: [] };
     const f = new Filer("load", example_obj, reporter);
     const str = f.rd_string("str", "default");
     expect(str).toBe("hello");
+    expect(reporter.logs).toStrictEqual([]);
+  });
+
+  it("should save strings", () => {
+    const reporter = { logs: [] };
+    const dst: ExampleObj = {};
+    const f = new Filer("save", dst, reporter);
+    f.rd_string("str", "default");
+    expect(dst.str).toBe("default");
+    expect(reporter.logs).toStrictEqual([]);
   });
 
   it("should serialize numbers", () => {
