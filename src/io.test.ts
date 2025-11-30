@@ -103,8 +103,8 @@ describe("Filer", () => {
     const reporter = { logs: [] };
     const f = new Filer("load", example_obj, reporter);
     const str = f.rd_string("str", "default");
-    expect(str).toBe("hello");
     expect(reporter.logs).toStrictEqual([]);
+    expect(str).toBe("hello");
   });
 
   it("should save strings", () => {
@@ -112,15 +112,24 @@ describe("Filer", () => {
     const dst: ExampleObj = {};
     const f = new Filer("save", dst, reporter);
     f.rd_string("str", "default");
-    expect(dst.str).toBe("default");
     expect(reporter.logs).toStrictEqual([]);
+    expect(dst.str).toBe("default");
   });
 
-  it("should serialize numbers", () => {
+  it("should load numbers", () => {
     const reporter = { logs: [] };
     const f = new Filer("load", example_obj, reporter);
     const num = f.rd_number("num", 0);
+    expect(reporter.logs).toStrictEqual([]);
     expect(num).toBe(42);
+  });
+  it("should save numbers", () => {
+    const reporter = { logs: [] };
+    const dst: ExampleObj = {};
+    const f = new Filer("save", dst, reporter);
+    f.rd_number("num", 10);
+    expect(reporter.logs).toStrictEqual([]);
+    expect(dst.num).toBe(10);
   });
 
   it("should serialize objects", () => {
