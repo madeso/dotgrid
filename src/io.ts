@@ -76,6 +76,28 @@ class Prop<TObj extends NonNullable<unknown>, TKey extends keyof TObj> {
     return this.root[this.key];
   }
 
+  enum_int(
+    prop_key: string,
+    def: TObj[TKey],
+    mapper: EnumMapper<number, TObj[TKey]>
+  ): void {
+    const val = this.get() ?? def;
+    const str = mapper.from_value(val);
+    if (str === undefined) {
+      console.error(`INTERNAL ERROR: ${val} was not included in mapper`);
+      this.set(def);
+      return;
+    }
+    const valueStr = this.filer.rd_number(prop_key, str);
+    const new_value =
+      mapper.from_name(valueStr, () => {
+        this.filer.reporter.logs.push({
+          message: `Invalid value ${valueStr} for ${this.filer.path}."${prop_key}"`,
+        });
+      }) ?? def;
+    this.set(new_value);
+  }
+
   enum(
     prop_key: string,
     def: TObj[TKey],
@@ -92,7 +114,7 @@ class Prop<TObj extends NonNullable<unknown>, TKey extends keyof TObj> {
     const new_value =
       mapper.from_name(valueStr, () => {
         this.filer.reporter.logs.push({
-          message: `Invalid value ${valueStr} for "${prop_key}"`,
+          message: `Invalid value ${valueStr} for ${this.filer.path}."${prop_key}"`,
         });
       }) ?? def;
     this.set(new_value);
@@ -103,11 +125,31 @@ export class Filer {
   load_state: LoadState;
   object: JsonObject;
   reporter: Reporter;
+  version: number;
+  path: string;
 
-  constructor(ls: LoadState, o: JsonObject, rep: Reporter) {
+  constructor(
+    ls: LoadState,
+    o: JsonObject,
+    rep: Reporter,
+    v: number = 0,
+    p: string = ""
+  ) {
     this.load_state = ls;
     this.object = o;
     this.reporter = rep;
+    this.version = v;
+    this.path = p;
+  }
+
+  sub(item: JsonObject, p: string) {
+    return new Filer(
+      this.load_state,
+      item,
+      this.reporter,
+      this.version,
+      this.path + "." + p
+    );
   }
 
   prop_array<T>(
@@ -119,26 +161,28 @@ export class Filer {
     if (this.load_state === "load") {
       const root = this.object[key];
       if (root === undefined) {
-        this.reporter.logs.push({ message: `Missing required array ${key}` });
+        this.reporter.logs.push({
+          message: `Missing required array ${this.path}.${key}`,
+        });
         return;
       }
       if (!Array.isArray(root)) {
         this.reporter.logs.push({
-          message: `Required array ${key} was ${typeof root}`,
+          message: `Required array ${this.path}.${key} was ${typeof root}`,
         });
         return;
       }
       value.splice(0, value.length);
-      root.forEach((item) => {
+      root.forEach((item, item_index) => {
         const p = structuredClone(template);
-        on(new Filer(this.load_state, item as JsonObject, this.reporter), p);
+        on(this.sub(item as JsonObject, `${key}[${item_index}]`), p);
         value.push(p);
       });
     } else {
       // todo
-      this.object[key] = value.map((_item, index) => {
+      this.object[key] = value.map((_item, item_index) => {
         const ref: JsonObject = {};
-        on(new Filer(this.load_state, ref, this.reporter), value[index]);
+        on(this.sub(ref, `${key}[${item_index}]`), value[item_index]);
         return ref;
       });
     }
@@ -154,37 +198,50 @@ export class Filer {
       const root = this.object[key];
       if (root === undefined) {
         this.reporter.logs.push({
-          message: `Missing required array of arrays ${key}`,
+          message: `Missing required array of arrays ${this.path}.${key}`,
         });
         return;
       }
       if (!Array.isArray(root)) {
         this.reporter.logs.push({
-          message: `Required array of arrays ${key} was ${typeof root}`,
+          message: `Required array of arrays ${
+            this.path
+          }.${key} was ${typeof root}`,
         });
         return;
       }
       def.splice(0, def.length);
-      root.forEach((subArray) => {
+      root.forEach((subArray, sub_array_index) => {
         if (!Array.isArray(subArray)) {
           this.reporter.logs.push({
-            message: `Expected sub-array in ${key}, got ${typeof subArray}`,
+            message: `Expected sub-array in ${
+              this.path
+            }.${key}, got ${typeof subArray}`,
           });
           return;
         }
         const arr: T[] = [];
-        subArray.forEach((item) => {
+        subArray.forEach((item, item_index) => {
           const t = structuredClone(template);
-          on(new Filer(this.load_state, item as JsonObject, this.reporter), t);
+          on(
+            this.sub(
+              item as JsonObject,
+              `${key}[${sub_array_index}][${item_index}]`
+            ),
+            t
+          );
           arr.push(t);
         });
         def.push(arr);
       });
     } else {
-      this.object[key] = def.map((subArray) => {
+      this.object[key] = def.map((subArray, sub_array_index) => {
         return subArray.map((_item, index) => {
           const ref: JsonObject = {};
-          on(new Filer(this.load_state, ref, this.reporter), subArray[index]);
+          on(
+            this.sub(ref, `${key}[${sub_array_index}][${index}]`),
+            subArray[index]
+          );
           return ref;
         });
       });
@@ -195,19 +252,21 @@ export class Filer {
     if (this.load_state === "load") {
       const ref = this.object[key];
       if (ref === undefined) {
-        this.reporter.logs.push({ message: `Missing required object ${key}` });
+        this.reporter.logs.push({
+          message: `Missing required object ${this.path}.${key}`,
+        });
         return;
       }
       if (typeof ref !== "object") {
         this.reporter.logs.push({
-          message: `Required object ${key} was ${typeof ref}`,
+          message: `Required object ${this.path}.${key} was ${typeof ref}`,
         });
         return;
       }
-      on(new Filer(this.load_state, ref as JsonObject, this.reporter));
+      on(this.sub(ref as JsonObject, key));
     } else {
       const ref: JsonObject = {};
-      on(new Filer(this.load_state, ref, this.reporter));
+      on(this.sub(ref, key));
       this.object[key] = ref;
     }
   }
@@ -216,12 +275,14 @@ export class Filer {
     if (this.load_state === "load") {
       const ref = this.object[key];
       if (ref === undefined) {
-        this.reporter.logs.push({ message: `Missing required string ${key}` });
+        this.reporter.logs.push({
+          message: `Missing required string ${this.path}.${key}`,
+        });
         return def;
       }
       if (typeof ref !== "string") {
         this.reporter.logs.push({
-          message: `Required string ${key} was ${typeof ref}`,
+          message: `Required string ${this.path}.${key} was ${typeof ref}`,
         });
         return def;
       }
@@ -232,17 +293,28 @@ export class Filer {
     }
   }
 
-  rd_number(key: string, def: number): number {
+  rd_number(
+    key: string,
+    def: number,
+    required: "required" | "optional" = "required"
+  ): number {
     if (this.load_state === "load") {
       const ref = this.object[key];
       if (ref === undefined) {
-        this.reporter.logs.push({ message: `Missing required number ${key}` });
+        if (required === "required") {
+          this.reporter.logs.push({
+            message: `Missing required number ${this.path}.${key}`,
+          });
+        }
         return def;
       }
       if (typeof ref !== "number") {
-        this.reporter.logs.push({
-          message: `Required number ${key} was ${typeof ref}`,
-        });
+        const err = `${this.path}.${key} was ${typeof ref}`;
+        if (required === "required") {
+          this.reporter.logs.push({ message: `Required number ${err}` });
+        } else {
+          this.reporter.logs.push({ message: `Optional number ${err}` });
+        }
         return def;
       }
       return ref;
@@ -289,6 +361,12 @@ const m_mirror = new EnumMapper<string, Mirror>().map([
   { name: "vertical", value: "vertical" },
   { name: "diagonal", value: "diagonal" },
 ]);
+const m_mirror_int = new EnumMapper<number, Mirror>().map([
+  { name: 0, value: "none" },
+  { name: 1, value: "horizontal" },
+  { name: 2, value: "vertical" },
+  { name: 3, value: "diagonal" },
+]);
 
 // ------------------------------------------------------------------------------------------------
 // serialize
@@ -312,8 +390,20 @@ const sr_style = (fil: Filer, style: SingleStyle | undefined) => {
   const thickness = fil.rd_number("thickness", style?.thickness ?? 10);
 
   fil.prop(style, "strokeLinecap").enum("strokeLinecap", "round", m_linecap);
-  fil.prop(style, "strokeLinejoin").enum("strokeLineJoin", "round", m_linejoin);
-  fil.prop(style, "mirror").enum("mirror", "none", m_mirror);
+  if (fil.version === 0) {
+    fil
+      .prop(style, "strokeLinejoin")
+      .enum("strokeLinejoin", "round", m_linejoin);
+  } else {
+    fil
+      .prop(style, "strokeLinejoin")
+      .enum("strokeLineJoin", "round", m_linejoin);
+  }
+  if (fil.version === 0) {
+    fil.prop(style, "mirror").enum_int("mirror_style", "none", m_mirror_int);
+  } else {
+    fil.prop(style, "mirror").enum("mirror", "none", m_mirror);
+  }
 
   if (style) {
     style.color = color;
@@ -321,17 +411,32 @@ const sr_style = (fil: Filer, style: SingleStyle | undefined) => {
   }
 };
 
-const sr_tool = (filer: Filer, tool: Tool) => {
-  tool.layer_index = filer.rd_number("index", tool.layer_index);
-  filer.prop_array("vertices", tool.vertices, { x: 0, y: 0 }, sr_point);
+export const sr_tool = (filer: Filer, tool: Tool) => {
+  filer.version = filer.rd_number("version", 0, "optional");
+
+  if (filer.version > 0) {
+    tool.layer_index = filer.rd_number("index", tool.layer_index);
+    filer.prop_array("vertices", tool.vertices, { x: 0, y: 0 }, sr_point);
+  }
+
   const seg: Segment = { type: "line", vertices: [] };
   filer.prop_array_of_arrays("layers", tool.layers, seg, sr_segment);
   filer.prop_array("styles", tool.styles, default_style_first, sr_style);
-  filer.prop_object("size", (fil) => {
-    const size = tool.settings.size;
-    size.width = fil.rd_number("width", size.width);
-    size.height = fil.rd_number("height", size.height);
-  });
+  if (filer.version === 0) {
+    filer.prop_object("settings", (fil_settings) => {
+      fil_settings.prop_object("size", (fil) => {
+        const size = tool.settings.size;
+        size.width = fil.rd_number("width", size.width);
+        size.height = fil.rd_number("height", size.height);
+      });
+    });
+  } else {
+    filer.prop_object("size", (fil) => {
+      const size = tool.settings.size;
+      size.width = fil.rd_number("width", size.width);
+      size.height = fil.rd_number("height", size.height);
+    });
+  }
 };
 
 // ------------------------------------------------------------------------------------------------

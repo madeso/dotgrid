@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { Filer, type Reporter } from "./io";
+import { Filer, sr_tool, type Reporter } from "./io";
 import type { Point } from "./_types";
+import { tool_constructor } from "./tool";
 
 interface Aobj {
   a: number;
@@ -153,5 +154,121 @@ describe("Filer", () => {
     });
     expect(reporter.logs).toStrictEqual([]);
     expect(dst.obj?.foo).toBe("data");
+  });
+});
+
+describe("Import", () => {
+  const old_file = {
+    settings: {
+      size: {
+        width: 1665,
+        height: 825,
+      },
+    },
+    layers: [
+      [
+        {
+          type: "line",
+          vertices: [
+            {
+              x: 30,
+              y: 120,
+            },
+            {
+              x: 120,
+              y: 60,
+            },
+          ],
+        },
+        {
+          type: "line",
+          vertices: [
+            {
+              x: 90,
+              y: 120,
+            },
+            {
+              x: 90,
+              y: 210,
+            },
+            {
+              x: 180,
+              y: 210,
+            },
+            {
+              x: 180,
+              y: 120,
+            },
+          ],
+        },
+        {
+          type: "close",
+          vertices: [],
+        },
+      ],
+      [
+        {
+          type: "bezier",
+          vertices: [
+            {
+              x: 150,
+              y: 90,
+            },
+            {
+              x: 165,
+              y: 45,
+            },
+            {
+              x: 195,
+              y: 60,
+            },
+            {
+              x: 210,
+              y: 150,
+            },
+            {
+              x: 240,
+              y: 60,
+            },
+          ],
+        },
+      ],
+      [],
+    ],
+    styles: [
+      {
+        thickness: 15,
+        strokeLinecap: "round",
+        strokeLinejoin: "round",
+        color: "#0a0a0a",
+        fill: "none",
+        mirror_style: 0,
+        transform: "rotate(45)",
+      },
+      {
+        thickness: 15,
+        strokeLinecap: "butt",
+        strokeLinejoin: "round",
+        color: "#FF0000",
+        fill: "none",
+        mirror_style: 0,
+        transform: "rotate(45)",
+      },
+      {
+        thickness: 15,
+        strokeLinecap: "round",
+        strokeLinejoin: "round",
+        color: "#6a6a6a",
+        fill: "none",
+        mirror_style: 0,
+        transform: "rotate(45)",
+      },
+    ],
+  };
+  it("should import old files", () => {
+    const reporter: Reporter = { logs: [] };
+    const tool = tool_constructor();
+    sr_tool(new Filer("load", old_file, reporter), tool);
+    expect(reporter.logs).toStrictEqual([]);
   });
 });
