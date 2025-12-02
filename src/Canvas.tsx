@@ -10,7 +10,7 @@ const clamp = (v: number, min: number, max: number) => {
     return v < min ? min : v > max ? max : v;
 };
 
-const MirrorEl = (props: { show: boolean, mirror: Mirror, size: Size, scale: number, theme: Colors }) => {
+const MirrorEl = (props: { show: boolean, mirror: Mirror, size: Size, scale: number, theme: Colors, grid_spacing: number }) => {
     if (props.show === false) {
         return <></>;
     }
@@ -31,7 +31,7 @@ const MirrorEl = (props: { show: boolean, mirror: Mirror, size: Size, scale: num
         props.mirror === "diagonal"
     ) {
         first = <Rule id='first-mirror'
-            from={{ x: middle.x, y: 15 * props.scale }}
+            from={{ x: middle.x, y: props.grid_spacing * props.scale }}
             to={{ x: middle.x, y: props.size.height * props.scale }}
             theme={props.theme}
         />;
@@ -42,7 +42,7 @@ const MirrorEl = (props: { show: boolean, mirror: Mirror, size: Size, scale: num
         props.mirror === "diagonal"
     ) {
         second = <Rule id='second-mirror'
-            from={{ x: 15 * props.scale, y: middle.y }}
+            from={{ x: props.grid_spacing * props.scale, y: middle.y }}
             to={{ x: props.size.width * props.scale, y: middle.y }}
             theme={props.theme}
         />;
@@ -52,7 +52,7 @@ const MirrorEl = (props: { show: boolean, mirror: Mirror, size: Size, scale: num
     </>;
 };
 
-const Grid = (props: { size: Size, theme: Colors, scale: number, showExtras: boolean }) => {
+const Grid = (props: { size: Size, theme: Colors, scale: number, showExtras: boolean, grid_spacing: number }) => {
     const size = props.size;
     const theme = props.theme;
     const this_scale = props.scale;
@@ -63,8 +63,8 @@ const Grid = (props: { size: Size, theme: Colors, scale: number, showExtras: boo
     }
 
     const markers = {
-        w: Math.floor(size.width / 15),
-        h: Math.floor(size.height / 15),
+        w: Math.floor(size.width / props.grid_spacing),
+        h: Math.floor(size.height / props.grid_spacing),
     };
 
     const dots: ReactElement[] = [];
@@ -76,8 +76,8 @@ const Grid = (props: { size: Size, theme: Colors, scale: number, showExtras: boo
                 continue;
             }
             const pos = {
-                x: x * 15 * this_scale,
-                y: y * 15 * this_scale,
+                x: x * props.grid_spacing * this_scale,
+                y: y * props.grid_spacing * this_scale,
             };
             const radius = isStep ? 2.5 : 1.5;
             dots.push(
@@ -392,6 +392,7 @@ export const Canvas = (props: {
     vertex_radius: number, tool_vertices: Point[]
     cursor_pos: Point, cursor_radius: number,
     cast_preview: SegmentType | null,
+    grid_spacing: number,
     props?: React.SVGProps<SVGSVGElement>
 }) => {
     return <svg id="guide" ref={props.ref}
@@ -399,8 +400,8 @@ export const Canvas = (props: {
         height={props.size.height * props.scale}
         {...props.props}>
         <ClearRect size={props.size} scale={props.scale} theme={props.theme} />
-        <MirrorEl show={props.show_guides} mirror={props.mirror} scale={props.scale} size={props.size} theme={props.theme} />
-        <Grid scale={props.scale} size={props.size} theme={props.theme} showExtras={props.show_grid} />
+        <MirrorEl show={props.show_guides} mirror={props.mirror} scale={props.scale} size={props.size} theme={props.theme} grid_spacing={props.grid_spacing} />
+        <Grid scale={props.scale} size={props.size} theme={props.theme} showExtras={props.show_grid} grid_spacing={props.grid_spacing} />
         <Rulers pos={props.translation_to} scale={props.scale} size={props.size} theme={props.theme} />
         <SvgLayers layers={props.layers} />
         <Vertices radius={props.vertex_radius} scale={props.scale} theme={props.theme} vertices={props.tool_vertices} />

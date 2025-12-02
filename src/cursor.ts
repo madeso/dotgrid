@@ -87,9 +87,10 @@ export const cursor_on_mouse_down = (
   e: GenericMouseEvent,
   size: Size,
   offset: Offset,
-  scale: number
+  scale: number,
+  grid_spacing: number,
 ) => {
-  cursor.pos = cursor_position_from_event(e, size, offset, scale);
+  cursor.pos = cursor_position_from_event(e, size, offset, scale, grid_spacing);
   if (vertex_at(cursor.pos)) {
     handle_translate_action(
       cursor,
@@ -108,9 +109,10 @@ export const cursor_on_cursor_move = (
   e: GenericMouseEvent,
   size: Size,
   offset: Offset,
-  scale: number
+  scale: number,
+  grid_spacing: number
 ) => {
-  cursor.pos = cursor_position_from_event(e, size, offset, scale);
+  cursor.pos = cursor_position_from_event(e, size, offset, scale, grid_spacing);
   if (cursor.translation) {
     handle_translate_action(cursor, null, cursor.pos);
   }
@@ -125,9 +127,10 @@ export const cursor_on_mouse_up = (
   offset: Offset,
   translation_callback: (from: Point, to: Point, meta: TranslateKeys) => void,
   add_vertex: (p: Point) => void,
-  scale: number
+  scale: number,
+  grid_spacing: number
 ) => {
-  cursor.pos = cursor_position_from_event(e, size, offset, scale);
+  cursor.pos = cursor_position_from_event(e, size, offset, scale, grid_spacing);
   if (
     cursor.translation &&
     !is_equal(cursor.translation.from, cursor.translation.to)
@@ -154,9 +157,10 @@ export const cursor_on_context_menu = (
   size: Size,
   offset: Offset,
   remove_segment: (p: Point) => void,
-  scale: number
+  scale: number,
+  grid_spacing: number
 ) => {
-  cursor.pos = cursor_position_from_event(e, size, offset, scale);
+  cursor.pos = cursor_position_from_event(e, size, offset, scale, grid_spacing);
   remove_segment(cursor.pos);
   e.preventDefault();
 };
@@ -165,11 +169,12 @@ const cursor_position_from_event = (
   e: GenericMouseEvent,
   size: Size,
   offset: Offset,
-  scale: number
+  scale: number,
+  grid_spacing: number,
 ) => {
   return snap_position_to_grid(
     size,
-    get_relative_position(offset, scale, { x: e.clientX, y: e.clientY })
+    get_relative_position(offset, scale, { x: e.clientX, y: e.clientY }), grid_spacing
   );
 };
 
@@ -185,9 +190,9 @@ const get_relative_position = (offset: Offset, scale: number, pos: Point) => {
   };
 };
 
-const snap_position_to_grid = (size: Size, pos: Point) => {
+const snap_position_to_grid = (size: Size, pos: Point, grid_spacing: number) => {
   return {
-    x: clamp(step(pos.x, 15), 15, size.width - 15),
-    y: clamp(step(pos.y, 15), 15, size.height - 15),
+    x: clamp(step(pos.x, grid_spacing), grid_spacing, size.width - grid_spacing),
+    y: clamp(step(pos.y, grid_spacing), grid_spacing, size.height - grid_spacing),
   };
 };

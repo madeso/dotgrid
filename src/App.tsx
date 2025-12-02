@@ -502,28 +502,28 @@ const App = () => {
     {
       category: "Control", name: "Move Up", accelerator: "Up", action: () => {
         const c = structuredClone(cursor);
-        c.pos.y -= 15;
+        c.pos.y -= tool.grid_spacing;
         setCursor(c);
       }
     },
     {
       category: "Control", name: "Move Right", accelerator: "Right", action: () => {
         const c = structuredClone(cursor);
-        c.pos.x += 15;
+        c.pos.x += tool.grid_spacing;
         setCursor(c);
       }
     },
     {
       category: "Control", name: "Move Down", accelerator: "Down", action: () => {
         const c = structuredClone(cursor);
-        c.pos.y += 15;
+        c.pos.y += tool.grid_spacing;
         setCursor(c);
       }
     },
     {
       category: "Control", name: "Move Left", accelerator: "Left", action: () => {
         const c = structuredClone(cursor);
-        c.pos.x -= 15;
+        c.pos.x -= tool.grid_spacing;
         setCursor(c);
       }
     },
@@ -609,7 +609,7 @@ const App = () => {
       const offset = offset_from_canvas(canvasElement.current);
 
       const c = structuredClone(cursor);
-      cursor_on_cursor_move(c, ev, tool.settings.size, offset, scale);
+      cursor_on_cursor_move(c, ev, tool.settings.size, offset, scale, tool.grid_spacing);
       setCursor(c);
     },
     onContextMenu: (ev) => {
@@ -623,14 +623,14 @@ const App = () => {
         tool_clear(t);
         setTool(t);
         setHistory(h);
-      }, scale);
+      }, scale, tool.grid_spacing);
     },
     onPointerDown: (ev) => {
       ev.preventDefault();
       const offset = offset_from_canvas(canvasElement.current);
 
       const c = structuredClone(cursor);
-      cursor_on_mouse_down(c, (p) => tool_vertex_at(tool, p), ev, tool.settings.size, offset, scale)
+      cursor_on_mouse_down(c, (p) => tool_vertex_at(tool, p), ev, tool.settings.size, offset, scale, tool.grid_spacing)
       setCursor(c);
     },
     onPointerUp: (ev) => {
@@ -667,7 +667,7 @@ const App = () => {
       };
 
       const c = structuredClone(cursor);
-      cursor_on_mouse_up(c, ev, tool.settings.size, offset, translate, add_vertex, scale);
+      cursor_on_mouse_up(c, ev, tool.settings.size, offset, translate, add_vertex, scale, tool.grid_spacing);
       setCursor(c);
 
       if (tool_changed) {
@@ -823,6 +823,7 @@ const App = () => {
           active_layer={tool_get_layer(tool)}
           layers={rendering_layers_from_tool(tool, scale, tool.settings.size)}
           tool_vertices={tool.vertices}
+          grid_spacing={tool.grid_spacing}
           theme={theme}
           props={events}
         />
@@ -933,6 +934,16 @@ const App = () => {
                     <label>Scale</label>
                     <input type='number' value={scale} min={1}
                       onChange={(v) => setScale(parseInt(v.target.value))} />
+                  </Row>
+                  <Row>
+                    <label>Spacing</label>
+                    <input type='number' value={tool.grid_spacing} min={1}
+                      onChange={(v) => {
+                        const new_spacing = parseInt(v.target.value);
+                        const t = structuredClone(tool);
+                        t.grid_spacing = new_spacing;
+                        setTool(t);
+                      }} />
                   </Row>
                 </Properties>
               </div>

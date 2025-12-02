@@ -21,6 +21,7 @@ export type PushCallback = (lay: Layers) => void;
 
 export interface Tool {
   layer_index: number;
+  grid_spacing: number;
   settings: { size: Size };
   layers: Layers;
   vertices: Array<Point>;
@@ -101,6 +102,7 @@ export const tool_constructor = (): Tool => {
     layers: empty_layers(),
     styles: [default_style_first, default_style_second, default_style_third],
     vertices: [],
+    grid_spacing: 15
   };
 };
 
