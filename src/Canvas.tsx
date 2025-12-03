@@ -357,10 +357,11 @@ const ClearRect = (props: { size: Size, scale: number, theme: Colors }) => {
 
 const SvgLayer = (props: {
     style: SingleStyle,
-    path: string
+    path: string,
+    scale: number
 }) => {
     return <path
-        strokeWidth={props.style.thickness.toString()}
+        strokeWidth={props.style.thickness * props.scale}
         strokeLinecap={props.style.strokeLinecap}
         strokeLinejoin={props.style.strokeLinejoin}
         stroke={props.style.color}
@@ -370,10 +371,11 @@ const SvgLayer = (props: {
 }
 
 const SvgLayers = (props: {
-    layers: RenderingLayer[]
+    layers: RenderingLayer[],
+    scale: number
 }) => {
     return props.layers.slice(0).reverse().map((layer, layer_index) => {
-        return <SvgLayer key={layer_index} path={layer.path} style={layer.style} />
+        return <SvgLayer key={layer_index} scale={props.scale} path={layer.path} style={layer.style} />
     });
 }
 
@@ -403,7 +405,7 @@ export const Canvas = (props: {
         <MirrorEl show={props.show_guides} mirror={props.mirror} scale={props.scale} size={props.size} theme={props.theme} grid_spacing={props.grid_spacing} />
         <Grid scale={props.scale} size={props.size} theme={props.theme} showExtras={props.show_grid} grid_spacing={props.grid_spacing} />
         <Rulers pos={props.translation_to} scale={props.scale} size={props.size} theme={props.theme} />
-        <SvgLayers layers={props.layers} />
+        <SvgLayers scale={props.scale} layers={props.layers} />
         <Vertices radius={props.vertex_radius} scale={props.scale} theme={props.theme} vertices={props.tool_vertices} />
         <Handles layer={props.active_layer} scale={props.scale} showExtras={props.show_handles} theme={props.theme} />
         <Translation from={props.translation_from} to={props.translation_to} scale={props.scale} theme={props.theme} copy={props.copy} multi={props.multi} />
