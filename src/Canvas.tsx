@@ -372,7 +372,7 @@ const SvgLayer = (props: {
 const SvgLayers = (props: {
     layers: RenderingLayer[]
 }) => {
-    return props.layers.map((layer, layer_index) => {
+    return props.layers.slice(0).reverse().map((layer, layer_index) => {
         return <SvgLayer key={layer_index} path={layer.path} style={layer.style} />
     });
 }
